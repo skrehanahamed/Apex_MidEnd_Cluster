@@ -2,6 +2,10 @@
 
 A high-fidelity, real-time automotive digital instrument cluster HMI for the **Hyundai Exter AMT**, built using **Qt 6 (QML / Qt Quick)** and modern **C++20**.
 
+<p align="center">
+  <img src="assets/cluster_preview.png" alt="Hyundai Exter AMT Digital Instrument Cluster Preview" width="95%" />
+</p>
+
 ---
 
 ## 📸 Key Features
