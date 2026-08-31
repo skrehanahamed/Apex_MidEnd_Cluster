@@ -1,0 +1,30 @@
+# Build artifacts
+build/
+bin/
+*.o
+*.a
+*.dylib
+*.so
+*.app
+.qt/
+.rcc/
+Makefile.Debug
+Makefile.Release
+
+# CMake
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+Makefile
+*.ninja
+.ninja_*
+
+# IDEs and OS
+.DS_Store
+.vscode/
+.idea/
+*.swp
+*.user
+*.user.*
+.gemini/
+.agents/
