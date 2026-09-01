@@ -1,6 +1,8 @@
 # Hyundai Exter AMT Digital Instrument Cluster HMI
 
-<img width="2646" height="966" alt="image" src="https://github.com/user-attachments/assets/897b027e-8802-445d-888c-0f5f209b11a7" />
+<p align="center">
+  <img src="assets/cluster_preview.png" alt="Hyundai Exter AMT Digital Instrument Cluster" width="100%" />
+</p>
 
 <p align="center">
   <img src="https://img.shields.io/badge/Version-2.0.0-blue.svg?style=for-the-badge" />
@@ -19,6 +21,11 @@ A production-grade, photorealistic Automotive Digital Instrument Cluster HMI for
 ## Release Notes - Version 2.0.0 (Updated: September 2, 2026)
 
 ### 1. OEM Infotainment & Media Popup Banner (Top-Line Emergence & Marquee)
+
+<p align="center">
+  <img src="assets/features/08_media_popup_usb.png" alt="OEM Infotainment Media Popup Banner" width="95%" />
+</p>
+
 - Top-Line Emergence: The media banner glides out smoothly directly from inside the top white TFT divider line (520ms entrance with OutCubic easing) rather than dropping from outside the housing.
 - 5-Second Auto-Dismiss: Stays visible for 5 seconds upon starting or switching tracks, then glides back up into the top line.
 - Every-Song Re-Triggering: Switching songs always re-triggers the slide-out entrance and resets the text position to start.
@@ -35,6 +42,11 @@ A production-grade, photorealistic Automotive Digital Instrument Cluster HMI for
 ---
 
 ### 2. Full 4-Wheel Interactive TPMS Control Station
+
+<p align="center">
+  <img src="assets/features/11_tpms_4wheel_status.png" alt="TPMS 4-Wheel Pressure Monitoring" width="95%" />
+</p>
+
 - 2x2 Interactive Wheel Grid in ECU Simulator:
   - Dedicated cards for Front-Left (FL), Front-Right (FR), Rear-Left (RL), and Rear-Right (RR) tyres.
   - Live Status Readout: Color-coded in Green (OK >= 32 PSI), Yellow/Amber (Low 26-31 PSI), and Red (Flat/Puncture < 26 PSI).
@@ -48,6 +60,11 @@ A production-grade, photorealistic Automotive Digital Instrument Cluster HMI for
 ---
 
 ### 3. Standby Ignition-OFF Mode with Door-Wake Reactivity
+
+<p align="center">
+  <img src="assets/features/03_ignition_door_wake.png" alt="Standby Ignition-OFF Door Wake" width="95%" />
+</p>
+
 - State 5 (Ignition OFF / Standby):
   - When all doors are closed, the entire instrument cluster is 100% pitch black (total dark, zero dials, zero background glow).
 - Door-Wake Reactivity:
@@ -58,12 +75,22 @@ A production-grade, photorealistic Automotive Digital Instrument Cluster HMI for
 ---
 
 ### 4. Pixel-Locked Zero-Movement Car Door Animation & Hazard Glows
+
+<p align="center">
+  <img src="assets/features/13_car_door_open_animation.png" alt="Pixel-Locked Car Door Animation" width="95%" />
+</p>
+
 - Zero-Drift Pixel Lock: All 19 car door animation frames are mathematically normalized against the base chassis (0.000 pixel drift). When doors open or close, the chassis, roof, windshield, and wheels remain completely motionless — only the door flaps physically swing outward.
 - Contoured Bonnet & Trunk Hazards: Photorealistic red hazard glow overlays following the exact vehicle body stamping lines, pulsing at a 400ms cadence.
 
 ---
 
 ### 5. Autonomous Dynamic Driving Simulation Engine
+
+<p align="center">
+  <img src="assets/features/15_autonomous_drive_simulation.png" alt="Autonomous Dynamic Driving Simulation" width="95%" />
+</p>
+
 - Multi-Phase Driving Cycle (approx. 60 seconds realistic highway/city loop):
   - Phase 1: City Start & Acceleration (0 to 45 km/h) with automatic gear shifting D1 to D2 to D3.
   - Phase 2: Left Lane Change with automatic Left Turn Signal (3s flashing).
@@ -80,6 +107,24 @@ A production-grade, photorealistic Automotive Digital Instrument Cluster HMI for
 - Swapped Master Warning to Far-Left (mid-height beside speedometer).
 - Swapped Bulb Fault to Bottom-Left (near lower gauge curved line).
 - Aligned Smart Key alert triggers into a clean 2x2 grid with full-width dismiss bar.
+
+---
+
+## Feature Gallery
+
+<p align="center">
+  <img src="assets/features/05_user_settings_menu.png" alt="OEM Hierarchical User Settings" width="48%" />
+  <img src="assets/features/06_cluster_theme_selection.png" alt="Cluster Theme Selection" width="48%" />
+</p>
+
+<p align="center">
+  <img src="assets/features/07_illumination_slider.png" alt="3D Illumination Arc Gauge" width="48%" />
+  <img src="assets/features/04_trip_computer_drive_info.png" alt="Trip Computer Drive Info" width="48%" />
+</p>
+
+<p align="center">
+  <img src="assets/features/14_car_bonnet_trunk_hazards.png" alt="Bonnet and Trunk Hazard Warnings" width="95%" />
+</p>
 
 ---
 
@@ -187,6 +232,9 @@ hyundai-exter-cluster/
 ├── CMakeLists.txt            # CMake build configuration and QML type registration
 ├── Makefile                  # Helper make targets (run, build, clean)
 ├── README.md                 # Complete project documentation
+├── assets/
+│   ├── cluster_preview.png   # Full digital cluster overview screenshot
+│   └── features/             # Feature screenshots and component illustrations
 ├── src/
 │   ├── main.cpp              # Application entry point & QML engine initialization
 │   ├── ClusterController.h   # C++ controller (CAN/ECU state, Media, TPMS, Power, Themes)
