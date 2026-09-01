@@ -1,3 +1,13 @@
+/**
+ * ============================================================================
+ * Project:        Automotive Digital Instrument Cluster HMI
+ * File:           main.cpp
+ * Author:         SK Rehan Ahamed
+ * Description:    Application Entry Point & QML Engine Initializer
+ * Copyright (c) 2026 SK Rehan Ahamed. All rights reserved.
+ * ============================================================================
+ */
+
 #include <QGuiApplication>
 #include <QQmlApplicationEngine>
 #include <QQmlContext>

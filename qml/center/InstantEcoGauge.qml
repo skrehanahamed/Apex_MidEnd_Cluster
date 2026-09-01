@@ -1,3 +1,13 @@
+/**
+ * ============================================================================
+ * Project:        Automotive Digital Instrument Cluster HMI
+ * File:           InstantEcoGauge.qml
+ * Author:         SK Rehan Ahamed
+ * Description:    3D Volumetric Extruded Instant Fuel Economy Gauge
+ * Copyright (c) 2026 SK Rehan Ahamed. All rights reserved.
+ * ============================================================================
+ */
+
 import QtQuick
 
 Item {

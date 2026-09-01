@@ -1,3 +1,13 @@
+/**
+ * ============================================================================
+ * Project:        Automotive Digital Instrument Cluster HMI
+ * File:           TpmsDisplayView.qml
+ * Author:         SK Rehan Ahamed
+ * Description:    3D 4-Wheel Tyre Pressure Monitoring System (TPMS)
+ * Copyright (c) 2026 SK Rehan Ahamed. All rights reserved.
+ * ============================================================================
+ */
+
 import QtQuick
 
 Item {

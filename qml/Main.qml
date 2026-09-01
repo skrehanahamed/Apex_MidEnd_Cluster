@@ -1,3 +1,13 @@
+/**
+ * ============================================================================
+ * Project:        Automotive Digital Instrument Cluster HMI
+ * File:           Main.qml
+ * Author:         SK Rehan Ahamed
+ * Description:    Root Window & Global Event Routing Container
+ * Copyright (c) 2026 SK Rehan Ahamed. All rights reserved.
+ * ============================================================================
+ */
+
 import QtQuick
 import QtQuick.Controls
 import "simulator"

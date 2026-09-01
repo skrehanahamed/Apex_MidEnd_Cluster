@@ -1,3 +1,13 @@
+/**
+ * ============================================================================
+ * Project:        Automotive Digital Instrument Cluster HMI
+ * File:           StartupAnimationView.qml
+ * Author:         SK Rehan Ahamed
+ * Description:    Cluster Power-On Welcome Wave Animation Sequence
+ * Copyright (c) 2026 SK Rehan Ahamed. All rights reserved.
+ * ============================================================================
+ */
+
 import QtQuick
 
 Item {

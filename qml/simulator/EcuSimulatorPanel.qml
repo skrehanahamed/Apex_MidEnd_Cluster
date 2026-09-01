@@ -1,3 +1,13 @@
+/**
+ * ============================================================================
+ * Project:        Automotive Digital Instrument Cluster HMI
+ * File:           EcuSimulatorPanel.qml
+ * Author:         SK Rehan Ahamed
+ * Description:    Interactive ECU Telemetry Test Bench & Diagnostics Panel
+ * Copyright (c) 2026 SK Rehan Ahamed. All rights reserved.
+ * ============================================================================
+ */
+
 import QtQuick
 import QtQuick.Controls
 

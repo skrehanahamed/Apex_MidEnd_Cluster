@@ -1,3 +1,13 @@
+/**
+ * ============================================================================
+ * Project:        Automotive Digital Instrument Cluster HMI
+ * File:           GoodbyeView.qml
+ * Author:         SK Rehan Ahamed
+ * Description:    Cluster Power-Off Summary & Shutdown Sequence
+ * Copyright (c) 2026 SK Rehan Ahamed. All rights reserved.
+ * ============================================================================
+ */
+
 import QtQuick
 
 Item {

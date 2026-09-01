@@ -1,3 +1,13 @@
+/**
+ * ============================================================================
+ * Project:        Automotive Digital Instrument Cluster HMI
+ * File:           SpeedDisplay.qml
+ * Author:         SK Rehan Ahamed
+ * Description:    Digital Speedometer & Segmented Arc Display
+ * Copyright (c) 2026 SK Rehan Ahamed. All rights reserved.
+ * ============================================================================
+ */
+
 import QtQuick
 
 Item {

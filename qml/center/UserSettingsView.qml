@@ -1,3 +1,13 @@
+/**
+ * ============================================================================
+ * Project:        Automotive Digital Instrument Cluster HMI
+ * File:           UserSettingsView.qml
+ * Author:         SK Rehan Ahamed
+ * Description:    Hierarchical OEM User Settings & Multi-Language Localization
+ * Copyright (c) 2026 SK Rehan Ahamed. All rights reserved.
+ * ============================================================================
+ */
+
 import QtQuick
 import QtQuick.Controls
 

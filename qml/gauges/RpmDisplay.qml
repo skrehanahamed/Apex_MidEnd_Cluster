@@ -1,3 +1,13 @@
+/**
+ * ============================================================================
+ * Project:        Automotive Digital Instrument Cluster HMI
+ * File:           RpmDisplay.qml
+ * Author:         SK Rehan Ahamed
+ * Description:    Digital Tachometer & RPM Torque Curve Display
+ * Copyright (c) 2026 SK Rehan Ahamed. All rights reserved.
+ * ============================================================================
+ */
+
 import QtQuick
 
 Item {

@@ -1,3 +1,13 @@
+/**
+ * ============================================================================
+ * Project:        Automotive Digital Instrument Cluster HMI
+ * File:           CenterTripDisplay.qml
+ * Author:         SK Rehan Ahamed
+ * Description:    Central 4.2-inch TFT Multi-Function Display (MFD) Controller
+ * Copyright (c) 2026 SK Rehan Ahamed. All rights reserved.
+ * ============================================================================
+ */
+
 import QtQuick
 
 Item {

@@ -1,3 +1,13 @@
+/**
+ * ============================================================================
+ * Project:        Automotive Digital Instrument Cluster HMI
+ * File:           ClusterController.cpp
+ * Author:         SK Rehan Ahamed
+ * Description:    Automotive CAN / ECU Telemetry Controller Implementation
+ * Copyright (c) 2026 SK Rehan Ahamed. All rights reserved.
+ * ============================================================================
+ */
+
 #include "ClusterController.h"
 #include <cmath>
 

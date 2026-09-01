@@ -1,3 +1,13 @@
+/**
+ * ============================================================================
+ * Project:        Automotive Digital Instrument Cluster HMI
+ * File:           BlueFrame.qml
+ * Author:         SK Rehan Ahamed
+ * Description:    Outer Cluster Bezel & Curved Accent Frame
+ * Copyright (c) 2026 SK Rehan Ahamed. All rights reserved.
+ * ============================================================================
+ */
+
 import QtQuick
 import QtQuick.Effects
 

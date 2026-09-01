@@ -1,3 +1,13 @@
+/**
+ * ============================================================================
+ * Project:        Automotive Digital Instrument Cluster HMI
+ * File:           ClusterUnit.qml
+ * Author:         SK Rehan Ahamed
+ * Description:    Main Cluster Gauge Bezel & Layout Frame
+ * Copyright (c) 2026 SK Rehan Ahamed. All rights reserved.
+ * ============================================================================
+ */
+
 import QtQuick
 import QtQuick.Layouts
 import QtMultimedia

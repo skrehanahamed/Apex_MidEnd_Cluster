@@ -1,3 +1,13 @@
+/**
+ * ============================================================================
+ * Project:        Automotive Digital Instrument Cluster HMI
+ * File:           VehicleCheckView.qml
+ * Author:         SK Rehan Ahamed
+ * Description:    Self-Diagnostic Vehicle Check Sweep Sequence
+ * Copyright (c) 2026 SK Rehan Ahamed. All rights reserved.
+ * ============================================================================
+ */
+
 import QtQuick
 import QtQuick.Effects
 

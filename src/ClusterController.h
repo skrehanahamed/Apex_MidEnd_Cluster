@@ -1,3 +1,13 @@
+/**
+ * ============================================================================
+ * Project:        Automotive Digital Instrument Cluster HMI
+ * File:           ClusterController.h
+ * Author:         SK Rehan Ahamed
+ * Description:    Automotive CAN / ECU Telemetry Controller Header
+ * Copyright (c) 2026 SK Rehan Ahamed. All rights reserved.
+ * ============================================================================
+ */
+
 #pragma once
 #include <QObject>
 #include <QTimer>

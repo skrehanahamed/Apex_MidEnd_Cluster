@@ -1,3 +1,13 @@
+/**
+ * ============================================================================
+ * Project:        Automotive Digital Instrument Cluster HMI
+ * File:           SevenSegmentDigit.qml
+ * Author:         SK Rehan Ahamed
+ * Description:    Custom 7-Segment Automotive Digital Digit Component
+ * Copyright (c) 2026 SK Rehan Ahamed. All rights reserved.
+ * ============================================================================
+ */
+
 import QtQuick
 
 Item {

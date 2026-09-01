@@ -1,3 +1,11 @@
+# ============================================================================
+# Project:        Automotive Digital Instrument Cluster HMI
+# File:           CMakeLists.txt
+# Author:         SK Rehan Ahamed
+# Description:    CMake Build System Configuration
+# Copyright (c) 2026 SK Rehan Ahamed. All rights reserved.
+# ============================================================================
+
 cmake_minimum_required(VERSION 3.16)
 project(HyundaiExterCluster LANGUAGES CXX)
 
