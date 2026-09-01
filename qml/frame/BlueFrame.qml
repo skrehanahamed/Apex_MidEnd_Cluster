@@ -252,6 +252,10 @@ Item {
                 height: parent.height
                 source: "qrc:/qt/qml/HyundaiExterCluster/assets/rpm_line5.svg"
                 sourceSize.width: 568
+                sourceSize.height: 471
+                fillMode: Image.PreserveAspectFit
+                smooth: true
+                mipmap: true
                 opacity: root.illumination * root.line5Alpha * ((root.rpmValue >= root.rpmThreshold5 || root.speedValue >= root.speedThreshold5) ? 1.0 : 0.0)
                 Behavior on opacity { NumberAnimation { duration: 250; easing.type: Easing.OutQuad } }
             }

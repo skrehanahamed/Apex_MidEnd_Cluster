@@ -17,13 +17,13 @@ Item {
     readonly property color boxGradBottom: isGreen ? "#7300C853" : (isRed ? "#73E53935" : "#73008CF0")
     readonly property color neonEdgeColor: isGreen ? "#00E676" : (isRed ? "#FF5252" : "#00E5FF")
 
-    // State Stack: "main", "driver", "warning_methods", "warning_volume", "cluster", "lights", "door", "convenience", "unit", "language", "reset"
+    // State Stack: "main", "driver", "warning_methods", "warning_volume", "cluster", "lights", "door", "auto_lock", "auto_unlock", "convenience", "service_interval", "adjust_interval", "reset_interval", "welcome_mirror", "unit", "temp_unit", "fuel_economy_unit", "tyre_pressure_unit", "language", "reset"
     property var menuStack: ["main"]
     readonly property string currentMenu: menuStack[menuStack.length - 1]
     property int selectedIndex: 0
 
     // Returns whether top header should show "Hold [OK] : Help"
-    readonly property bool showHelpHint: ((currentMenu === "driver" || currentMenu === "warning_methods" || currentMenu === "warning_volume") && selectedIndex > 0) || (currentMenu === "lights" && selectedIndex === 1)
+    readonly property bool showHelpHint: (currentMenu === "unit" && selectedIndex > 0) || (currentMenu === "service_interval" && selectedIndex === 1) || (currentMenu === "door" && selectedIndex > 0) || ((currentMenu === "driver" || currentMenu === "warning_methods" || currentMenu === "warning_volume") && selectedIndex > 0) || (currentMenu === "lights" && selectedIndex === 1)
 
     // Settings State Values
     property string warningVolume: "Medium"
@@ -33,15 +33,129 @@ Item {
     property int lightBrightness: 20
     property string oneTouchIndicator: "3 flashes"
     property bool headlampEscort: true
-    property bool autoLock: true
-    property bool autoUnlock: true
-    property bool rearOccupantAlert: true
+    property string autoLockSetting: "Enable on speed"   // "Enable on speed" | "Off"
+    property string autoUnlockSetting: "On key out"      // "On key out" | "Off"
+    property bool enableServiceInterval: true
+    property int serviceIntervalKm: 10000
+    property int serviceIntervalMonths: 12
+    property int serviceRemainingKm: 9969
+    property int serviceRemainingDays: 365
+    property bool welcomeMirrorUnlock: true
+    property int adjustField: 0 // 0: km, 1: months
+    property int resetChoice: 0 // 0: Yes, 1: No
+    property string tempUnitSetting: "°C"              // "°C" | "°F"
+    property string fuelEconUnitSetting: "km/L"        // "km/L" | "L/100km"
+    property string tyrePressureUnitSetting: "psi"     // "psi" | "kPa" | "bar"
+    property string languageSetting: controller ? controller.language : "English"
+    readonly property bool isHindi: languageSetting === "हिन्दी" || languageSetting === "Hindi" || (controller && (controller.language === "हिन्दी" || controller.language === "Hindi"))
+
+    function tr(key) {
+        if (!isHindi) return key;
+        var map = {
+            "User settings": "उपयोगकर्ता सेटिंग्स",
+            "Driver assistance": "ड्राइवर सहायता",
+            "Warning methods": "चेतावनी विधियाँ",
+            "Warning volume": "चेतावनी वॉल्यूम",
+            "Cluster": "क्लस्टर",
+            "Cluster theme": "क्लस्टर थीम",
+            "Lights": "लाइट्स",
+            "Illumination": "रोशनी की तीव्रता",
+            "One touch turn indi...": "वन टच टर्न इंडिकेटर",
+            "Door": "दरवाजे",
+            "Auto lock": "ऑटो लॉक",
+            "Auto unlock": "ऑटो अनलॉक",
+            "Convenience": "सुविधा",
+            "Service interval": "सर्विस अंतराल",
+            "Adjust interval": "अंतराल समायोजित करें",
+            "Welcome mirror": "वेलकम मिरर",
+            "Unit": "इकाइयाँ",
+            "Temperature unit": "तापमान इकाई",
+            "Fuel economy unit": "माइलेज इकाई",
+            "Tyre pressure unit": "टायर प्रेशर इकाई",
+            "Language": "भाषा",
+            "Reset settings": "सेटिंग्स रीसेट करें",
+            "Back": "वापस",
+            "Wiper/Lights display": "वाइपर/लाइट्स डिस्प्ले",
+            "Icy road warning": "बर्फीली सड़क चेतावनी",
+            "Welcome sound": "वेलकम साउंड",
+            "One touch turn i...": "वन टच टर्न इंडिकेटर",
+            "Headlight time-...": "हेडलाइट टाइम-आउट",
+            "Enable service interva...": "सर्विस अंतराल सक्षम करें",
+            "Reset": "रीसेट",
+            "On door unlock": "डोर अनलॉक होने पर",
+            "Restore default settings": "फ़ैक्टरी सेटिंग्स रीसेट करें",
+            "Yes": "हाँ",
+            "No": "नहीं"
+        };
+        return map[key] || key;
+    }
+
+    onLightBrightnessChanged: {
+        if (controller) controller.setIllumination(lightBrightness);
+    }
+    onTempUnitSettingChanged: {
+        if (controller) controller.setTempUnit(tempUnitSetting);
+    }
+    onFuelEconUnitSettingChanged: {
+        if (controller) controller.setFuelUnit(fuelEconUnitSetting);
+    }
+    onTyrePressureUnitSettingChanged: {
+        if (controller) controller.setTpmsUnit(tyrePressureUnitSetting);
+    }
 
     function adjustBrightness(delta) {
         lightBrightness = Math.max(1, Math.min(20, lightBrightness + delta));
     }
 
-    // Get current menu item list
+    // Reset popup state
+    property bool showResetResult: false
+    property string resetPopupText: ""
+
+    Timer {
+        id: resetResultTimer
+        interval: 1800
+        repeat: false
+        onTriggered: {
+            settingsRoot.showResetResult = false;
+            if (settingsRoot.currentMenu === "reset") {
+                settingsRoot.menuStack = ["main"];
+                settingsRoot.selectedIndex = 0;
+            } else if (settingsRoot.currentMenu === "reset_interval") {
+                settingsRoot.goBack();
+            }
+        }
+    }
+
+    function resetAllToDefault() {
+        warningVolume = "Medium";
+        wiperLightMode = true;
+        roadIcingAlert = true;
+        welcomeSound = true;
+        lightBrightness = 20;
+        oneTouchIndicator = "3 flashes";
+        headlampEscort = true;
+        autoLockSetting = "Enable on speed";
+        autoUnlockSetting = "On key out";
+        enableServiceInterval = true;
+        serviceIntervalKm = 10000;
+        serviceIntervalMonths = 12;
+        serviceRemainingKm = 10000;
+        serviceRemainingDays = 365;
+        welcomeMirrorUnlock = true;
+        tempUnitSetting = "°C";
+        fuelEconUnitSetting = "km/L";
+        tyrePressureUnitSetting = "psi";
+        languageSetting = "English";
+        if (controller) {
+            controller.setLanguage("English");
+            controller.setThemeColor("blue");
+            controller.setTempUnit("°C");
+            controller.setFuelUnit("km/L");
+            controller.setTpmsUnit("psi");
+            controller.setIllumination(20);
+        }
+    }
+
     function getMenuItems() {
         if (currentMenu === "main") {
             return [
@@ -50,7 +164,7 @@ Item {
                 { id: "lights", label: "Lights", hasSub: true },
                 { id: "door", label: "Door", hasSub: true },
                 { id: "convenience", label: "Convenience", hasSub: true },
-                { id: "unit", label: "Unit setting", hasSub: true },
+                { id: "unit", label: "Unit", hasSub: true },
                 { id: "language", label: "Language", hasSub: true },
                 { id: "reset", label: "Reset settings", hasSub: true }
             ];
@@ -104,51 +218,99 @@ Item {
         } else if (currentMenu === "door") {
             return [
                 { id: "back", label: "Back", isBack: true },
-                { id: "autolock", label: "Auto Lock", isToggle: true, value: autoLock ? "On (Speed)" : "Off" },
-                { id: "autounlock", label: "Auto Unlock", isToggle: true, value: autoUnlock ? "On (Key Out)" : "Off" }
+                { id: "auto_lock", label: "Auto lock", hasSub: true },
+                { id: "auto_unlock", label: "Auto unlock", hasSub: true }
+            ];
+        } else if (currentMenu === "auto_lock") {
+            return [
+                { id: "back", label: "Back", isBack: true },
+                { id: "Enable on speed", label: "Enable on speed", isRadio: true, checked: autoLockSetting === "Enable on speed" },
+                { id: "Off", label: "Off", isRadio: true, checked: autoLockSetting === "Off" }
+            ];
+        } else if (currentMenu === "auto_unlock") {
+            return [
+                { id: "back", label: "Back", isBack: true },
+                { id: "On key out", label: "On key out", isRadio: true, checked: autoUnlockSetting === "On key out" },
+                { id: "Off", label: "Off", isRadio: true, checked: autoUnlockSetting === "Off" }
             ];
         } else if (currentMenu === "convenience") {
             return [
                 { id: "back", label: "Back", isBack: true },
-                { id: "rear", label: "Rear Occupant Alert", isToggle: true, value: rearOccupantAlert ? "On" : "Off" },
-                { id: "service", label: "Service Interval", isValue: true, value: "10,000 km" }
+                { id: "service_interval", label: "Service interval", hasSub: true },
+                { id: "welcome_mirror", label: "Welcome mirror", hasSub: true }
+            ];
+        } else if (currentMenu === "service_interval") {
+            return [
+                { id: "back", label: "Back", isBack: true },
+                { id: "enable_service", label: "Enable service interva...", isCheckbox: true, checked: enableServiceInterval },
+                { id: "adjust_interval", label: "Adjust interval", hasSub: true },
+                { id: "reset_interval", label: "Reset", hasSub: true }
+            ];
+        } else if (currentMenu === "welcome_mirror") {
+            return [
+                { id: "back", label: "Back", isBack: true },
+                { id: "welcome_mirror_unlock", label: "On door unlock", isCheckbox: true, checked: welcomeMirrorUnlock }
             ];
         } else if (currentMenu === "unit") {
             return [
                 { id: "back", label: "Back", isBack: true },
-                { id: "econ", label: "Fuel Economy", isValue: true, value: "km/L" },
-                { id: "temp", label: "Temperature", isValue: true, value: "°C" }
+                { id: "temp_unit", label: "Temperature unit", hasSub: true },
+                { id: "fuel_economy_unit", label: "Fuel economy unit", hasSub: true },
+                { id: "tyre_pressure_unit", label: "Tyre pressure unit", hasSub: true }
+            ];
+        } else if (currentMenu === "temp_unit") {
+            return [
+                { id: "back", label: "Back", isBack: true },
+                { id: "°C", label: "°C", isRadio: true, checked: tempUnitSetting === "°C" },
+                { id: "°F", label: "°F", isRadio: true, checked: tempUnitSetting === "°F" }
+            ];
+        } else if (currentMenu === "fuel_economy_unit") {
+            return [
+                { id: "back", label: "Back", isBack: true },
+                { id: "km/L", label: "km/L", isRadio: true, checked: fuelEconUnitSetting === "km/L" },
+                { id: "L/100km", label: "L/100km", isRadio: true, checked: fuelEconUnitSetting === "L/100km" }
+            ];
+        } else if (currentMenu === "tyre_pressure_unit") {
+            return [
+                { id: "back", label: "Back", isBack: true },
+                { id: "psi", label: "psi", isRadio: true, checked: tyrePressureUnitSetting === "psi" },
+                { id: "kPa", label: "kPa", isRadio: true, checked: tyrePressureUnitSetting === "kPa" },
+                { id: "bar", label: "bar", isRadio: true, checked: tyrePressureUnitSetting === "bar" }
             ];
         } else if (currentMenu === "language") {
             return [
                 { id: "back", label: "Back", isBack: true },
-                { id: "lang", label: "Language", isValue: true, value: "English" }
-            ];
-        } else if (currentMenu === "reset") {
-            return [
-                { id: "back", label: "Back", isBack: true },
-                { id: "reset_all", label: "Reset all settings?", isReset: true }
+                { id: "English", label: "English", isRadio: true, checked: languageSetting === "English" },
+                { id: "हिन्दी", label: "हिन्दी", isRadio: true, checked: languageSetting === "हिन्दी" }
             ];
         }
         return [];
     }
 
     function getMenuTitle() {
-        if (currentMenu === "main") return "User settings";
-        if (currentMenu === "driver") return "Driver assistance";
-        if (currentMenu === "warning_methods") return "Warning methods";
-        if (currentMenu === "warning_volume") return "Warning volume";
-        if (currentMenu === "cluster") return "Cluster";
-        if (currentMenu === "cluster_theme") return "Cluster theme";
-        if (currentMenu === "lights") return "Lights";
-        if (currentMenu === "illumination") return "Illumination";
-        if (currentMenu === "one_touch_turn") return "One touch turn indi...";
-        if (currentMenu === "door") return "Door";
-        if (currentMenu === "convenience") return "Convenience";
-        if (currentMenu === "unit") return "Unit setting";
-        if (currentMenu === "language") return "Language";
-        if (currentMenu === "reset") return "Reset settings";
-        return "User settings";
+        if (currentMenu === "main") return tr("User settings");
+        if (currentMenu === "driver") return tr("Driver assistance");
+        if (currentMenu === "warning_methods") return tr("Warning methods");
+        if (currentMenu === "warning_volume") return tr("Warning volume");
+        if (currentMenu === "cluster") return tr("Cluster");
+        if (currentMenu === "cluster_theme") return tr("Cluster theme");
+        if (currentMenu === "lights") return tr("Lights");
+        if (currentMenu === "illumination") return tr("Illumination");
+        if (currentMenu === "one_touch_turn") return tr("One touch turn indi...");
+        if (currentMenu === "door") return tr("Door");
+        if (currentMenu === "auto_lock") return tr("Auto lock");
+        if (currentMenu === "auto_unlock") return tr("Auto unlock");
+        if (currentMenu === "convenience") return tr("Convenience");
+        if (currentMenu === "service_interval") return tr("Service interval");
+        if (currentMenu === "adjust_interval") return tr("Adjust interval");
+        if (currentMenu === "reset_interval" || currentMenu === "reset") return "";
+        if (currentMenu === "welcome_mirror") return tr("Welcome mirror");
+        if (currentMenu === "unit") return tr("Unit");
+        if (currentMenu === "temp_unit") return tr("Temperature unit");
+        if (currentMenu === "fuel_economy_unit") return tr("Fuel economy unit");
+        if (currentMenu === "tyre_pressure_unit") return tr("Tyre pressure unit");
+        if (currentMenu === "language") return tr("Language");
+        return tr("User settings");
     }
 
     function goBack() {
@@ -160,6 +322,38 @@ Item {
     }
 
     function selectCurrent() {
+        if (currentMenu === "adjust_interval") {
+            adjustField = (adjustField === 0 ? 1 : 0);
+            return;
+        }
+        if (currentMenu === "reset") {
+            if (resetChoice === 0) {
+                // YES -> Reset all to factory default
+                resetAllToDefault();
+                resetPopupText = isHindi ? "सेटिंग्स रीसेट\nकर दी गई हैं" : "Settings have\nbeen reset";
+            } else {
+                // NO -> Do NOT reset
+                resetPopupText = isHindi ? "सेटिंग्स रीसेट\nनहीं की गई हैं" : "Settings have\nnot been reset";
+            }
+            showResetResult = true;
+            resetResultTimer.restart();
+            return;
+        }
+        if (currentMenu === "reset_interval") {
+            if (resetChoice === 0) {
+                // YES -> Reset time and distance
+                serviceRemainingKm = serviceIntervalKm;
+                serviceRemainingDays = serviceIntervalMonths * 30;
+                resetPopupText = isHindi ? "सेटिंग्स रीसेट\nकर दी गई हैं" : "Settings have\nbeen reset";
+            } else {
+                // NO -> Do NOT reset
+                resetPopupText = isHindi ? "सेटिंग्स रीसेट\nनहीं की गई हैं" : "Settings have\nnot been reset";
+            }
+            showResetResult = true;
+            resetResultTimer.restart();
+            return;
+        }
+
         var items = getMenuItems();
         if (selectedIndex < 0 || selectedIndex >= items.length) return;
         var item = items[selectedIndex];
@@ -173,7 +367,8 @@ Item {
             var newStack = menuStack.slice();
             newStack.push(item.id);
             menuStack = newStack;
-            selectedIndex = 1; // Highlight first real item below Back
+            resetChoice = 0; // Default to YES on dialogs
+            selectedIndex = (item.id === "adjust_interval" || item.id === "reset_interval" || item.id === "reset" ? 0 : 1);
             return;
         }
 
@@ -186,6 +381,19 @@ Item {
                 else if (item.id === "theme_c") { if (controller) controller.setThemeColor("red"); }
             } else if (currentMenu === "one_touch_turn") {
                 oneTouchIndicator = item.id;
+            } else if (currentMenu === "auto_lock") {
+                autoLockSetting = item.id;
+            } else if (currentMenu === "auto_unlock") {
+                autoUnlockSetting = item.id;
+            } else if (currentMenu === "temp_unit") {
+                tempUnitSetting = item.id;
+            } else if (currentMenu === "fuel_economy_unit") {
+                fuelEconUnitSetting = item.id;
+            } else if (currentMenu === "tyre_pressure_unit") {
+                tyrePressureUnitSetting = item.id;
+            } else if (currentMenu === "language") {
+                languageSetting = item.id;
+                if (controller) controller.setLanguage(item.id);
             }
             return;
         }
@@ -195,18 +403,8 @@ Item {
             else if (item.id === "icing") roadIcingAlert = !roadIcingAlert;
             else if (item.id === "welcome") welcomeSound = !welcomeSound;
             else if (item.id === "escort") headlampEscort = !headlampEscort;
-            return;
-        }
-
-        if (item.isToggle) {
-            if (item.id === "wiper") wiperLightMode = !wiperLightMode;
-            else if (item.id === "traffic") trafficSignInfo = !trafficSignInfo;
-            else if (item.id === "icing") roadIcingAlert = !roadIcingAlert;
-            else if (item.id === "welcome") welcomeSound = !welcomeSound;
-            else if (item.id === "escort") headlampEscort = !headlampEscort;
-            else if (item.id === "autolock") autoLock = !autoLock;
-            else if (item.id === "autounlock") autoUnlock = !autoUnlock;
-            else if (item.id === "rear") rearOccupantAlert = !rearOccupantAlert;
+            else if (item.id === "enable_service") enableServiceInterval = !enableServiceInterval;
+            else if (item.id === "welcome_mirror_unlock") welcomeMirrorUnlock = !welcomeMirrorUnlock;
             return;
         }
     }
@@ -214,6 +412,18 @@ Item {
     function navUp() {
         if (currentMenu === "illumination") {
             adjustBrightness(1);
+            return;
+        }
+        if (currentMenu === "adjust_interval") {
+            if (adjustField === 0) {
+                serviceIntervalKm = Math.min(30000, serviceIntervalKm + 1000);
+            } else {
+                serviceIntervalMonths = Math.min(36, serviceIntervalMonths + 1);
+            }
+            return;
+        }
+        if (currentMenu === "reset_interval" || currentMenu === "reset") {
+            resetChoice = (resetChoice === 0 ? 1 : 0);
             return;
         }
         var count = getMenuItems().length;
@@ -225,6 +435,18 @@ Item {
     function navDown() {
         if (currentMenu === "illumination") {
             adjustBrightness(-1);
+            return;
+        }
+        if (currentMenu === "adjust_interval") {
+            if (adjustField === 0) {
+                serviceIntervalKm = Math.max(1000, serviceIntervalKm - 1000);
+            } else {
+                serviceIntervalMonths = Math.max(1, serviceIntervalMonths - 1);
+            }
+            return;
+        }
+        if (currentMenu === "reset_interval" || currentMenu === "reset") {
+            resetChoice = (resetChoice === 0 ? 1 : 0);
             return;
         }
         var count = getMenuItems().length;
@@ -242,6 +464,7 @@ Item {
         anchors.left: parent.left
         anchors.right: parent.right
         height: 28
+        visible: settingsRoot.currentMenu !== "reset_interval" && settingsRoot.currentMenu !== "reset" && !settingsRoot.showResetResult
 
         Text {
             anchors.centerIn: parent
@@ -264,7 +487,7 @@ Item {
         anchors.right: parent.right
         anchors.bottom: parent.bottom
         clip: true
-        visible: settingsRoot.currentMenu !== "illumination"
+        visible: settingsRoot.currentMenu !== "illumination" && settingsRoot.currentMenu !== "adjust_interval" && settingsRoot.currentMenu !== "reset_interval" && settingsRoot.currentMenu !== "reset" && !settingsRoot.showResetResult
 
         property var currentItems: settingsRoot.getMenuItems()
 
@@ -418,7 +641,7 @@ Item {
                             }
 
                             Text {
-                                text: "Back"
+                                text: settingsRoot.tr("Back")
                                 font.pixelSize: 14
                                 font.family: "Hyundai Sans Head Medium"
                                 font.weight: isSelected ? Font.Bold : Font.DemiBold
@@ -433,7 +656,7 @@ Item {
                             anchors.leftMargin: 8
                             anchors.verticalCenter: parent.verticalCenter
                             visible: !modelData.isBack
-                            text: modelData.label
+                            text: settingsRoot.tr(modelData.label)
                             font.pixelSize: 14
                             font.family: "Hyundai Sans Head Medium"
                             font.weight: isSelected ? Font.Bold : Font.DemiBold
@@ -459,28 +682,28 @@ Item {
                             anchors.rightMargin: 8
                             anchors.verticalCenter: parent.verticalCenter
                             visible: (modelData.isToggle === true || modelData.isValue === true)
-                            text: modelData.value ? modelData.value : ""
+                            text: modelData.value ? settingsRoot.tr(modelData.value) : ""
                             font.pixelSize: 12
                             font.family: "Hyundai Sans Head Medium"
                             font.bold: true
                             color: (modelData.value === "On" || isSelected) ? settingsRoot.neonEdgeColor : "#80A0C0"
                         }
 
-                        // 5. Circular Radio Button: Matches Photo 3 1:1
+                        // 5. Circular Radio Button: Matches Photo 2 & 3 1:1
                         Item {
                             anchors.right: parent.right
                             anchors.rightMargin: 8
                             anchors.verticalCenter: parent.verticalCenter
-                            width: 14
-                            height: 14
+                            width: 15
+                            height: 15
                             visible: modelData.isRadio === true
 
-                            // Outer White Outline Circle
+                            // Outer Circle
                             Rectangle {
                                 anchors.fill: parent
-                                radius: 7
+                                radius: 7.5
                                 color: "transparent"
-                                border.color: "#FFFFFF"
+                                border.color: isSelected ? settingsRoot.neonEdgeColor : "#7090A8"
                                 border.width: 1.5
                             }
 
@@ -521,6 +744,34 @@ Item {
                         }
                     }
                 }
+            }
+        }
+
+        // Bottom Preview for Service Interval: 9969 km / 365 days (Matches Photo 2)
+        Item {
+            anchors.bottom: parent.bottom
+            anchors.bottomMargin: 4
+            anchors.left: parent.left
+            anchors.right: parent.right
+            height: 28
+            visible: settingsRoot.currentMenu === "service_interval"
+
+            Rectangle {
+                anchors.top: parent.top
+                anchors.horizontalCenter: parent.horizontalCenter
+                width: parent.width - 24
+                height: 1
+                color: "#25FFFFFF"
+            }
+
+            Text {
+                anchors.centerIn: parent
+                anchors.verticalCenterOffset: 2
+                text: settingsRoot.serviceRemainingKm + " km / " + settingsRoot.serviceRemainingDays + " " + settingsRoot.tr("days")
+                font.pixelSize: 13
+                font.family: "Hyundai Sans Head Medium"
+                font.weight: Font.DemiBold
+                color: "#CCD8E8"
             }
         }
     }
@@ -768,6 +1019,236 @@ Item {
             font.family: "Hyundai Sans Head Bold"
             font.bold: true
             color: settingsRoot.lightBrightness < 20 ? "#CCD8E8" : "#406080"
+        }
+    }
+
+    // =================================================================
+    // 4. ADJUST INTERVAL VIEW (Matches Photo 3 1:1)
+    // =================================================================
+    Item {
+        id: adjustIntervalView
+        anchors.top: headerBar.bottom
+        anchors.left: parent.left
+        anchors.right: parent.right
+        anchors.bottom: parent.bottom
+        visible: settingsRoot.currentMenu === "adjust_interval"
+
+        Column {
+            anchors.centerIn: parent
+            anchors.verticalCenterOffset: -4
+            spacing: 16
+
+            // Distance row: [1] 0 0 0 0 km
+            Row {
+                anchors.horizontalCenter: parent.horizontalCenter
+                spacing: 8
+
+                Item {
+                    width: 26
+                    height: 34
+                    anchors.verticalCenter: parent.verticalCenter
+
+                    // Top Chevron
+                    Text {
+                        anchors.top: parent.top
+                        anchors.topMargin: -8
+                        anchors.horizontalCenter: parent.horizontalCenter
+                        text: "▲"
+                        font.pixelSize: 8
+                        color: settingsRoot.adjustField === 0 ? settingsRoot.neonEdgeColor : "transparent"
+                    }
+
+                    // Cyan Selector Box
+                    Rectangle {
+                        anchors.fill: parent
+                        radius: 3
+                        color: settingsRoot.adjustField === 0 ? settingsRoot.boxGradMid : "transparent"
+                        border.color: settingsRoot.adjustField === 0 ? settingsRoot.neonEdgeColor : "transparent"
+                        border.width: 1.5
+
+                        Text {
+                            anchors.centerIn: parent
+                            text: Math.floor(settingsRoot.serviceIntervalKm / 10000).toString()
+                            font.pixelSize: 22
+                            font.family: "Hyundai Sans Head Bold"
+                            font.bold: true
+                            color: "#FFFFFF"
+                        }
+                    }
+
+                    // Bottom Chevron
+                    Text {
+                        anchors.bottom: parent.bottom
+                        anchors.bottomMargin: -8
+                        anchors.horizontalCenter: parent.horizontalCenter
+                        text: "▼"
+                        font.pixelSize: 8
+                        color: settingsRoot.adjustField === 0 ? settingsRoot.neonEdgeColor : "transparent"
+                    }
+                }
+
+                // Remaining digits + km
+                Text {
+                    anchors.verticalCenter: parent.verticalCenter
+                    text: (settingsRoot.serviceIntervalKm % 10000).toString().padStart(4, '0') + " km"
+                    font.pixelSize: 22
+                    font.family: "Hyundai Sans Head Medium"
+                    font.bold: true
+                    color: "#D0E0F0"
+                }
+            }
+
+            // Duration row: [12] months
+            Row {
+                anchors.horizontalCenter: parent.horizontalCenter
+                spacing: 8
+
+                Rectangle {
+                    width: 44
+                    height: 30
+                    radius: 3
+                    anchors.verticalCenter: parent.verticalCenter
+                    color: settingsRoot.adjustField === 1 ? settingsRoot.boxGradMid : "transparent"
+                    border.color: settingsRoot.adjustField === 1 ? settingsRoot.neonEdgeColor : "transparent"
+                    border.width: 1.5
+
+                    Text {
+                        anchors.centerIn: parent
+                        text: settingsRoot.serviceIntervalMonths.toString()
+                        font.pixelSize: 20
+                        font.family: "Hyundai Sans Head Bold"
+                        font.bold: true
+                        color: "#FFFFFF"
+                    }
+                }
+
+                Text {
+                    anchors.verticalCenter: parent.verticalCenter
+                    text: settingsRoot.tr("months")
+                    font.pixelSize: 18
+                    font.family: "Hyundai Sans Head Medium"
+                    font.weight: Font.DemiBold
+                    color: "#D0E0F0"
+                }
+            }
+        }
+    }
+
+    // =================================================================
+    // =================================================================
+    // 5. RESET CONFIRMATION DIALOG (Factory Default & Service Interval)
+    // =================================================================
+    Item {
+        id: resetConfirmDialog
+        anchors.top: parent.top
+        anchors.topMargin: 20
+        anchors.left: parent.left
+        anchors.right: parent.right
+        anchors.bottom: parent.bottom
+        visible: (settingsRoot.currentMenu === "reset" || settingsRoot.currentMenu === "reset_interval") && !settingsRoot.showResetResult
+
+        Column {
+            anchors.centerIn: parent
+            anchors.verticalCenterOffset: -4
+            spacing: 14
+
+            Column {
+                anchors.horizontalCenter: parent.horizontalCenter
+                spacing: 2
+
+                Text {
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    text: settingsRoot.currentMenu === "reset" ?
+                          (settingsRoot.isHindi ? "फ़ैक्टरी सेटिंग्स" : "Reset to") :
+                          (settingsRoot.isHindi ? "समय और दूरी" : "Reset time")
+                    font.pixelSize: 18
+                    font.family: "Hyundai Sans Head Medium"
+                    font.weight: Font.DemiBold
+                    color: "#FFFFFF"
+                }
+
+                Text {
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    text: settingsRoot.currentMenu === "reset" ?
+                          (settingsRoot.isHindi ? "रीसेट करें?" : "factory default?") :
+                          (settingsRoot.isHindi ? "रीसेट करें?" : "and distance?")
+                    font.pixelSize: 18
+                    font.family: "Hyundai Sans Head Medium"
+                    font.weight: Font.DemiBold
+                    color: "#FFFFFF"
+                }
+            }
+
+            Column {
+                anchors.horizontalCenter: parent.horizontalCenter
+                spacing: 6
+
+                // Yes Button
+                Rectangle {
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    width: 90
+                    height: 28
+                    radius: 4
+                    color: settingsRoot.resetChoice === 0 ? settingsRoot.boxGradMid : "transparent"
+                    border.color: settingsRoot.resetChoice === 0 ? settingsRoot.neonEdgeColor : "transparent"
+                    border.width: 1.5
+
+                    Text {
+                        anchors.centerIn: parent
+                        text: settingsRoot.tr("Yes")
+                        font.pixelSize: 15
+                        font.family: "Hyundai Sans Head Medium"
+                        font.weight: settingsRoot.resetChoice === 0 ? Font.Bold : Font.DemiBold
+                        color: settingsRoot.resetChoice === 0 ? "#FFFFFF" : "#A0B8D0"
+                    }
+                }
+
+                // No Button
+                Rectangle {
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    width: 90
+                    height: 28
+                    radius: 4
+                    color: settingsRoot.resetChoice === 1 ? settingsRoot.boxGradMid : "transparent"
+                    border.color: settingsRoot.resetChoice === 1 ? settingsRoot.neonEdgeColor : "transparent"
+                    border.width: 1.5
+
+                    Text {
+                        anchors.centerIn: parent
+                        text: settingsRoot.tr("No")
+                        font.pixelSize: 15
+                        font.family: "Hyundai Sans Head Medium"
+                        font.weight: settingsRoot.resetChoice === 1 ? Font.Bold : Font.DemiBold
+                        color: settingsRoot.resetChoice === 1 ? "#FFFFFF" : "#A0B8D0"
+                    }
+                }
+            }
+        }
+    }
+
+    // =================================================================
+    // 6. POPUP RESULT VIEW ("Settings have been reset" / "Settings have not been reset")
+    // =================================================================
+    Item {
+        id: resetResultPopup
+        anchors.fill: parent
+        visible: settingsRoot.showResetResult
+
+        Column {
+            anchors.centerIn: parent
+            spacing: 4
+
+            Repeater {
+                model: settingsRoot.resetPopupText.split("\n")
+                Text {
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    text: modelData
+                    font.pixelSize: 18
+                    font.family: "Hyundai Sans Head Medium"
+                    font.weight: Font.DemiBold
+                    color: "#FFFFFF"
+                }
+            }
         }
     }
 }

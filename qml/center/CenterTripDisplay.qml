@@ -8,7 +8,10 @@ Item {
     property string tripTime: controller ? controller.tripTime : "0:00"
     property double tripEconomy: controller ? controller.tripEconomy : 0.0
     property int tripPage: controller ? controller.tripPage : 1
-    readonly property string tripTitle: tripPage === 1 ? "Since refuelling" : (tripPage === 2 ? "Since last reset" : "Current trip")
+    readonly property bool isHindi: controller && (controller.language === "हिन्दी" || controller.language === "Hindi")
+    readonly property string tripTitle: isHindi ?
+                                        (tripPage === 1 ? "ईंधन भरने के बाद" : (tripPage === 2 ? "कुल संचित जानकारी" : "ड्राइव जानकारी")) :
+                                        (tripPage === 1 ? "Since refuelling" : (tripPage === 2 ? "Accumulated info" : "Drive info"))
     readonly property double activeTripKm: tripPage === 1 ? (controller ? controller.refuelKm : 154.9) : (tripPage === 2 ? (controller ? controller.accumKm : 3454.0) : (controller ? controller.tripKm : 0.0))
     readonly property string activeTripTime: tripPage === 1 ? (controller ? controller.refuelTime : "10:21") : (tripPage === 2 ? (controller ? controller.accumTime : "84:12") : (controller ? controller.tripTime : "0:00"))
     readonly property double activeTripEconomy: tripPage === 1 ? (controller ? controller.refuelEconomy : 12.5) : (tripPage === 2 ? (controller ? controller.accumEconomy : 14.2) : (controller ? controller.tripEconomy : 0.0))
@@ -33,12 +36,44 @@ Item {
         triggerResetPrompt();
     }
 
-    // Dynamic Line Theme Colors: "blue", "green", "red"
+    // Dynamic Line Theme Colors: "blue", "green", "red" (or Amber/Yellow for warnings, White for Press Start alert)
     property string themeColor: controller ? controller.themeColor : "blue"
-    readonly property color themeCoreColor: themeColor === "green" ? "#D0FFE0" : (themeColor === "red" ? "#FFD0D0" : "#D0E0FF")
-    readonly property color themePrimaryColor: themeColor === "green" ? "#00E676" : (themeColor === "red" ? "#FF5252" : "#00E5FF")
-    readonly property color themeGlowGradient: themeColor === "green" ? "#5000C853" : (themeColor === "red" ? "#50FF1744" : "#5000C8FF")
-    readonly property color themeUnderGlow: themeColor === "green" ? "#2500E676" : (themeColor === "red" ? "#25FF5252" : "#2500E5FF")
+    readonly property bool isReduceSpeedActive: controller && controller.reduceSpeedAlert
+    readonly property bool isTpmsActive: controller && controller.tpmsActive
+    readonly property bool isIgnitionOff: controller && (controller.clusterState === 4 || controller.clusterState === 5)
+
+    // Warning Priority Hierarchy (Strictly ONE warning shown at a time):
+    // 0 = None, 1 = Reduce Speed, 2 = Smart Key, 3 = Press START/Clutch Again, 4 = Door Open, 5 = Sunroof Open, 6 = Service Reminder
+    readonly property int activeWarningId: {
+        if (isIgnitionOff) {
+            return (controller && controller.doorOpenAlert) ? 4 : 0;
+        }
+        if (!controller || controller.showLightPopup) return 0;
+        if (controller.reduceSpeedAlert) return 1;
+        if (controller.smartKeyPrompt > 0) return 2;
+        if ((controller.startPedalPrompt > 0) || controller.pressStartAgainAlert) return 3;
+        if (controller.doorOpenAlert) return 4;
+        if (controller.sunroofAlertActive) return 5;
+        if (controller.servicePopupActive) return 6;
+        return 0;
+    }
+    readonly property bool isWarningActive: activeWarningId > 0
+    readonly property bool isLineWhite: activeWarningId === 3 || activeWarningId === 4 || isIgnitionOff
+    readonly property bool isLineAmber: (isReduceSpeedActive || isTpmsActive || isWarningActive) && !isLineWhite
+
+    readonly property color themeCoreColor: isLineAmber ? "#FFE5B4" : (isLineWhite ? "#FFFFFF" : (themeColor === "green" ? "#D0FFE0" : (themeColor === "red" ? "#FFD0D0" : "#D0E0FF")))
+    readonly property color themePrimaryColor: isLineAmber ? "#FF9800" : (isLineWhite ? "#E0F7FA" : (themeColor === "green" ? "#00E676" : (themeColor === "red" ? "#FF5252" : "#00E5FF")))
+    readonly property color themeGlowGradient: isLineAmber ? "#50FF9800" : (isLineWhite ? "#50E0F7FA" : (themeColor === "green" ? "#5000C853" : (themeColor === "red" ? "#50FF1744" : "#5000C8FF")))
+    readonly property color themeUnderGlow: isLineAmber ? "#35FF9800" : (isLineWhite ? "#30E0F7FA" : (themeColor === "green" ? "#2500E676" : (themeColor === "red" ? "#25FF5252" : "#2500E5FF")))
+
+    // TPMS Silent Line Blinking (No Chime)
+    property real tpmsBlinkOpacity: 1.0
+    SequentialAnimation {
+        running: centerRoot.isTpmsActive
+        loops: Animation.Infinite
+        NumberAnimation { target: centerRoot; property: "tpmsBlinkOpacity"; from: 1.0; to: 0.18; duration: 480; easing.type: Easing.InOutQuad }
+        NumberAnimation { target: centerRoot; property: "tpmsBlinkOpacity"; from: 0.18; to: 1.0; duration: 480; easing.type: Easing.InOutQuad }
+    }
 
     implicitWidth: 198
     implicitHeight: 366
@@ -107,24 +142,192 @@ Item {
     // =================================================================
     // 1. TOP HEADER SECTION: GEAR + MODE TABS / DTE
     // =================================================================
+    // =================================================================
+    // 1. TOP HEADER SECTION: GEAR + MODE TABS / DTE + CRUISE
+    // =================================================================
     Item {
         id: topDteSection
         anchors.top: parent.top
-        anchors.topMargin: 10
+        anchors.topMargin: 6
         anchors.horizontalCenter: parent.horizontalCenter
         width: parent.width
-        height: 48
+        height: (controller && controller.cruiseEnabled) ? 56 : 48
+        visible: true
 
-        // Top Header Row (Gear Indicator on Left, Center Tabs / Right DTE)
+        // =============================================================
+        // A. CRUISE CONTROL MODE ACTIVE:
+        // Top Micro-Row: Gear on Left, Compact Small Fuel Icon + DTE on Top Right
+        // Main Row: Cruise Icon + "CRUISE" on Left, Cruise Set Speed on Right
+        // =============================================================
+        // =============================================================
+        // A. CRUISE CONTROL MODE ACTIVE (Matches OEM Photo 1:1):
+        // Left: Transmission Gear (e.g. D5, D, P, R, N)
+        // Right Stacked:
+        //   Row 1 (Top): ⛽ Fuel Icon + DTE (e.g. 261 km)
+        //   Row 2 (Bottom): [Cruise Icon] CRUISE [Set Speed] km/h (e.g. 🟢 CRUISE 110 km/h)
+        // =============================================================
         Item {
+            id: cruiseModeHeader
+            anchors.left: parent.left
+            anchors.leftMargin: 16
+            anchors.right: parent.right
+            anchors.rightMargin: 16
+            anchors.top: parent.top
+            anchors.topMargin: 2
+            anchors.bottom: parent.bottom
+            visible: !centerRoot.isIgnitionOff && controller && controller.cruiseEnabled
+
+            // Left: Transmission Gear (Single letter or D1..D5 / S1..S5)
+            Item {
+                id: cruiseGearBlock
+                anchors.left: parent.left
+                anchors.verticalCenter: parent.verticalCenter
+                width: 34
+                height: 32
+
+                // Single letter: P, R, N, D
+                Text {
+                    anchors.verticalCenter: parent.verticalCenter
+                    anchors.left: parent.left
+                    visible: !centerRoot.gearValue.startsWith("M") && !centerRoot.gearValue.startsWith("S") && !(centerRoot.gearValue.startsWith("D") && centerRoot.gearValue.length > 1)
+                    text: centerRoot.gearValue
+                    font.pixelSize: 24
+                    font.family: centerRoot.fontHeadBold
+                    font.weight: Font.Bold
+                    color: "#FFFFFF"
+                }
+
+                // D1..D5, S1..S5, M1..M5
+                Row {
+                    anchors.verticalCenter: parent.verticalCenter
+                    anchors.left: parent.left
+                    visible: centerRoot.gearValue.startsWith("M") || centerRoot.gearValue.startsWith("S") || (centerRoot.gearValue.startsWith("D") && centerRoot.gearValue.length > 1)
+                    spacing: 1
+
+                    Text {
+                        id: cruiseMainLetter
+                        text: centerRoot.gearValue.charAt(0)
+                        font.pixelSize: 24
+                        font.family: centerRoot.fontHeadBold
+                        font.weight: Font.Bold
+                        color: "#FFFFFF"
+                    }
+
+                    Text {
+                        text: centerRoot.gearValue.substring(1)
+                        font.pixelSize: 14
+                        font.family: centerRoot.fontHeadBold
+                        font.weight: Font.Bold
+                        color: "#FFFFFF"
+                        anchors.bottom: cruiseMainLetter.bottom
+                        anchors.bottomMargin: 2
+                    }
+                }
+            }
+
+            // Right Stacked Container (DTE on Top, Cruise on Bottom)
+            Column {
+                anchors.right: parent.right
+                anchors.verticalCenter: parent.verticalCenter
+                spacing: 2
+
+                // Row 1 (Top): Fuel Icon + DTE (e.g. ⛽ 261 km)
+                Row {
+                    anchors.right: parent.right
+                    spacing: 4
+
+                    Image {
+                        width: 14
+                        height: 14
+                        anchors.verticalCenter: parent.verticalCenter
+                        source: "qrc:/qt/qml/HyundaiExterCluster/resources/icons/fuel_pump.png"
+                        fillMode: Image.PreserveAspectFit
+                        smooth: true
+                        mipmap: true
+                    }
+
+                    Text {
+                        anchors.verticalCenter: parent.verticalCenter
+                        text: centerRoot.dteKm
+                        font.pixelSize: 15
+                        font.family: centerRoot.fontHeadMedium
+                        font.weight: Font.Bold
+                        color: "#FFFFFF"
+                    }
+
+                    Text {
+                        anchors.verticalCenter: parent.verticalCenter
+                        anchors.verticalCenterOffset: 1
+                        text: "km"
+                        font.pixelSize: 10
+                        font.family: centerRoot.fontHeadRegular
+                        color: "#CCD8E8"
+                    }
+                }
+
+                // Row 2 (Bottom): [Icon] CRUISE [Set Speed] km/h
+                Row {
+                    anchors.right: parent.right
+                    spacing: 3
+
+                    Image {
+                        width: 15
+                        height: 15
+                        anchors.verticalCenter: parent.verticalCenter
+                        source: (controller && controller.cruiseActive) ?
+                                "qrc:/qt/qml/HyundaiExterCluster/resources/icons/cruise_green.png" :
+                                "qrc:/qt/qml/HyundaiExterCluster/resources/icons/cruise_white.png"
+                        fillMode: Image.PreserveAspectFit
+                        smooth: true
+                        mipmap: true
+                    }
+
+                    Text {
+                        anchors.verticalCenter: parent.verticalCenter
+                        text: centerRoot.isHindi ? "क्रूज़" : "CRUISE"
+                        font.pixelSize: 12
+                        font.family: centerRoot.fontHeadBold
+                        font.weight: Font.Bold
+                        color: (controller && controller.cruiseActive) ? "#00E676" : "#CCD8E8"
+                        font.letterSpacing: 0.3
+                    }
+
+                    Text {
+                        anchors.verticalCenter: parent.verticalCenter
+                        text: (controller && controller.cruiseActive) ? controller.cruiseSetSpeed.toString() : "---"
+                        font.pixelSize: 15
+                        font.family: centerRoot.fontHeadMedium
+                        font.weight: Font.Bold
+                        color: "#FFFFFF"
+                    }
+
+                    Text {
+                        anchors.verticalCenter: parent.verticalCenter
+                        anchors.verticalCenterOffset: 1
+                        text: "km/h"
+                        font.pixelSize: 10
+                        font.family: centerRoot.fontHeadRegular
+                        color: "#CCD8E8"
+                    }
+                }
+            }
+        }
+
+        // =============================================================
+        // B. NORMAL MODE HEADER (Cruise Disabled)
+        // Left Gear Indicator, Center Tabs, Right Normal DTE
+        // =============================================================
+        Item {
+            id: normalModeHeader
             anchors.left: parent.left
             anchors.leftMargin: 18
             anchors.right: parent.right
             anchors.rightMargin: 18
             anchors.verticalCenter: parent.verticalCenter
             height: 32
+            visible: !centerRoot.isIgnitionOff && (!controller || !controller.cruiseEnabled)
 
-            // 1. TRANSMISSION GEAR INDICATOR (Always visible on the left)
+            // 1. TRANSMISSION GEAR INDICATOR
             Item {
                 id: gearIndicator
                 anchors.left: parent.left
@@ -242,7 +445,7 @@ Item {
                 }
             }
 
-            // 3. FUEL PUMP & DTE RANGE or HOLD [OK] : HELP (Visible when tabs are hidden)
+            // 3. FUEL PUMP & DTE RANGE or HOLD [OK] : HELP (Visible when tabs & cruise are hidden)
             Item {
                 id: topActionOrDteContainer
                 anchors.right: parent.right
@@ -259,7 +462,7 @@ Item {
                     visible: centerRoot.menuTab === 1 && userSettingsView && userSettingsView.showHelpHint
 
                     Text {
-                        text: "Hold"
+                        text: centerRoot.isHindi ? "दबाए रखें" : "Hold"
                         font.pixelSize: 13
                         font.family: centerRoot.fontHeadRegular
                         color: "#CCD8E8"
@@ -286,7 +489,7 @@ Item {
                     }
 
                     Text {
-                        text: ": Help"
+                        text: centerRoot.isHindi ? " : सहायता" : ": Help"
                         font.pixelSize: 13
                         font.family: centerRoot.fontHeadRegular
                         color: "#CCD8E8"
@@ -340,6 +543,7 @@ Item {
             anchors.horizontalCenter: parent.horizontalCenter
             width: parent.width * 0.92
             height: 14
+            opacity: centerRoot.isTpmsActive ? (centerRoot.lineAnimProgress * centerRoot.tpmsBlinkOpacity) : centerRoot.lineAnimProgress
 
             // Canvas Spotlight Flare Rising Directly from the Line (Matches Image 2 1:1)
             Canvas {
@@ -450,6 +654,1141 @@ Item {
     // =================================================================
     // 2. MIDDLE CARD: USER SETTINGS VIEW (When menuTab === 1)
     // =================================================================
+    // =================================================================
+    // 🎵 MEDIA POPUP BANNER (Emerges from inside top line + Marquee Text)
+    // =================================================================
+    Item {
+        id: mediaClippingViewport
+        anchors.top: topDteSection.bottom
+        anchors.horizontalCenter: parent.horizontalCenter
+        width: parent.width * 0.96
+        height: 80
+        clip: true
+        z: 45
+
+        Item {
+            id: mediaPopupBanner
+            anchors.horizontalCenter: parent.horizontalCenter
+            width: parent.width * 0.98
+            height: 62
+
+            readonly property bool isMediaActive: controller && controller.showMediaPopup && !centerRoot.isIgnitionOff
+            property real currentY: -height
+            y: currentY
+            opacity: isMediaActive ? 1.0 : 0.0
+            visible: opacity > 0.01
+
+            Behavior on opacity {
+                NumberAnimation { duration: 250; easing.type: Easing.InOutQuad }
+            }
+
+            SequentialAnimation {
+                id: slideEntranceAnim
+                NumberAnimation {
+                    target: mediaPopupBanner
+                    property: "currentY"
+                    from: -mediaPopupBanner.height
+                    to: 4
+                    duration: 520
+                    easing.type: Easing.OutCubic
+                }
+            }
+
+            SequentialAnimation {
+                id: slideExitAnim
+                NumberAnimation {
+                    target: mediaPopupBanner
+                    property: "currentY"
+                    to: -mediaPopupBanner.height
+                    duration: 320
+                    easing.type: Easing.InQuad
+                }
+            }
+
+            function triggerEntrance() {
+                slideExitAnim.stop();
+                slideEntranceAnim.stop();
+                mediaPopupBanner.currentY = -mediaPopupBanner.height;
+                slideEntranceAnim.restart();
+            }
+
+            function triggerExit() {
+                slideEntranceAnim.stop();
+                slideExitAnim.restart();
+            }
+
+            Connections {
+                target: controller
+                function onShowMediaPopupChanged() {
+                    if (controller && controller.showMediaPopup) {
+                        mediaPopupBanner.triggerEntrance();
+                    } else {
+                        mediaPopupBanner.triggerExit();
+                    }
+                }
+                function onMediaTitleChanged() {
+                    if (controller && controller.showMediaPopup) {
+                        mediaPopupBanner.triggerEntrance();
+                    }
+                }
+                function onMediaArtistChanged() {
+                    if (controller && controller.showMediaPopup) {
+                        mediaPopupBanner.triggerEntrance();
+                    }
+                }
+            }
+
+            Rectangle {
+                anchors.fill: parent
+                radius: 5
+                color: "#182230"
+                border.color: "#2C3E55"
+                border.width: 1
+
+                // Subtle dark inner gradient
+                gradient: Gradient {
+                    orientation: Gradient.Vertical
+                    GradientStop { position: 0.0; color: "#243248" }
+                    GradientStop { position: 0.5; color: "#182230" }
+                    GradientStop { position: 1.0; color: "#101620" }
+                }
+
+                Column {
+                    anchors.fill: parent
+                    anchors.margins: 4
+                    spacing: 2
+
+                    // Row 1 (Top): Source Icon + Source Name
+                    Row {
+                        anchors.horizontalCenter: parent.horizontalCenter
+                        height: 24
+                        spacing: 7
+
+                        Image {
+                            width: 16
+                            height: 16
+                            anchors.verticalCenter: parent.verticalCenter
+                            source: {
+                                var src = controller ? controller.mediaSource : "USB";
+                                if (src === "USB") return "qrc:/qt/qml/HyundaiExterCluster/resources/icons/media_usb.png";
+                                if (src === "Bluetooth") return "qrc:/qt/qml/HyundaiExterCluster/resources/icons/media_bluetooth.png";
+                                if (src === "Apple CarPlay") return "qrc:/qt/qml/HyundaiExterCluster/resources/icons/media_carplay.png";
+                                if (src === "Android Auto") return "qrc:/qt/qml/HyundaiExterCluster/resources/icons/media_android_auto.png";
+                                return "qrc:/qt/qml/HyundaiExterCluster/resources/icons/media_note.png";
+                            }
+                            fillMode: Image.PreserveAspectFit
+                            smooth: true
+                            mipmap: true
+                        }
+
+                        Text {
+                            anchors.verticalCenter: parent.verticalCenter
+                            text: controller ? controller.mediaSource : "USB"
+                            font.pixelSize: 15
+                            font.family: centerRoot.fontHeadMedium
+                            font.weight: Font.DemiBold
+                            color: "#FFFFFF"
+                        }
+                    }
+
+                    // Thin Divider Line
+                    Rectangle {
+                        anchors.horizontalCenter: parent.horizontalCenter
+                        width: parent.width * 0.94
+                        height: 1
+                        color: "#2E3F58"
+                    }
+
+                    // Row 2 (Bottom): Marquee Track Text Container + Music Note
+                    Item {
+                        anchors.horizontalCenter: parent.horizontalCenter
+                        width: parent.width * 0.94
+                        height: 26
+
+                        // Clipped Container for Song & Artist Marquee Text
+                        Item {
+                            id: trackTextContainer
+                            anchors.left: parent.left
+                            anchors.right: noteIconImage.left
+                            anchors.rightMargin: 6
+                            anchors.verticalCenter: parent.verticalCenter
+                            height: 22
+                            clip: true
+
+                            property string fullTrackText: {
+                                if (!controller) return "Revoic - Sunset Drive";
+                                return (controller.mediaArtist ? (controller.mediaArtist + " - ") : "") + controller.mediaTitle;
+                            }
+
+                            onFullTrackTextChanged: resetMarquee()
+
+                            function resetMarquee() {
+                                marqueeAnim.stop();
+                                trackTitleText.x = 0;
+                                if (trackTitleText.needsScroll && mediaPopupBanner.isMediaActive) {
+                                    marqueeAnim.restart();
+                                }
+                            }
+
+                            Connections {
+                                target: controller
+                                function onShowMediaPopupChanged() {
+                                    if (controller && controller.showMediaPopup) {
+                                        trackTextContainer.resetMarquee();
+                                    }
+                                }
+                                function onMediaTitleChanged() {
+                                    trackTextContainer.resetMarquee();
+                                }
+                            }
+
+                            Text {
+                                id: trackTitleText
+                                anchors.verticalCenter: parent.verticalCenter
+                                text: trackTextContainer.fullTrackText
+                                font.pixelSize: 14
+                                font.family: centerRoot.fontHeadRegular
+                                color: "#FFFFFF"
+
+                                readonly property real overflow: Math.max(0, implicitWidth - trackTextContainer.width)
+                                readonly property bool needsScroll: overflow > 4
+
+                                // Always start at 0 (the start of the text)
+                                x: 0
+
+                                SequentialAnimation {
+                                    id: marqueeAnim
+                                    running: trackTitleText.needsScroll && mediaPopupBanner.isMediaActive
+                                    loops: Animation.Infinite
+
+                                    // 1. Hold at start of song for 1.2s so user reads the start first
+                                    PauseAnimation { duration: 1200 }
+                                    // 2. Smoothly scroll left to reveal full song name
+                                    NumberAnimation {
+                                        target: trackTitleText
+                                        property: "x"
+                                        to: -trackTitleText.overflow - 6
+                                        duration: Math.max(1800, trackTitleText.overflow * 35)
+                                        easing.type: Easing.InOutQuad
+                                    }
+                                    // 3. Hold at end of song for 1.2s
+                                    PauseAnimation { duration: 1200 }
+                                    // 4. Smoothly scroll back to start
+                                    NumberAnimation {
+                                        target: trackTitleText
+                                        property: "x"
+                                        to: 0
+                                        duration: Math.max(1800, trackTitleText.overflow * 35)
+                                        easing.type: Easing.InOutQuad
+                                    }
+                                }
+                            }
+                        }
+
+                        // Trailing White Music Note Icon
+                        Image {
+                            id: noteIconImage
+                            width: 14
+                            height: 14
+                            anchors.right: parent.right
+                            anchors.verticalCenter: parent.verticalCenter
+                            source: "qrc:/qt/qml/HyundaiExterCluster/resources/icons/media_note.png"
+                            fillMode: Image.PreserveAspectFit
+                            smooth: true
+                            mipmap: true
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // =================================================================
+    // 2. LIGHTS SELECTOR POPUP CARD (Smooth Animated Stalk Carousel)
+    // =================================================================
+    Item {
+        id: lightsPopupCard
+        anchors.top: topDteSection.bottom
+        anchors.topMargin: 10
+        anchors.horizontalCenter: parent.horizontalCenter
+        width: parent.width * 0.92
+        height: 204
+        opacity: (controller && controller.showLightPopup) ? 1.0 : 0.0
+        scale: (controller && controller.showLightPopup) ? 1.0 : 0.95
+        visible: opacity > 0.01
+        z: 35
+
+        Behavior on opacity { NumberAnimation { duration: 220; easing.type: Easing.OutQuad } }
+        Behavior on scale { NumberAnimation { duration: 220; easing.type: Easing.OutQuad } }
+
+        Timer {
+            id: lightPopupTimer
+            interval: 3000
+            repeat: false
+            onTriggered: {
+                if (controller) controller.setShowLightPopup(false);
+            }
+        }
+
+        Connections {
+            target: controller
+            function onShowLightPopupChanged() {
+                if (controller && controller.showLightPopup) {
+                    lightPopupTimer.restart();
+                }
+            }
+            function onLightModeChanged() {
+                if (controller) {
+                    controller.setShowLightPopup(true);
+                    lightPopupTimer.restart();
+                }
+            }
+        }
+
+        Column {
+            anchors.centerIn: parent
+            spacing: 12
+            width: parent.width
+
+            // Title: "Lights"
+            Text {
+                anchors.horizontalCenter: parent.horizontalCenter
+                text: centerRoot.isHindi ? "लाइट्स" : "Lights"
+                font.pixelSize: 18
+                font.family: centerRoot.fontHeadMedium
+                font.weight: Font.DemiBold
+                color: "#FFFFFF"
+            }
+
+            // Stalk Selector Box with Left/Right Vertical Brackets & Sliding Cyan Selector
+            Item {
+                anchors.horizontalCenter: parent.horizontalCenter
+                width: 130
+                height: 124
+
+                // Left vertical bracket line
+                Rectangle {
+                    anchors.left: parent.left
+                    anchors.top: parent.top
+                    anchors.bottom: parent.bottom
+                    width: 1.2
+                    color: "#506880"
+                }
+
+                // Right vertical bracket line
+                Rectangle {
+                    anchors.right: parent.right
+                    anchors.top: parent.top
+                    anchors.bottom: parent.bottom
+                    width: 1.2
+                    color: "#506880"
+                }
+
+                // Smooth Gliding Active Cyan Selector Bracket (Top & Bottom Glowing Bars)
+                Item {
+                    id: slidingSelectorBracket
+                    anchors.left: parent.left
+                    anchors.leftMargin: 8
+                    anchors.right: parent.right
+                    anchors.rightMargin: 8
+                    height: 28
+                    z: 5
+
+                    // Target Y calculated based on active mode (3 = Low beam, 2 = Position, 1 = Auto, 0 = Off)
+                    y: {
+                        var mode = controller ? controller.lightMode : 0;
+                        if (mode === 3) return 0;   // Low beam
+                        if (mode === 2) return 30;  // Position lamp
+                        if (mode === 1) return 60;  // Auto
+                        return 90;                  // Off
+                    }
+
+                    Behavior on y {
+                        NumberAnimation {
+                            duration: 220
+                            easing.type: Easing.OutCubic
+                        }
+                    }
+
+                    // Top Cyan Glowing Line
+                    Rectangle {
+                        anchors.top: parent.top
+                        anchors.left: parent.left
+                        anchors.right: parent.right
+                        height: 1.8
+                        color: "#00E5FF"
+                        radius: 0.9
+
+                        Rectangle {
+                            anchors.centerIn: parent
+                            width: parent.width
+                            height: 6
+                            color: "#3300E5FF"
+                            z: -1
+                        }
+                    }
+
+                    // Bottom Cyan Glowing Line
+                    Rectangle {
+                        anchors.bottom: parent.bottom
+                        anchors.left: parent.left
+                        anchors.right: parent.right
+                        height: 1.8
+                        color: "#00E5FF"
+                        radius: 0.9
+
+                        Rectangle {
+                            anchors.centerIn: parent
+                            width: parent.width
+                            height: 6
+                            color: "#3300E5FF"
+                            z: -1
+                        }
+                    }
+                }
+
+                // 4 Vertical Mode Slots: 3 = Headlight (Low beam), 2 = Position Lamp, 1 = AUTO, 0 = OFF
+                Column {
+                    anchors.top: parent.top
+                    anchors.left: parent.left
+                    anchors.leftMargin: 8
+                    anchors.right: parent.right
+                    anchors.rightMargin: 8
+                    spacing: 2
+
+                    // Slot 3: Headlight / Low Beam
+                    Item {
+                        width: parent.width
+                        height: 28
+
+                        Image {
+                            anchors.centerIn: parent
+                            width: 22
+                            height: 18
+                            source: "qrc:/qt/qml/HyundaiExterCluster/resources/icons/low_beam.png"
+                            fillMode: Image.PreserveAspectFit
+                            smooth: true
+                            mipmap: true
+                            opacity: (controller && controller.lightMode === 3) ? 1.0 : 0.35
+                            scale: (controller && controller.lightMode === 3) ? 1.08 : 0.95
+                            Behavior on opacity { NumberAnimation { duration: 180 } }
+                            Behavior on scale { NumberAnimation { duration: 180 } }
+                        }
+                    }
+
+                    // Slot 2: Position Lamp
+                    Item {
+                        width: parent.width
+                        height: 28
+
+                        Image {
+                            anchors.centerIn: parent
+                            width: 24
+                            height: 18
+                            source: "qrc:/qt/qml/HyundaiExterCluster/resources/icons/position_lamp.png"
+                            fillMode: Image.PreserveAspectFit
+                            smooth: true
+                            mipmap: true
+                            opacity: (controller && controller.lightMode === 2) ? 1.0 : 0.35
+                            scale: (controller && controller.lightMode === 2) ? 1.08 : 0.95
+                            Behavior on opacity { NumberAnimation { duration: 180 } }
+                            Behavior on scale { NumberAnimation { duration: 180 } }
+                        }
+                    }
+
+                    // Slot 1: AUTO
+                    Item {
+                        width: parent.width
+                        height: 28
+
+                        Text {
+                            anchors.centerIn: parent
+                            text: centerRoot.isHindi ? "ऑटो" : "AUTO"
+                            font.pixelSize: 14
+                            font.family: centerRoot.fontHeadMedium
+                            font.bold: true
+                            color: (controller && controller.lightMode === 1) ? "#FFFFFF" : "#708898"
+                            scale: (controller && controller.lightMode === 1) ? 1.05 : 0.95
+                            Behavior on color { ColorAnimation { duration: 180 } }
+                            Behavior on scale { NumberAnimation { duration: 180 } }
+                        }
+                    }
+
+                    // Slot 0: OFF
+                    Item {
+                        width: parent.width
+                        height: 28
+
+                        Text {
+                            anchors.centerIn: parent
+                            text: centerRoot.isHindi ? "बंद" : "OFF"
+                            font.pixelSize: 14
+                            font.family: centerRoot.fontHeadMedium
+                            font.bold: true
+                            color: (controller && controller.lightMode === 0) ? "#FFFFFF" : "#708898"
+                            scale: (controller && controller.lightMode === 0) ? 1.05 : 0.95
+                            Behavior on color { ColorAnimation { duration: 180 } }
+                            Behavior on scale { NumberAnimation { duration: 180 } }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // =================================================================
+    // REDUCE SPEED OVERSPEED WARNING CARD (Matches OEM Photo 1:1)
+    // =================================================================
+    Item {
+        id: reduceSpeedWarningCard
+        anchors.top: topDteSection.bottom
+        anchors.topMargin: 18
+        anchors.horizontalCenter: parent.horizontalCenter
+        width: parent.width * 0.92
+        height: 204
+        visible: centerRoot.activeWarningId === 1
+        z: 40
+
+        Column {
+            anchors.centerIn: parent
+            spacing: 20
+            width: parent.width
+
+            // Title: "Reduce speed" (or "गति कम करें" in Hindi)
+            Text {
+                anchors.horizontalCenter: parent.horizontalCenter
+                text: centerRoot.isHindi ? "गति कम करें" : "Reduce speed"
+                font.pixelSize: 18
+                font.family: centerRoot.fontHeadMedium
+                font.weight: Font.DemiBold
+                color: "#FFFFFF"
+                font.letterSpacing: 0.3
+            }
+
+            // Glowing Amber 3D Warning Triangle with Gloss Shine & Floor Reflection
+            Item {
+                anchors.horizontalCenter: parent.horizontalCenter
+                width: 80
+                height: 80
+
+                Canvas {
+                    id: warningTriangleCanvas
+                    anchors.fill: parent
+
+                    onPaint: {
+                        var ctx = getContext("2d");
+                        ctx.clearRect(0, 0, width, height);
+
+                        var cx = width * 0.5;
+                        var topY = 6;
+                        var botY = 56;
+                        var halfBase = 32;
+
+                        // 1. Soft Warm Radial Ambient Shine Behind Triangle
+                        var bgGlow = ctx.createRadialGradient(cx, 32, 2, cx, 32, 38);
+                        bgGlow.addColorStop(0.0, "rgba(255, 167, 38, 0.28)");
+                        bgGlow.addColorStop(0.6, "rgba(255, 111, 0, 0.10)");
+                        bgGlow.addColorStop(1.0, "rgba(0, 0, 0, 0.0)");
+                        ctx.fillStyle = bgGlow;
+                        ctx.beginPath();
+                        ctx.arc(cx, 32, 38, 0, Math.PI * 2);
+                        ctx.fill();
+
+                        // Helper function to draw triangle path
+                        function drawTrianglePath(c, apexY, baseOffset) {
+                            c.beginPath();
+                            c.moveTo(cx, apexY);
+                            c.lineTo(cx + halfBase - baseOffset, botY - baseOffset);
+                            c.lineTo(cx - halfBase + baseOffset, botY - baseOffset);
+                            c.closePath();
+                        }
+
+                        // 2. Main 3D Outer Bevel with Linear Metallic Amber Gradient
+                        var amberGrad = ctx.createLinearGradient(cx - halfBase, topY, cx + halfBase, botY);
+                        amberGrad.addColorStop(0.0, "#FFE082"); // Bright top-left golden specular
+                        amberGrad.addColorStop(0.35, "#FFA726"); // Vibrant amber body
+                        amberGrad.addColorStop(0.8, "#FF6F00"); // Rich deep warm orange
+                        amberGrad.addColorStop(1.0, "#E65100"); // Bottom shadow rim
+
+                        ctx.save();
+                        drawTrianglePath(ctx, topY, 0);
+                        ctx.strokeStyle = amberGrad;
+                        ctx.lineWidth = 5.8;
+                        ctx.lineJoin = "round";
+                        ctx.lineCap = "round";
+                        ctx.stroke();
+
+                        // 3. Crisp Top Apex Specular Gloss Shine Highlight
+                        var shineGrad = ctx.createLinearGradient(cx, topY, cx, topY + 22);
+                        shineGrad.addColorStop(0.0, "rgba(255, 255, 255, 0.95)");
+                        shineGrad.addColorStop(0.4, "rgba(255, 236, 179, 0.65)");
+                        shineGrad.addColorStop(1.0, "rgba(255, 167, 38, 0.0)");
+
+                        ctx.beginPath();
+                        ctx.moveTo(cx - 14, topY + 22);
+                        ctx.lineTo(cx, topY);
+                        ctx.lineTo(cx + 14, topY + 22);
+                        ctx.strokeStyle = shineGrad;
+                        ctx.lineWidth = 3.2;
+                        ctx.lineJoin = "round";
+                        ctx.lineCap = "round";
+                        ctx.stroke();
+
+                        // 4. 3D Exclamation Bar with Top Gloss
+                        var barGrad = ctx.createLinearGradient(cx, 22, cx, 40);
+                        barGrad.addColorStop(0.0, "#FFFFFF");
+                        barGrad.addColorStop(0.3, "#FFE082");
+                        barGrad.addColorStop(1.0, "#FF8F00");
+                        ctx.fillStyle = barGrad;
+                        ctx.beginPath();
+                        ctx.rect(cx - 2.6, 22, 5.2, 16);
+                        ctx.fill();
+
+                        // 5. 3D Exclamation Dot with Gloss Sphere
+                        var dotGrad = ctx.createRadialGradient(cx - 0.8, 44.5, 0.5, cx, 45.5, 3.0);
+                        dotGrad.addColorStop(0.0, "#FFFFFF");
+                        dotGrad.addColorStop(0.4, "#FFD54F");
+                        dotGrad.addColorStop(1.0, "#FF6F00");
+                        ctx.fillStyle = dotGrad;
+                        ctx.beginPath();
+                        ctx.arc(cx, 45.5, 3.0, 0, Math.PI * 2);
+                        ctx.fill();
+                        ctx.restore();
+
+                        // 6. Smooth Inverted Floor Mirror Reflection with Fade
+                        ctx.save();
+                        ctx.globalAlpha = 0.22;
+                        ctx.translate(0, height + 10);
+                        ctx.scale(1, -0.35);
+
+                        drawTrianglePath(ctx, topY, 0);
+                        ctx.strokeStyle = amberGrad;
+                        ctx.lineWidth = 5.8;
+                        ctx.lineJoin = "round";
+                        ctx.stroke();
+
+                        ctx.fillStyle = barGrad;
+                        ctx.beginPath();
+                        ctx.rect(cx - 2.6, 22, 5.2, 16);
+                        ctx.fill();
+
+                        ctx.beginPath();
+                        ctx.arc(cx, 45.5, 3.0, 0, Math.PI * 2);
+                        ctx.fill();
+                        ctx.restore();
+                    }
+
+                    Connections {
+                        target: controller
+                        function onReduceSpeedAlertChanged() {
+                            if (controller && controller.reduceSpeedAlert) warningTriangleCanvas.requestPaint();
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // =================================================================
+    // SMART KEY / PUSH-BUTTON START WARNING CARD (Matches OEM Photo 1:1)
+    // =================================================================
+    Item {
+        id: smartKeyWarningCard
+        anchors.top: topDteSection.bottom
+        anchors.topMargin: 18
+        anchors.horizontalCenter: parent.horizontalCenter
+        width: parent.width * 0.92
+        height: 204
+        visible: centerRoot.activeWarningId === 2
+        z: 40
+
+        Column {
+            anchors.centerIn: parent
+            spacing: 16
+            width: parent.width
+
+            // Title: Dynamic based on 4 exact OEM Smart Key Prompts
+            Text {
+                anchors.horizontalCenter: parent.horizontalCenter
+                text: {
+                    var p = controller ? controller.smartKeyPrompt : 0;
+                    var hindi = centerRoot.isHindi;
+                    if (p === 1) return hindi ? "चाबी वाहन में नहीं है" : "Key not in vehicle";
+                    if (p === 2) return hindi ? "चाबी नहीं मिली" : "Key not detected";
+                    if (p === 3) return hindi ? "चाबी की बैटरी कम है" : "Low key battery";
+                    if (p === 4) return hindi ? "चाबी से START बटन दबाएं" : "Press START with key";
+                    return "";
+                }
+                font.pixelSize: 16
+                font.family: centerRoot.fontHeadMedium
+                font.weight: Font.DemiBold
+                color: "#FFFFFF"
+                horizontalAlignment: Text.AlignHCenter
+                wrapMode: Text.WordWrap
+                width: parent.width
+            }
+
+            // 3D Hyundai Smart Key Fob Graphic with Ground Shadow & Floor Reflection
+            Item {
+                anchors.horizontalCenter: parent.horizontalCenter
+                width: 90
+                height: 136
+
+                // 1. High-Res Hyundai Smart Key Fob Image
+                Image {
+                    id: keyFobImage
+                    anchors.top: parent.top
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    width: 68
+                    height: 98
+                    source: "qrc:/qt/qml/HyundaiExterCluster/resources/icons/hyundai_smart_key_fob.png"
+                    fillMode: Image.PreserveAspectFit
+                    smooth: true
+                    mipmap: true
+                }
+
+                // 2. Ground Contact Shadow Oval
+                Rectangle {
+                    id: keyGroundShadow
+                    anchors.horizontalCenter: keyFobImage.horizontalCenter
+                    anchors.top: keyFobImage.bottom
+                    anchors.topMargin: 2
+                    width: 46
+                    height: 5
+                    radius: 23
+                    color: "#A0000000"
+                }
+
+                // 3. Inverted Floor Mirror Reflection of the Key Fob (With subtle gap)
+                Item {
+                    id: reflectionContainer
+                    anchors.top: keyFobImage.bottom
+                    anchors.topMargin: 4
+                    anchors.horizontalCenter: keyFobImage.horizontalCenter
+                    width: keyFobImage.width
+                    height: 44
+                    clip: true
+
+                    Image {
+                        id: reflectionImage
+                        anchors.top: parent.top
+                        anchors.horizontalCenter: parent.horizontalCenter
+                        width: keyFobImage.width
+                        height: keyFobImage.height
+                        source: keyFobImage.source
+                        fillMode: Image.PreserveAspectFit
+                        rotation: 180
+                        mirror: true
+                        opacity: 0.50
+                        smooth: true
+                        mipmap: true
+                    }
+
+                    // Mirror Reflection Gradient Fade Mask
+                    Rectangle {
+                        anchors.fill: parent
+                        gradient: Gradient {
+                            orientation: Gradient.Vertical
+                            GradientStop { position: 0.0; color: "transparent" }
+                            GradientStop { position: 0.60; color: "#CC03060C" }
+                            GradientStop { position: 1.0; color: "#03060C" }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // =================================================================
+    // PRESS START BUTTON AGAIN WARNING CARD (Matches OEM Photo 1:1)
+    // =================================================================
+    Item {
+        id: pressStartAgainWarningCard
+        anchors.top: topDteSection.bottom
+        anchors.topMargin: 18
+        anchors.horizontalCenter: parent.horizontalCenter
+        width: parent.width * 0.92
+        height: 204
+        visible: centerRoot.activeWarningId === 3
+        z: 40
+
+        Column {
+            anchors.centerIn: parent
+            spacing: 16
+            width: parent.width
+
+            // Title: Dynamic for Press clutch pedal to start / Press START button again
+            Text {
+                anchors.horizontalCenter: parent.horizontalCenter
+                text: {
+                    if (controller && controller.startPedalPrompt === 2) {
+                        return centerRoot.isHindi ? "स्टार्ट करने के लिए\nक्लच पेडल दबाएं" : "Press clutch pedal\nto start";
+                    } else if (controller && controller.startPedalPrompt === 3) {
+                        return centerRoot.isHindi ? "स्टार्ट करने के लिए\nब्रेक पेडल दबाएं" : "Press brake pedal\nto start";
+                    } else {
+                        return centerRoot.isHindi ? "फिर से START\nबटन दबाएं" : "Press START\nbutton again";
+                    }
+                }
+                font.pixelSize: 18
+                font.family: centerRoot.fontHeadMedium
+                font.weight: Font.DemiBold
+                color: "#FFFFFF"
+                horizontalAlignment: Text.AlignHCenter
+                lineHeight: 1.15
+            }
+
+            // 3D Graphic with Ground Shadow & Inverted Floor Reflection (Dynamic: Start Button vs Pedal)
+            Item {
+                id: pedalGraphicItem
+                readonly property bool isPedalPrompt: controller && (controller.startPedalPrompt === 2 || controller.startPedalPrompt === 3)
+                anchors.horizontalCenter: parent.horizontalCenter
+                width: isPedalPrompt ? 104 : 90
+                height: 124
+
+                // 1. High-Res 3D Graphic Image
+                Image {
+                    id: pedalImage
+                    anchors.top: parent.top
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    width: pedalGraphicItem.isPedalPrompt ? 98 : 82
+                    height: pedalGraphicItem.isPedalPrompt ? 72 : 82
+                    source: pedalGraphicItem.isPedalPrompt ?
+                            "qrc:/qt/qml/HyundaiExterCluster/resources/icons/pedal_press_indicator.png" :
+                            "qrc:/qt/qml/HyundaiExterCluster/resources/icons/engine_start_button_fob.png"
+                    fillMode: Image.PreserveAspectFit
+                    smooth: true
+                    mipmap: true
+                }
+
+                // 2. Ground Contact Shadow Oval
+                Rectangle {
+                    id: pedalGroundShadow
+                    anchors.horizontalCenter: pedalImage.horizontalCenter
+                    anchors.top: pedalImage.bottom
+                    anchors.topMargin: 2
+                    width: pedalGraphicItem.isPedalPrompt ? 74 : 56
+                    height: 5
+                    radius: 2.5
+                    color: "#A0000000"
+                }
+
+                // 3. Inverted Floor Mirror Reflection (With subtle gap)
+                Item {
+                    id: pedalReflectionContainer
+                    anchors.top: pedalImage.bottom
+                    anchors.topMargin: 4
+                    anchors.horizontalCenter: pedalImage.horizontalCenter
+                    width: pedalImage.width
+                    height: pedalGraphicItem.isPedalPrompt ? 36 : 40
+                    clip: true
+
+                    Image {
+                        anchors.top: parent.top
+                        anchors.horizontalCenter: parent.horizontalCenter
+                        width: pedalImage.width
+                        height: pedalImage.height
+                        source: pedalImage.source
+                        fillMode: Image.PreserveAspectFit
+                        rotation: 180
+                        mirror: true
+                        opacity: 0.45
+                        smooth: true
+                        mipmap: true
+                    }
+
+                    Rectangle {
+                        anchors.fill: parent
+                        gradient: Gradient {
+                            orientation: Gradient.Vertical
+                            GradientStop { position: 0.0; color: "transparent" }
+                            GradientStop { position: 0.60; color: "#CC03060C" }
+                            GradientStop { position: 1.0; color: "#03060C" }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // =================================================================
+    // DOOR OPEN WARNING CARD (Centered Big Car with Smooth 3-Stage Door Opening Animation)
+    // =================================================================
+    Item {
+        id: doorOpenWarningCard
+        anchors.top: topDteSection.bottom
+        anchors.bottom: bottomFooterSection.top
+        anchors.left: parent.left
+        anchors.right: parent.right
+        visible: centerRoot.activeWarningId === 4
+        z: 40
+
+        // Top-Down 3D Vehicle with Smooth Door Opening Sequence (Large & Centered)
+        Item {
+            id: doorAnimItem
+            anchors.centerIn: parent
+            width: 140
+            height: 210
+
+            property int currentStep: 2 // 0 = Closed, 1 = Half-Open, 2 = Fully-Open
+            readonly property bool fl: controller ? controller.doorFrontLeft : false
+            readonly property bool fr: controller ? controller.doorFrontRight : false
+            readonly property bool rl: controller ? controller.doorRearLeft : false
+            readonly property bool rr: controller ? controller.doorRearRight : false
+            readonly property bool bonnet: controller ? controller.bonnetOpen : false
+            readonly property bool trunk: controller ? controller.trunkOpen : false
+
+            Timer {
+                id: doorSwingTimer
+                interval: 140
+                repeat: true
+                running: centerRoot.activeWarningId === 4 && doorAnimItem.currentStep < 2
+                onTriggered: {
+                    if (doorAnimItem.currentStep < 2) {
+                        doorAnimItem.currentStep++;
+                    }
+                }
+            }
+
+            Connections {
+                target: centerRoot
+                function onActiveWarningIdChanged() {
+                    if (centerRoot.activeWarningId === 4) {
+                        doorAnimItem.currentStep = 0;
+                        doorSwingTimer.restart();
+                    }
+                }
+            }
+
+            Connections {
+                target: controller
+                function onDoorFrontRightChanged() { doorAnimItem.triggerAnim(); }
+                function onDoorFrontLeftChanged() { doorAnimItem.triggerAnim(); }
+                function onDoorRearRightChanged() { doorAnimItem.triggerAnim(); }
+                function onDoorRearLeftChanged() { doorAnimItem.triggerAnim(); }
+                function onBonnetOpenChanged() { doorAnimItem.triggerAnim(); }
+                function onTrunkOpenChanged() { doorAnimItem.triggerAnim(); }
+            }
+
+            function triggerAnim() {
+                if (controller && controller.isAnyDoorOpen) {
+                    doorAnimItem.currentStep = 0;
+                    doorSwingTimer.restart();
+                }
+            }
+
+            Image {
+                id: doorCarImage
+                anchors.fill: parent
+                fillMode: Image.PreserveAspectFit
+                smooth: true
+                mipmap: true
+                source: {
+                    var fl = doorAnimItem.fl;
+                    var fr = doorAnimItem.fr;
+                    var rl = doorAnimItem.rl;
+                    var rr = doorAnimItem.rr;
+                    var step = doorAnimItem.currentStep;
+
+                    if (!fl && !fr && !rl && !rr) {
+                        return "qrc:/qt/qml/HyundaiExterCluster/resources/icons/car_doors_closed.png";
+                    }
+
+                    // Step 0: Initial closed car
+                    if (step === 0) {
+                        return "qrc:/qt/qml/HyundaiExterCluster/resources/icons/car_doors_closed.png";
+                    }
+
+                    // Step 1: Smooth half-open intermediate swing
+                    if (step === 1) {
+                        if (fl && fr && rl && rr) return "qrc:/qt/qml/HyundaiExterCluster/resources/icons/car_doors_all_half.png";
+                        if (fl && fr && !rl && !rr) return "qrc:/qt/qml/HyundaiExterCluster/resources/icons/car_doors_front_both_half.png";
+                        if (!fl && !fr && rl && rr) return "qrc:/qt/qml/HyundaiExterCluster/resources/icons/car_doors_rear_both_half.png";
+                        if (fl && !fr && rl && !rr) return "qrc:/qt/qml/HyundaiExterCluster/resources/icons/car_doors_left_both_half.png";
+                        if (!fl && fr && !rl && rr) return "qrc:/qt/qml/HyundaiExterCluster/resources/icons/car_doors_right_both_half.png";
+                        if ((fl?1:0) + (fr?1:0) + (rl?1:0) + (rr?1:0) >= 3) return "qrc:/qt/qml/HyundaiExterCluster/resources/icons/car_doors_all_half.png";
+
+                        if (fr) return "qrc:/qt/qml/HyundaiExterCluster/resources/icons/car_door_fr_half.png";
+                        if (fl) return "qrc:/qt/qml/HyundaiExterCluster/resources/icons/car_door_fl_half.png";
+                        if (rl) return "qrc:/qt/qml/HyundaiExterCluster/resources/icons/car_door_rl_half.png";
+                        if (rr) return "qrc:/qt/qml/HyundaiExterCluster/resources/icons/car_door_rr_half.png";
+                        return "qrc:/qt/qml/HyundaiExterCluster/resources/icons/car_doors_closed.png";
+                    }
+
+                    // Step 2: Fully-open state
+                    if (fl && fr && rl && rr) return "qrc:/qt/qml/HyundaiExterCluster/resources/icons/car_doors_all_open.png";
+                    if (fl && fr && !rl && !rr) return "qrc:/qt/qml/HyundaiExterCluster/resources/icons/car_doors_front_both.png";
+                    if (!fl && !fr && rl && rr) return "qrc:/qt/qml/HyundaiExterCluster/resources/icons/car_doors_rear_both.png";
+                    if (fl && !fr && rl && !rr) return "qrc:/qt/qml/HyundaiExterCluster/resources/icons/car_doors_left_both.png";
+                    if (!fl && fr && !rl && rr) return "qrc:/qt/qml/HyundaiExterCluster/resources/icons/car_doors_right_both.png";
+                    if ((fl?1:0) + (fr?1:0) + (rl?1:0) + (rr?1:0) >= 3) return "qrc:/qt/qml/HyundaiExterCluster/resources/icons/car_doors_all_open.png";
+
+                    if (fr) return "qrc:/qt/qml/HyundaiExterCluster/resources/icons/car_door_fr.png";
+                    if (fl) return "qrc:/qt/qml/HyundaiExterCluster/resources/icons/car_door_fl.png";
+                    if (rl) return "qrc:/qt/qml/HyundaiExterCluster/resources/icons/car_door_rl.png";
+                    if (rr) return "qrc:/qt/qml/HyundaiExterCluster/resources/icons/car_door_rr.png";
+
+                    return "qrc:/qt/qml/HyundaiExterCluster/resources/icons/car_doors_closed.png";
+                }
+            }
+
+            // Red Blinking Bonnet (Hood) Hazard Overlay
+            Image {
+                id: bonnetRedGlow
+                anchors.fill: parent
+                source: "qrc:/qt/qml/HyundaiExterCluster/resources/icons/car_bonnet_red_glow.png"
+                fillMode: Image.PreserveAspectFit
+                visible: doorAnimItem.bonnet
+                opacity: 1.0
+
+                SequentialAnimation on opacity {
+                    running: doorAnimItem.bonnet
+                    loops: Animation.Infinite
+                    NumberAnimation { from: 1.0; to: 0.15; duration: 400; easing.type: Easing.InOutQuad }
+                    NumberAnimation { from: 0.15; to: 1.0; duration: 400; easing.type: Easing.InOutQuad }
+                }
+            }
+
+            // Red Blinking Trunk (Boot) Hazard Overlay
+            Image {
+                id: trunkRedGlow
+                anchors.fill: parent
+                source: "qrc:/qt/qml/HyundaiExterCluster/resources/icons/car_trunk_red_glow.png"
+                fillMode: Image.PreserveAspectFit
+                visible: doorAnimItem.trunk
+                opacity: 1.0
+
+                SequentialAnimation on opacity {
+                    running: doorAnimItem.trunk
+                    loops: Animation.Infinite
+                    NumberAnimation { from: 1.0; to: 0.15; duration: 400; easing.type: Easing.InOutQuad }
+                    NumberAnimation { from: 0.15; to: 1.0; duration: 400; easing.type: Easing.InOutQuad }
+                }
+            }
+        }
+    }
+
+    // =================================================================
+    // SUNROOF OPEN WARNING CARD (3D Sunroof + Sun Rays + Reflection)
+    // =================================================================
+    Item {
+        id: sunroofWarningCard
+        anchors.top: topDteSection.bottom
+        anchors.topMargin: 18
+        anchors.horizontalCenter: parent.horizontalCenter
+        width: parent.width * 0.92
+        height: 204
+        visible: centerRoot.activeWarningId === 5
+        z: 40
+
+        Column {
+            anchors.centerIn: parent
+            spacing: 12
+            width: parent.width
+
+            // Title: "Sunroof open"
+            Text {
+                anchors.horizontalCenter: parent.horizontalCenter
+                text: centerRoot.isHindi ? "सनरूफ खुला है" : "Sunroof open"
+                font.pixelSize: 16
+                font.family: centerRoot.fontHeadMedium
+                font.weight: Font.DemiBold
+                color: "#FFFFFF"
+                horizontalAlignment: Text.AlignHCenter
+            }
+
+            // 3D Sunroof Graphic with Sun Rays & Reflection
+            Item {
+                anchors.horizontalCenter: parent.horizontalCenter
+                width: 60
+                height: 54
+
+                Canvas {
+                    id: sunroofCanvas
+                    anchors.fill: parent
+
+                    onPaint: {
+                        var ctx = getContext("2d");
+                        ctx.clearRect(0, 0, width, height);
+
+                        var cx = width * 0.5;
+                        var cy = 24;
+
+                        // 1. Radiant Ambient Sun Glow
+                        var glow = ctx.createRadialGradient(cx, cy, 2, cx, cy, 26);
+                        glow.addColorStop(0.0, "rgba(255, 167, 38, 0.35)");
+                        glow.addColorStop(1.0, "rgba(0, 0, 0, 0.0)");
+                        ctx.fillStyle = glow;
+                        ctx.beginPath();
+                        ctx.arc(cx, cy, 26, 0, Math.PI * 2);
+                        ctx.fill();
+
+                        // 2. 3D Sun Graphic with Rays
+                        var sunGrad = ctx.createRadialGradient(cx - 2, cy - 2, 1, cx, cy, 12);
+                        sunGrad.addColorStop(0.0, "#FFFFFF");
+                        sunGrad.addColorStop(0.4, "#FFE082");
+                        sunGrad.addColorStop(1.0, "#FF8F00");
+
+                        ctx.save();
+                        // Sun Circle
+                        ctx.fillStyle = sunGrad;
+                        ctx.beginPath();
+                        ctx.arc(cx, cy, 10, 0, Math.PI * 2);
+                        ctx.fill();
+
+                        // Sun Rays
+                        ctx.strokeStyle = "#FFA726";
+                        ctx.lineWidth = 2.2;
+                        ctx.lineCap = "round";
+                        for (var i = 0; i < 8; i++) {
+                            var angle = i * (Math.PI / 4);
+                            ctx.beginPath();
+                            ctx.moveTo(cx + Math.cos(angle) * 13, cy + Math.sin(angle) * 13);
+                            ctx.lineTo(cx + Math.cos(angle) * 18, cy + Math.sin(angle) * 18);
+                            ctx.stroke();
+                        }
+
+                        // Sunroof Glass Tilt Line
+                        ctx.strokeStyle = "#00E5FF";
+                        ctx.lineWidth = 2.5;
+                        ctx.beginPath();
+                        ctx.moveTo(cx - 20, cy + 16);
+                        ctx.lineTo(cx + 20, cy + 12);
+                        ctx.stroke();
+                        ctx.restore();
+
+                        // 3. Floor Reflection
+                        ctx.save();
+                        ctx.globalAlpha = 0.20;
+                        ctx.translate(0, height + 6);
+                        ctx.scale(1, -0.30);
+                        ctx.fillStyle = sunGrad;
+                        ctx.beginPath();
+                        ctx.arc(cx, cy, 10, 0, Math.PI * 2);
+                        ctx.fill();
+                        ctx.restore();
+                    }
+
+                    Connections {
+                        target: controller
+                        function onSunroofAlertActiveChanged() {
+                            if (controller && controller.sunroofAlertActive) sunroofCanvas.requestPaint();
+                        }
+                    }
+                }
+            }
+
+            // Subtitle: "Check sunroof before leaving vehicle"
+            Text {
+                anchors.horizontalCenter: parent.horizontalCenter
+                text: centerRoot.isHindi ? "कृपया सनरूफ बंद करें" : "Check sunroof before\nleaving vehicle"
+                font.pixelSize: 12
+                font.family: centerRoot.fontHeadRegular
+                color: "#CCD8E8"
+                horizontalAlignment: Text.AlignHCenter
+            }
+        }
+    }
+
     UserSettingsView {
         id: userSettingsView
         anchors.top: topDteSection.bottom
@@ -457,7 +1796,7 @@ Item {
         anchors.horizontalCenter: parent.horizontalCenter
         width: parent.width * 0.92
         themeColor: centerRoot.themeColor
-        visible: centerRoot.menuTab === 1
+        visible: centerRoot.menuTab === 1 && (!controller || (!controller.showLightPopup && !centerRoot.isWarningActive))
     }
 
     // =================================================================
@@ -469,7 +1808,7 @@ Item {
         anchors.topMargin: 10
         anchors.horizontalCenter: parent.horizontalCenter
         width: parent.width * 0.92
-        visible: centerRoot.menuTab === 2
+        visible: centerRoot.menuTab === 2 && (!controller || (!controller.showLightPopup && !centerRoot.isWarningActive))
     }
 
     // =================================================================
@@ -483,7 +1822,7 @@ Item {
         width: parent.width * 0.92
         height: 204
         clip: true
-        visible: centerRoot.menuTab === 0
+        visible: centerRoot.menuTab === 0 && (!controller || (!controller.showLightPopup && !centerRoot.isWarningActive))
 
         property int lastPage: centerRoot.tripPage
 
@@ -688,7 +2027,9 @@ Item {
                     anchors.right: parent.right
                     anchors.rightMargin: 46
                     anchors.verticalCenter: parent.verticalCenter
-                    text: centerRoot.activeTripEconomy.toFixed(1)
+                    text: (controller && controller.fuelUnit === "L/100km") ?
+                          (centerRoot.activeTripEconomy > 0.1 ? (100.0 / centerRoot.activeTripEconomy).toFixed(1) : "0.0") :
+                          centerRoot.activeTripEconomy.toFixed(1)
                     font.pixelSize: 24
                     font.family: centerRoot.fontHeadMedium
                     font.weight: Font.DemiBold
@@ -701,8 +2042,8 @@ Item {
                     anchors.leftMargin: 3
                     anchors.bottom: row3Val.bottom
                     anchors.bottomMargin: 2
-                    text: "km/L"
-                    font.pixelSize: 14
+                    text: (controller && controller.fuelUnit === "L/100km") ? "L/100km" : "km/L"
+                    font.pixelSize: (controller && controller.fuelUnit === "L/100km") ? 11 : 14
                     font.family: centerRoot.fontHeadRegular
                     color: "#FFFFFF"
                 }
@@ -729,6 +2070,7 @@ Item {
             anchors.horizontalCenter: parent.horizontalCenter
             width: parent.width * 0.92
             height: 8
+            opacity: centerRoot.isTpmsActive ? (centerRoot.lineAnimProgress * centerRoot.tpmsBlinkOpacity) : centerRoot.lineAnimProgress
 
             // Soft Dim White Ambient Light shining below the line
             Rectangle {
@@ -764,52 +2106,85 @@ Item {
             }
         }
 
-        // 3 Occupant Seatbelt Icons (Sitting directly on top of the lower divider line)
+        // 3 Occupant Seatbelt Icons (Visible ONLY if a rear passenger is unbuckled or alarming, hidden during warnings & menus)
         Row {
             id: occupantRow
             anchors.bottom: bottomDividerLine.top
             anchors.bottomMargin: 2
             anchors.horizontalCenter: parent.horizontalCenter
-            spacing: 1
+            spacing: 2
+
+            property bool hasRearAlert: controller && (!controller.rearLeftBuckled || !controller.rearCenterBuckled || !controller.rearRightBuckled || controller.rearAlarmActive)
+            opacity: hasRearAlert ? 1.0 : 0.0
+            visible: centerRoot.menuTab === 0 && (!controller || (!controller.showLightPopup && !controller.reduceSpeedAlert && !controller.driverAttentionActive && !controller.servicePopupActive && !controller.sunroofAlertActive && controller.smartKeyPrompt === 0)) && (opacity > 0.01)
             z: 10
+
+            Behavior on opacity { NumberAnimation { duration: 250 } }
 
             Repeater {
                 model: 3
-                Image {
+                Item {
                     width: 20
                     height: 22
-                    source: "qrc:/qt/qml/HyundaiExterCluster/resources/icons/seatbelt.png"
-                    fillMode: Image.PreserveAspectFit
-                    smooth: true
-                    mipmap: true
+
+                    property bool isUnbuckled: {
+                        if (!controller) return false;
+                        if (index === 0) return !controller.rearLeftBuckled;
+                        if (index === 1) return !controller.rearCenterBuckled;
+                        if (index === 2) return !controller.rearRightBuckled;
+                        return false;
+                    }
+                    property bool isAlarming: controller && controller.rearAlarmActive && (controller.rearAlarmSeat === index)
+
+                    Image {
+                        anchors.centerIn: parent
+                        width: 20
+                        height: 22
+                        source: "qrc:/qt/qml/HyundaiExterCluster/resources/icons/seatbelt.png"
+                        fillMode: Image.PreserveAspectFit
+                        smooth: true
+                        mipmap: true
+                        opacity: isAlarming ? (controller.rearSeatBlinkState ? 1.0 : 0.15) : (isUnbuckled ? 1.0 : 0.45)
+                    }
+
+                    // Red pulsating alert glow when unbuckled or alarming
+                    Rectangle {
+                        anchors.centerIn: parent
+                        width: 14
+                        height: 16
+                        radius: 8
+                        color: "#FF1744"
+                        opacity: isAlarming ? (controller.rearSeatBlinkState ? 0.45 : 0.0) : (isUnbuckled ? 0.25 : 0.0)
+                        z: -1
+                    }
                 }
             }
         }
 
-        // 3D Instantaneous Fuel Economy (ECO) Gauge (Visible only in Trip mode)
+        // 3D Instantaneous Fuel Economy (ECO) Gauge (Hidden during ANY warning/popup)
         InstantEcoGauge {
             id: instantEcoGauge
-            anchors.bottom: occupantRow.top
-            anchors.bottomMargin: 4
+            anchors.bottom: bottomDividerLine.top
+            anchors.bottomMargin: 28
             anchors.horizontalCenter: parent.horizontalCenter
             themeColor: centerRoot.themeColor
             value: (controller && controller.speed > 0) ? controller.instantEconomy : 0.0
-            visible: centerRoot.menuTab === 0 && !centerRoot.showResetPrompt
+            visible: centerRoot.menuTab === 0 && !centerRoot.showResetPrompt && !centerRoot.isWarningActive && (!controller || !controller.showLightPopup)
             z: 10
         }
 
-        // Action Prompt: Hold [OK] : Reset (Visible only in Trip mode)
+        // Action Prompt: Hold [OK] : Reset (Hidden during ANY warning/popup)
         Row {
             id: resetPrompt
-            anchors.bottom: occupantRow.top
-            anchors.bottomMargin: 6
+            anchors.bottom: bottomDividerLine.top
+            anchors.bottomMargin: 28
             anchors.horizontalCenter: parent.horizontalCenter
             spacing: 5
-            visible: centerRoot.menuTab === 0 && centerRoot.showResetPrompt
+            visible: centerRoot.menuTab === 0 && centerRoot.showResetPrompt && !centerRoot.isWarningActive && (!controller || !controller.showLightPopup)
             z: 10
 
             Text {
-                text: "Hold"
+                text: centerRoot.isHindi ? "दबाए रखें" : "Hold"
                 font.pixelSize: 13
                 font.family: centerRoot.fontHeadRegular
                 color: "#FFFFFF"
@@ -836,7 +2211,7 @@ Item {
             }
 
             Text {
-                text: ": Reset"
+                text: centerRoot.isHindi ? " : रीसेट" : ": Reset"
                 font.pixelSize: 13
                 font.family: centerRoot.fontHeadRegular
                 color: "#FFFFFF"
@@ -844,62 +2219,63 @@ Item {
             }
         }
 
-        // Right-Aligned Column for Temperature and Odometer (Number and unit on same line)
-        Column {
+        // Ambient Temperature (Top Right, hidden in Ignition OFF)
+        Row {
+            id: tempRow
             anchors.right: parent.right
             anchors.rightMargin: 12
-            anchors.top: parent.top
-            anchors.topMargin: 4
-            spacing: 2
+            anchors.top: bottomDividerLine.bottom
+            anchors.topMargin: 2
+            spacing: 1
+            visible: !centerRoot.isIgnitionOff
 
-            // Ambient Temperature (Top Right)
-            Row {
-                anchors.right: parent.right
-                spacing: 1
-
-                Text {
-                    id: tempNum
-                    anchors.verticalCenter: parent.verticalCenter
-                    text: centerRoot.ambientTemp
-                    font.pixelSize: 18
-                    font.family: centerRoot.fontHeadMedium
-                    font.weight: Font.Medium
-                    color: "#FFFFFF"
-                }
-
-                Text {
-                    anchors.verticalCenter: parent.verticalCenter
-                    anchors.verticalCenterOffset: 1
-                    text: "°c"
-                    font.pixelSize: 12
-                    font.family: centerRoot.fontHeadRegular
-                    color: "#FFFFFF"
-                }
+            Text {
+                id: tempNum
+                anchors.verticalCenter: parent.verticalCenter
+                text: (controller && controller.tempUnit === "°F") ? Math.round(centerRoot.ambientTemp * 9 / 5 + 32).toString() : centerRoot.ambientTemp.toString()
+                font.pixelSize: 18
+                font.family: centerRoot.fontHeadMedium
+                font.weight: Font.Medium
+                color: "#FFFFFF"
             }
 
-            // Odometer (Bottom Right)
-            Row {
-                anchors.right: parent.right
-                spacing: 1
+            Text {
+                anchors.verticalCenter: parent.verticalCenter
+                anchors.verticalCenterOffset: 1
+                text: (controller && controller.tempUnit === "°F") ? "°F" : "°c"
+                font.pixelSize: 12
+                font.family: centerRoot.fontHeadRegular
+                color: "#FFFFFF"
+            }
+        }
 
-                Text {
-                    id: odoNum
-                    anchors.verticalCenter: parent.verticalCenter
-                    text: centerRoot.odoKm
-                    font.pixelSize: 18
-                    font.family: centerRoot.fontHeadMedium
-                    font.weight: Font.Medium
-                    color: "#FFFFFF"
-                }
+        // Odometer (Permanently at Bottom Right)
+        Row {
+            id: odoRow
+            anchors.right: parent.right
+            anchors.rightMargin: 12
+            anchors.bottom: parent.bottom
+            anchors.bottomMargin: 4
+            spacing: 1
+            visible: true
 
-                Text {
-                    anchors.verticalCenter: parent.verticalCenter
-                    anchors.verticalCenterOffset: 1
-                    text: "km"
-                    font.pixelSize: 12
-                    font.family: centerRoot.fontHeadRegular
-                    color: "#FFFFFF"
-                }
+            Text {
+                id: odoNum
+                anchors.verticalCenter: parent.verticalCenter
+                text: centerRoot.odoKm
+                font.pixelSize: 18
+                font.family: centerRoot.fontHeadMedium
+                font.weight: Font.Medium
+                color: "#FFFFFF"
+            }
+
+            Text {
+                anchors.verticalCenter: parent.verticalCenter
+                anchors.verticalCenterOffset: 1
+                text: "km"
+                font.pixelSize: 12
+                font.family: centerRoot.fontHeadRegular
+                color: "#FFFFFF"
             }
         }
     }

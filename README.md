@@ -1,58 +1,133 @@
-# Automotive AMT Digital Instrument Cluster HMI
-
-A high-fidelity, real-time automotive digital instrument cluster HMI for the **replica of Hyundai Exter AMT**, built using **Qt 6 (QML / Qt Quick)** and modern **C++20**.
+# 🚗 Hyundai Exter AMT Digital Instrument Cluster HMI
 
 <p align="center">
-  <img src="assets/cluster_preview.png" alt="Hyundai Exter AMT Digital Instrument Cluster Preview" width="95%" />
+  <img src="assets/hyundai_exter_car.png" alt="Hyundai Exter" width="380" />
 </p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/Qt-6.6+-41CD52.svg?style=for-the-badge&logo=Qt&logoColor=white" />
+  <img src="https://img.shields.io/badge/C%2B%2B-20-00599C.svg?style=for-the-badge&logo=c%2B%2B&logoColor=white" />
+  <img src="https://img.shields.io/badge/CMake-3.20+-064F8C.svg?style=for-the-badge&logo=cmake&logoColor=white" />
+  <img src="https://img.shields.io/badge/Platform-macOS%20|%20Linux%20|%20Windows-lightgrey.svg?style=for-the-badge" />
+  <img src="https://img.shields.io/badge/License-MIT-green.svg?style=for-the-badge" />
+</p>
+
+A production-grade, photorealistic **Automotive Digital Instrument Cluster HMI** for the **Hyundai Exter AMT (Smart Auto)**, engineered using **Qt 6 (QML / Qt Quick)** and modern **C++20**. Features authentic Hyundai typography, 1:1 OEM telltale layouts, dynamic multi-page trip computing, full 4-wheel TPMS simulation, an autonomous driving engine, standby power management with door-wake reactivity, and an infotainment media bridge.
 
 ---
 
-## 📸 Key Features
+## 🆕 What's New in This Release
 
-### 1. 🏎️ Dual Digital Dial Gauges (Speedometer & Tachometer)
-- **Speedometer**: Custom-styled 7-segment digital speed readout (`0–180 km/h`) flanked by authentic segmented speed arc lines.
-- **Tachometer (RPM)**: Precision x1000 RPM digital gauge with realistic torque curve & shift points.
-- **AMT Transmission**: Automatic gear indicators (`P`, `R`, `N`, `D`, `1–5`) and manual sequential shift modes (`M1–M5`).
+### 🎵 1. OEM Infotainment & Media Popup Banner (Top-Line Emergence & Marquee)
+- **Top-Line Emergence**: The media banner glides out smoothly directly from inside the top white TFT divider line (`520ms` entrance with `Easing.OutCubic`) rather than dropping from outside the housing.
+- **5-Second Auto-Dismiss**: Stays visible for 5 seconds upon starting or switching tracks, then glides back up into the top line.
+- **Every-Song Re-Triggering**: Switching songs always re-triggers the slide-out entrance and resets the text position to `x: 0`.
+- **Marquee Text Scrolling**:
+  - Short track titles stay centered.
+  - Long song & artist titles hold for 1.2s at the start, glide smoothly horizontally to reveal the full title, hold for 1.2s at the end, and glide back in a continuous loop.
+- **Official OEM Source Icons**:
+  - 💾 **USB**: Authentic USB drive with metal connector and engraved USB trident.
+  - 📱 **Apple CarPlay**: Official Apple CarPlay dashboard touchscreen with dock and app grid.
+  - ᛒ **Bluetooth Audio**: Official high-definition Bluetooth symbol.
+  - 🤖 **Android Auto**: Official Android Auto chevron arrow.
+  - 📻 **FM Radio**: Crisp radio broadcast icon.
 
-### 2. 🖥️ Central 4.2-inch TFT Multi-Function Display (MFD)
-- **Top Header Status**: Active gear, dynamic fuel range (DTE km), ambient temperature (`32°C`), and total odometer (`176 km`).
-- **Rising Spotlight Tab Bar**: 3 category tabs (`Trip / Car`, `User Settings / Cog`, `TPMS / Info`) with theme-colored spotlight flare emerging from the curved divider line.
-- **Non-Touch Automotive Interaction**: Fully operated via steering wheel switches (`▲ UP`, `▼ DOWN`, `OK`, `↩ BACK`, `INFO`) or keyboard shortcuts.
+---
 
-### 3. 📊 Mode 1: Trip Computer & 3D ECO Gauge
-- **3-Page Trip Computer**:
-  - `Current trip` (Distance km, Driving time, Average fuel economy km/L)
-  - `Since refuelling`
-  - `Since last reset`
-- **Instant ECO Gauge**: 3D extruded curved gauge with dynamic volumetric blue/green/red glow.
+### 🛞 2. Full 4-Wheel Interactive TPMS Control Station
+- **2×2 Interactive Wheel Grid** in ECU Simulator:
+  - Dedicated cards for **Front-Left (FL)**, **Front-Right (FR)**, **Rear-Left (RL)**, and **Rear-Right (RR)** tyres.
+  - **Live Status Readout**: Color-coded in Green (OK ≥ 32 PSI), Yellow/Amber (Low 26–31 PSI), and Red (Flat/Puncture < 26 PSI).
+  - **`−` / `+` Steppers**: Fine-tune each tyre pressure in 1 PSI increments.
+  - **Quick One-Touch Presets**: `Low 24`, `Flat 16`, and `OK 35` per tyre.
+- **Master Calibration & Unit Switcher**:
+  - `🟢 CALIBRATED` vs `⚪ DRIVE TO DISPLAY` modes.
+  - Live unit conversion between **`psi`**, **`kPa`**, and **`bar`** across cluster and simulator.
+- **Center Vehicle Diagram Reaction**: Under-inflated tyres pulse with authentic amber/red glowing pills, triggering the cluster TPMS telltale and amber TFT accent lines.
 
-### 4. ⚙️ Mode 2: OEM User Settings System
-- Multi-level hierarchical menu with smooth viewport auto-centering and vertical scrollbar:
-  - **Driver assistance**: `↩ Back` ➔ `Warning methods` ➔ `Warning volume` (`High`, `Medium ◉`, `Low`).
-  - **Cluster**: `↩ Back` ➔ `Cluster theme >` (Theme A, Theme B, Theme C) + interactive checkboxes (`Wiper/Lights display ☑`, `Icy road warning ☑`, `Welcome sound ☑`).
-  - **Lights**: `↩ Back` ➔ `Illumination >` (3D convex glass arc gauge with `—` / `+` steppers and `"Max"` readout) ➔ `One touch turn indicator` (`7 flashes`, `5 flashes`, `3 flashes ◉`, `Off`) ➔ `Headlight time-out ☑`.
-  - **Door**: `Auto Lock` (`On (Speed)` / `Off`), `Auto Unlock` (`On (Key Out)` / `Off`).
-  - **Convenience**: `Rear Occupant Alert ☑`, `Service Interval` (`10,000 km`).
-  - **Unit setting**: `Fuel Economy` (`km/L`), `Temperature` (`°C`).
-  - **Language**: `English`.
-  - **Reset settings**: `"Reset all settings?"` confirmation dialog (`[Cancel]` / `[OK]`).
+---
 
-### 5. 🛞 Mode 3: TPMS Tyre Pressure Monitoring System
-- **Transparent 3D Top-Down Car Graphic**: High-resolution top-down car model.
-- **"Drive to display" State**: Overlay card shown when starting/stationary until driven for 5 seconds.
-- **4-Corner Live PSI Readout**: Front-Left, Front-Right, Rear-Left, Rear-Right pressure digits + centered `psi` label.
-- **Dynamic Warning Glow**:
-  - *Normal (`≥ 32 PSI`)*: Crisp white numbers and clean car graphic.
-  - *Low (`26–31 PSI`)*: Title changes to **`"Low pressure"`**, affected tyre pulses with an **Amber/Yellow glow pill & aura**, and digit turns amber.
-  - *Critical (`< 26 PSI`)*: Pulsing **Red** tyre glow and red digit.
-  - Cluster TPMS warning telltale automatically illuminates.
+### 🌑 3. Standby Ignition-OFF Mode with Door-Wake Reactivity
+- **State 5 (Ignition OFF / Standby)**:
+  - When all doors are closed, the entire instrument cluster is **100% pitch black** (total dark, zero dials, zero background glow).
+- **Door-Wake Reactivity**:
+  - Opening any door, bonnet, or trunk instantly wakes the central TFT display.
+  - Displays **pure crisp white curved top and bottom divider lines (`#FFFFFF`)**, the **large centered vehicle animation** showing open door swings and blinking red hazard hoods, and **ONLY the ODO at the bottom right** (temperature, gear, and DTE headers remain hidden).
+  - Closing all doors smoothly fades the cluster back to **100% total darkness**.
 
-### 6. 🎨 Dynamic Multi-Theme Engine
-- **Theme A (Electric Cyan / Blue)**: Cobalt blue selection capsule with electric cyan neon accents (`#00E5FF`).
-- **Theme B (Emerald Green)**: Emerald forest gradient with neon green edges (`#00E676`).
-- **Theme C (Crimson Red)**: Crimson ruby gradient with coral red edges (`#FF5252`).
-- *Live color reactivity across all dials, 3D illumination arc, dividers, checkboxes, and radio buttons.*
+---
+
+### 🚗 4. Pixel-Locked Zero-Movement Car Door Animation & Hazard Glows
+- **Zero-Drift Pixel Lock**: All 19 car door animation frames are mathematically normalized against the base chassis (`0.000` pixel drift). When doors open or close, the chassis, roof, windshield, and wheels remain **completely motionless** — only the door flaps physically swing outward.
+- **Contoured Bonnet & Trunk Hazards**: Photorealistic red hazard glow overlays following the exact vehicle body stamping lines, pulsing at a 400ms cadence.
+
+---
+
+### 🎲 5. Autonomous Dynamic Driving Simulation Engine
+- **Multi-Phase Driving Cycle (~60s realistic highway/city loop)**:
+  - **Phase 1: City Start & Acceleration** (`0 ➔ 45 km/h`) with automatic gear shifting `D1 ➔ D2 ➔ D3`.
+  - **Phase 2: Left Lane Change** with automatic **Left Turn Signal (3s flashing)**.
+  - **Phase 3: Highway Ramp Acceleration** (`55 ➔ 105 km/h`) through `D4 ➔ D5` with matching RPM powerband curves.
+  - **Phase 4: Highway Cruise Control** locked at `100 km/h` with green `CRUISE` telltale.
+  - **Phase 5: Right Lane Exit** with automatic **Right Turn Signal (3s flashing)**.
+  - **Phase 6: Deceleration / Coasting** (`80 ➔ 0 km/h`) with instant fuel economy maxing out at `30 km/L`.
+  - **Phase 7: Traffic Light Idle** at `0 km/h` with idle RPM (`0.8 ×1000 RPM`).
+- **Live Telemetry Synchronization**: ODO, trip distance, trip time, and average economy continuously update in real-time.
+
+---
+
+### ⚠️ 6. OEM Warning Telltale Realignment
+- Swapped **Master Warning** to Far-Left (mid-height beside speedometer).
+- Swapped **Bulb Fault** to Bottom-Left (near lower gauge curved line).
+- Aligned Smart Key alert triggers into a clean 2×2 grid with full-width dismiss bar.
+
+---
+
+## 🏛️ System Architecture
+
+```mermaid
+graph TD
+    subgraph "Core C++ Engine (Qt 6 / C++20)"
+        MAIN["main.cpp<br>QGuiApplication & QQmlApplicationEngine"]
+        CTRL["ClusterController (QObject Singleton)<br>CAN / ECU Telemetry, Timers & Power Engine"]
+    end
+
+    subgraph "Central TFT Display (4.2-inch MFD)"
+        CENTER["CenterTripDisplay.qml"]
+        MEDIA["MediaPopupBanner.qml<br>(Top-Line Emergence & Marquee)"]
+        TPMS_VIEW["TpmsDisplayView.qml<br>(4-Wheel Graphic & Glowing Pills)"]
+        SETTINGS["UserSettingsView.qml<br>(Hierarchical OEM Menus)"]
+        ECO["InstantEcoGauge.qml<br>(3D Extruded Glow Gauge)"]
+        STARTUP["StartupAnimationView.qml<br>(Welcome Light Wave)"]
+        CHECK["VehicleCheckView.qml<br>(Self-Diagnostic Sweep)"]
+        GOODBYE["GoodbyeView.qml<br>(Trip Summary & Shutdown)"]
+    end
+
+    subgraph "Digital Gauges & Telltales"
+        SPEED["SpeedDisplay.qml<br>(7-Segment Speed & Arc Bars)"]
+        RPM["RpmDisplay.qml<br>(7-Segment RPM & Torque Curve)"]
+        BEZEL["BlueFrame.qml / ClusterUnit.qml<br>(Curved Bezel, Telltales & Master Warnings)"]
+    end
+
+    subgraph "ECU Simulation & Test Bench"
+        ECU["EcuSimulatorPanel.qml<br>(Media Player, 4-Wheel TPMS, Auto-Drive, Smart Key)"]
+    end
+
+    MAIN --> CTRL
+    CTRL --> CENTER
+    CTRL --> SPEED
+    CTRL --> RPM
+    CTRL --> BEZEL
+    CTRL <--> ECU
+
+    CENTER --> MEDIA
+    CENTER --> TPMS_VIEW
+    CENTER --> SETTINGS
+    CENTER --> ECO
+    CENTER --> STARTUP
+    CENTER --> CHECK
+    CENTER --> GOODBYE
+```
 
 ---
 
@@ -62,14 +137,15 @@ You can operate the cluster using either the **ECU Simulator Bench** (`[F12]` or
 
 | Steering Switch | Keyboard Key | Action |
 | :--- | :--- | :--- |
-| **📄 INFO / TAB** | `[ I ]` | Cycle between Trip, Settings, and TPMS tabs |
+| **📄 INFO / TAB** | `[ I ]` | Cycle between Trip Computer, User Settings, and TPMS tabs |
 | **▲ UP** | `[ ↑ ]` | Scroll up / Previous trip page / Brightness `+` |
 | **▼ DOWN** | `[ ↓ ]` | Scroll down / Next trip page / Brightness `—` |
-| **OK** | `[ Enter ]` / `[ Return ]` | Enter submenu / Toggle checkbox / Select radio option |
+| **OK** | `[ Enter ]` / `[ Return ]` | Enter submenu / Toggle checkbox / Select option |
 | **↩ BACK** | `[ Esc ]` / `[ Backspace ]` | Return to previous parent menu |
 | **THROTTLE** | `[ → ]` / `[ ← ]` | Accelerate / Decelerate speed & RPM |
 | **PARK BRAKE** | `[ B ]` | Toggle Handbrake telltale |
-| **AUTO DRIVE** | `[ A ]` | Start realistic auto-drive demo simulation |
+| **AUTO DRIVE** | `[ A ]` | Start/Stop autonomous driving simulation |
+| **IGNITION** | `[ O ]` | Toggle Ignition ON / OFF standby mode |
 | **SIMULATOR** | `[ F12 ]` / `[ Tab ]` | Open/Close ECU Simulator Bench panel |
 
 ---
@@ -77,7 +153,7 @@ You can operate the cluster using either the **ECU Simulator Bench** (`[F12]` or
 ## 🛠️ Build & Run Instructions
 
 ### Prerequisites
-- **Qt 6.6+** (Qt Quick, QML, Core, Gui)
+- **Qt 6.5+** (Qt Quick, QML, Core, Gui, Multimedia, Svg)
 - **CMake 3.20+**
 - **C++20 compatible compiler** (Clang / GCC / MSVC)
 - **Ninja** or **Make**
@@ -85,7 +161,7 @@ You can operate the cluster using either the **ECU Simulator Bench** (`[F12]` or
 ### Quick Start
 ```bash
 # Clone the repository
-git clone https://github.com/your-username/hyundai-exter-cluster.git
+git clone https://github.com/skrehanahamed/hyundai-exter-cluster.git
 cd hyundai-exter-cluster
 
 # Configure and build
@@ -97,7 +173,7 @@ ninja
 ./HyundaiExterClusterApp
 ```
 
-Or simply using Makefile:
+Or using the built-in Makefile:
 ```bash
 make run
 ```
@@ -110,21 +186,22 @@ make run
 hyundai-exter-cluster/
 ├── CMakeLists.txt            # CMake build configuration and QML type registration
 ├── Makefile                  # Helper make targets (run, build, clean)
-├── README.md                 # Project documentation
+├── README.md                 # Complete project documentation
 ├── src/
 │   ├── main.cpp              # Application entry point & QML engine initialization
-│   ├── ClusterController.h   # C++ controller (CAN/ECU state, speed, gear, TPMS, theme)
-│   └── ClusterController.cpp # Implementation of simulation logic & properties
+│   ├── ClusterController.h   # C++ controller (CAN/ECU state, Media, TPMS, Power, Themes)
+│   └── ClusterController.cpp # Simulation logic, driving loops, and properties
 ├── qml/
 │   ├── Main.qml              # Root application window & global keyboard handlers
 │   ├── ClusterUnit.qml       # Main cluster frame & gauge layout container
 │   ├── center/
-│   │   ├── CenterTripDisplay.qml   # Central TFT controller (Tabs, DTE, Trip, ODO)
-│   │   ├── TripComputerCard.qml    # 3-page trip computer view
+│   │   ├── CenterTripDisplay.qml   # Central TFT controller (Media Popup, Tabs, DTE, ODO)
 │   │   ├── InstantEcoGauge.qml     # 3D curved instant ECO gauge
-│   │   ├── UserSettingsView.qml    # 8-category OEM User Settings with subpages
+│   │   ├── UserSettingsView.qml    # OEM User Settings with subpages & Hindi localization
 │   │   ├── TpmsDisplayView.qml     # 3D top-down TPMS screen with tyre warning glow
-│   │   └── VehicleCheckView.qml    # Startup vehicle check & welcome sequence
+│   │   ├── StartupAnimationView.qml # Welcome light wave sequence
+│   │   ├── VehicleCheckView.qml    # Startup vehicle self-check sweep
+│   │   └── GoodbyeView.qml         # Trip summary & shutdown sequence
 │   ├── gauges/
 │   │   ├── SpeedDisplay.qml        # Digital speed readout & arc graphics
 │   │   ├── RpmDisplay.qml          # Digital RPM readout & gauge styling
@@ -132,10 +209,11 @@ hyundai-exter-cluster/
 │   ├── frame/
 │   │   └── BlueFrame.qml           # Outer bezel and background glow frame
 │   └── simulator/
-│       └── EcuSimulatorPanel.qml   # Interactive ECU test bench & steering wheel switch pad
+│       └── EcuSimulatorPanel.qml   # Interactive ECU test bench (Media, TPMS, Auto-Drive, Doors)
 └── resources/
-    ├── fonts/                # Authentic Hyundai Sans Head & bold automotive typography
-    └── icons/                # Telltales, TPMS top-down car, tab icons, and telltale graphics
+    ├── fonts/                # Authentic Hyundai Sans Head & automotive typography
+    ├── icons/                # OEM telltales, media icons (USB, CarPlay, BT), TPMS car
+    └── audio/                # Turn signal ticks and warning chimes
 ```
 
 ---

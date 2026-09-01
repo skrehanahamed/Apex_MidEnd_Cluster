@@ -1,5 +1,6 @@
 import QtQuick
 import QtQuick.Layouts
+import QtMultimedia
 import "./frame"
 import "./gauges"
 import "./center"
@@ -7,6 +8,65 @@ import "./center"
 Item {
     id: clusterUnit
     property int stateMode: controller ? controller.clusterState : 3 // 1: Startup, 2: BootCheck, 3: NormalTrip
+
+    // --- Turn Signal Blink State & Audio Relay ---
+    property bool turnBlinkState: true
+
+    Timer {
+        id: turnBlinkTimer
+        interval: 375
+        repeat: true
+        running: (typeof controller !== "undefined" && controller && (controller.leftIndicator || controller.rightIndicator))
+        onRunningChanged: {
+            if (running) {
+                turnBlinkState = true
+                tickSound.play()
+            } else {
+                turnBlinkState = true
+            }
+        }
+        onTriggered: {
+            turnBlinkState = !turnBlinkState
+            if (turnBlinkState) {
+                tickSound.play()
+            } else {
+                tockSound.play()
+            }
+        }
+    }
+
+    SoundEffect {
+        id: tickSound
+        source: "qrc:/qt/qml/HyundaiExterCluster/resources/audio/tick.wav"
+        volume: 0.8
+    }
+
+    SoundEffect {
+        id: tockSound
+        source: "qrc:/qt/qml/HyundaiExterCluster/resources/audio/tock.wav"
+        volume: 0.7
+    }
+
+    SoundEffect {
+        id: hyundaiChime
+        source: "qrc:/qt/qml/HyundaiExterCluster/resources/audio/hyundai_chime.wav"
+        volume: 0.85
+    }
+
+    Timer {
+        id: seatbeltChimeLoopTimer
+        interval: 1200
+        repeat: true
+        running: controller && controller.rearAlarmActive
+        onTriggered: hyundaiChime.play()
+    }
+
+    Connections {
+        target: controller
+        function onSignalPlayChime() {
+            hyundaiChime.play();
+        }
+    }
 
     // --- Dynamic Startup Full Gauge Sweep (State 2: System Check) ---
     property real startupSpeedSweep: 0.0
@@ -70,8 +130,10 @@ Item {
         anchors.fill: parent
         radius: 36
         color: "#020408"
-        border.color: "#0F1824"
+        border.color: (clusterUnit.stateMode === 5 && (!controller || !controller.doorOpenAlert)) ? "#000000" : "#0F1824"
         border.width: 2.0
+        opacity: (clusterUnit.stateMode === 5 && (!controller || !controller.doorOpenAlert)) ? 0.0 : 1.0
+        Behavior on opacity { NumberAnimation { duration: 250 } }
 
         // Physical Matte/Gloss Dashboard Cavity Gradient
         gradient: Gradient {
@@ -90,7 +152,7 @@ Item {
             tftSpacing: 0.0
             speedValue: clusterUnit.stateMode === 2 ? clusterUnit.startupSpeedSweep : (controller ? controller.speed : 0)
             rpmValue: clusterUnit.stateMode === 2 ? clusterUnit.startupRpmSweep : (controller ? controller.rpm : 0.0)
-            illumination: clusterUnit.stateMode === 1 ? 0.95 : 1.0
+            illumination: (clusterUnit.stateMode === 4 || clusterUnit.stateMode === 5) ? 0.0 : (clusterUnit.stateMode === 1 ? 0.95 : 1.0)
         }
 
         // --- LEFT NACELLE: Speedometer & Telltale Bank ---
@@ -100,7 +162,7 @@ Item {
             anchors.right: centralTftScreen.left
             anchors.top: parent.top
             anchors.bottom: parent.bottom
-            opacity: clusterUnit.stateMode === 1 ? 0.0 : 1.0
+            opacity: (clusterUnit.stateMode === 1 || clusterUnit.stateMode === 4 || clusterUnit.stateMode === 5) ? 0.0 : 1.0
             visible: opacity > 0.01
             Behavior on opacity { NumberAnimation { duration: 300 } }
 
@@ -112,7 +174,72 @@ Item {
                 speedValue: clusterUnit.stateMode === 2 ? Math.round(clusterUnit.startupSpeedSweep) : (controller ? controller.speed : 0)
             }
 
-            // 1. BRAKE Telltale (Top-Right)
+            // --- Far-Left: Master Warning Light ---
+            Image {
+                id: masterWarningIcon
+                anchors.left: parent.left
+                anchors.leftMargin: 130
+                anchors.verticalCenter: speedDisplay.verticalCenter
+                anchors.verticalCenterOffset: -40
+                width: 28
+                height: 26
+                source: "qrc:/qt/qml/HyundaiExterCluster/resources/icons/master_warning.png"
+                fillMode: Image.PreserveAspectFit
+                smooth: true
+                mipmap: true
+                opacity: (clusterUnit.stateMode === 2 || (controller && controller.masterWarning)) ? 1.0 : 0.0
+                Behavior on opacity { NumberAnimation { duration: 200 } }
+            }
+
+            // --- Top-Left Telltales (Low Beam, High Beam, Left Turn Signal) ---
+            Row {
+                anchors.top: parent.top
+                anchors.topMargin: 22
+                anchors.right: parent.right
+                anchors.rightMargin: 16
+                spacing: 12
+
+                // Low Beam Indicator
+                Image {
+                    id: lowBeamIcon
+                    width: 28
+                    height: 22
+                    source: "qrc:/qt/qml/HyundaiExterCluster/resources/icons/low_beam.png"
+                    fillMode: Image.PreserveAspectFit
+                    smooth: true
+                    mipmap: true
+                    opacity: (controller && controller.lowBeam) ? 1.0 : 0.0
+                    Behavior on opacity { NumberAnimation { duration: 200 } }
+                }
+
+                // High Beam Indicator
+                Image {
+                    id: highBeamIcon
+                    width: 28
+                    height: 22
+                    source: "qrc:/qt/qml/HyundaiExterCluster/resources/icons/high_beam.png"
+                    fillMode: Image.PreserveAspectFit
+                    smooth: true
+                    mipmap: true
+                    opacity: (controller && controller.highBeam) ? 1.0 : 0.0
+                    Behavior on opacity { NumberAnimation { duration: 200 } }
+                }
+
+                // Left Turn Signal (OFF during System Check, blinks only when turn stalk is engaged)
+                Image {
+                    id: leftTurnIcon
+                    width: 26
+                    height: 20
+                    source: "qrc:/qt/qml/HyundaiExterCluster/resources/icons/turn_left.png"
+                    fillMode: Image.PreserveAspectFit
+                    smooth: true
+                    mipmap: true
+                    opacity: (controller && controller.leftIndicator) ? (clusterUnit.turnBlinkState ? 1.0 : 0.0) : 0.0
+                }
+            }
+
+            // 1. BRAKE Telltale (Top-Right of speed display)
+            // 1. BRAKE Telltale (Top-Right of speed display)
             Image {
                 id: brakeIcon
                 anchors.left: speedDisplay.right
@@ -125,9 +252,11 @@ Item {
                 fillMode: Image.PreserveAspectFit
                 smooth: true
                 mipmap: true
+                opacity: (controller && controller.parkBrakeActive) ? 1.0 : 0.0
+                Behavior on opacity { NumberAnimation { duration: 200 } }
             }
 
-            // 2. ABS Telltale (Middle-Right)
+            // 2. ABS Telltale (Middle-Right of speed display)
             Image {
                 id: absIcon
                 anchors.left: speedDisplay.right
@@ -140,9 +269,11 @@ Item {
                 fillMode: Image.PreserveAspectFit
                 smooth: true
                 mipmap: true
+                opacity: (controller && controller.absActive) ? 1.0 : 0.0
+                Behavior on opacity { NumberAnimation { duration: 200 } }
             }
 
-            // 3. SEATBELT Telltale (Bottom-Right)
+            // 3. SEATBELT Telltale (Bottom-Right of speed display)
             Image {
                 id: seatbeltIcon
                 anchors.left: speedDisplay.right
@@ -155,6 +286,8 @@ Item {
                 fillMode: Image.PreserveAspectFit
                 smooth: true
                 mipmap: true
+                opacity: (controller && controller.seatbeltActive) ? 1.0 : 0.0
+                Behavior on opacity { NumberAnimation { duration: 200 } }
             }
 
             // 4. SMART KEY / IMMOBILIZER Telltale (Bottom-Center below km/h)
@@ -169,9 +302,11 @@ Item {
                 fillMode: Image.PreserveAspectFit
                 smooth: true
                 mipmap: true
+                opacity: (controller && controller.smartKeyActive) ? 1.0 : 0.0
+                Behavior on opacity { NumberAnimation { duration: 200 } }
             }
 
-            // 5. TPMS Telltale (Bottom-Left)
+            // 5. TPMS Telltale (Bottom-Left of speed display)
             Image {
                 id: tpmsIcon
                 anchors.right: speedDisplay.left
@@ -184,6 +319,25 @@ Item {
                 fillMode: Image.PreserveAspectFit
                 smooth: true
                 mipmap: true
+                opacity: (controller && controller.tpmsActive) ? 1.0 : 0.0
+                Behavior on opacity { NumberAnimation { duration: 200 } }
+            }
+
+            // --- Bottom-Left: Lamp Malfunction / Bulb Warning Light ---
+            Image {
+                id: lightWarningIcon
+                anchors.bottom: parent.bottom
+                anchors.bottomMargin: 26
+                anchors.right: parent.right
+                anchors.rightMargin: 60
+                width: 28
+                height: 26
+                source: "qrc:/qt/qml/HyundaiExterCluster/resources/icons/light_warning.png"
+                fillMode: Image.PreserveAspectFit
+                smooth: true
+                mipmap: true
+                opacity: (controller && controller.lightWarning) ? 1.0 : 0.0
+                Behavior on opacity { NumberAnimation { duration: 200 } }
             }
         }
 
@@ -194,7 +348,7 @@ Item {
             anchors.right: parent.right
             anchors.top: parent.top
             anchors.bottom: parent.bottom
-            opacity: clusterUnit.stateMode === 1 ? 0.0 : 1.0
+            opacity: (clusterUnit.stateMode === 1 || clusterUnit.stateMode === 4 || clusterUnit.stateMode === 5) ? 0.0 : 1.0
             visible: opacity > 0.01
             Behavior on opacity { NumberAnimation { duration: 300 } }
 
@@ -204,6 +358,40 @@ Item {
                 anchors.horizontalCenterOffset: -135
                 anchors.verticalCenterOffset: -4
                 rpmValue: clusterUnit.stateMode === 2 ? clusterUnit.startupRpmSweep : (controller ? controller.rpm : 0.0)
+            }
+
+            // --- Top-Right Telltales (Right Turn Signal, Light ON / Position Lamp) ---
+            Row {
+                anchors.top: parent.top
+                anchors.topMargin: 22
+                anchors.left: parent.left
+                anchors.leftMargin: 16
+                spacing: 12
+
+                // Right Turn Signal (OFF during System Check, blinks only when turn stalk is engaged)
+                Image {
+                    id: rightTurnIcon
+                    width: 26
+                    height: 20
+                    source: "qrc:/qt/qml/HyundaiExterCluster/resources/icons/turn_right.png"
+                    fillMode: Image.PreserveAspectFit
+                    smooth: true
+                    mipmap: true
+                    opacity: (controller && controller.rightIndicator) ? (clusterUnit.turnBlinkState ? 1.0 : 0.0) : 0.0
+                }
+
+                // Light ON / Position Lamp Indicator
+                Image {
+                    id: positionLampIcon
+                    width: 30
+                    height: 22
+                    source: "qrc:/qt/qml/HyundaiExterCluster/resources/icons/position_lamp.png"
+                    fillMode: Image.PreserveAspectFit
+                    smooth: true
+                    mipmap: true
+                    opacity: (controller && controller.positionLamp) ? 1.0 : 0.0
+                    Behavior on opacity { NumberAnimation { duration: 200 } }
+                }
             }
 
             // 1. STEERING Telltale (Top-Left of RPM display)
@@ -219,6 +407,8 @@ Item {
                 fillMode: Image.PreserveAspectFit
                 smooth: true
                 mipmap: true
+                opacity: (controller && controller.steeringActive) ? 1.0 : 0.0
+                Behavior on opacity { NumberAnimation { duration: 200 } }
             }
 
             // 2. BATTERY Telltale (Middle-Left of RPM display)
@@ -234,6 +424,8 @@ Item {
                 fillMode: Image.PreserveAspectFit
                 smooth: true
                 mipmap: true
+                opacity: (controller && controller.batteryActive) ? 1.0 : 0.0
+                Behavior on opacity { NumberAnimation { duration: 200 } }
             }
 
             // 3. AIRBAG Telltale (Bottom-Left of RPM display)
@@ -249,6 +441,8 @@ Item {
                 fillMode: Image.PreserveAspectFit
                 smooth: true
                 mipmap: true
+                opacity: (controller && controller.airbagActive) ? 1.0 : 0.0
+                Behavior on opacity { NumberAnimation { duration: 200 } }
             }
 
             // 4. ENGINE OIL Telltale (Bottom-Center below x1000rpm)
@@ -263,6 +457,86 @@ Item {
                 fillMode: Image.PreserveAspectFit
                 smooth: true
                 mipmap: true
+                opacity: (controller && controller.oilActive) ? 1.0 : 0.0
+                Behavior on opacity { NumberAnimation { duration: 200 } }
+            }
+
+            // --- Bottom-Right: ESC, ESC OFF, Check Engine / MIL ---
+            Row {
+                anchors.bottom: parent.bottom
+                anchors.bottomMargin: 24
+                anchors.left: parent.left
+                anchors.leftMargin: 20
+                spacing: 12
+
+                // ESC Active
+                Image {
+                    id: escIcon
+                    width: 26
+                    height: 24
+                    source: "qrc:/qt/qml/HyundaiExterCluster/resources/icons/esc.png"
+                    fillMode: Image.PreserveAspectFit
+                    smooth: true
+                    mipmap: true
+                    opacity: (controller && controller.escActive) ? 1.0 : 0.0
+                    Behavior on opacity { NumberAnimation { duration: 200 } }
+                }
+
+                // ESC OFF
+                Image {
+                    id: escOffIcon
+                    width: 28
+                    height: 24
+                    source: "qrc:/qt/qml/HyundaiExterCluster/resources/icons/esc_off.png"
+                    fillMode: Image.PreserveAspectFit
+                    smooth: true
+                    mipmap: true
+                    opacity: (controller && controller.escOffActive) ? 1.0 : 0.0
+                    Behavior on opacity { NumberAnimation { duration: 200 } }
+                }
+
+                // Check Engine / MIL
+                Image {
+                    id: checkEngineIcon
+                    width: 30
+                    height: 22
+                    source: "qrc:/qt/qml/HyundaiExterCluster/resources/icons/engine_mil.png"
+                    fillMode: Image.PreserveAspectFit
+                    smooth: true
+                    mipmap: true
+                    opacity: (controller && controller.checkEngineActive) ? 1.0 : 0.0
+                    Behavior on opacity { NumberAnimation { duration: 200 } }
+                }
+
+                // ISG / Auto Stop Indicator
+                Item {
+                    id: isgIcon
+                    width: 34
+                    height: 22
+                    opacity: (controller && controller.isgActive) ? 1.0 : 0.0
+                    Behavior on opacity { NumberAnimation { duration: 200 } }
+
+                    Rectangle {
+                        anchors.centerIn: parent
+                        width: 32
+                        height: 18
+                        radius: 3
+                        color: "#1500E676"
+                        border.color: "#00E676"
+                        border.width: 1.2
+
+                        Text {
+                            anchors.centerIn: parent
+                            text: "AUTO\nSTOP"
+                            font.pixelSize: 7
+                            font.family: "Hyundai Sans Head"
+                            font.weight: Font.Bold
+                            color: "#00E676"
+                            horizontalAlignment: Text.AlignHCenter
+                            lineHeight: 0.85
+                        }
+                    }
+                }
             }
         }
 
@@ -279,6 +553,8 @@ Item {
             color: "#66000000"
             border.color: "#33000000"
             border.width: 3
+            opacity: (clusterUnit.stateMode === 5 && (!controller || !controller.isAnyDoorOpen)) ? 0.0 : 1.0
+            Behavior on opacity { NumberAnimation { duration: 300 } }
 
             // Soft Ambient Cavity Shadow
             Rectangle {
@@ -323,55 +599,20 @@ Item {
                 color: "#20FFFFFF"
             }
 
-            // --- TFT STATE 1: Initial Startup (Clean Dark Screen + ODO) ---
+            // --- TFT STATE 1: Initial Startup Animation (Only Lines + Signature Animation, No ODO) ---
             Item {
                 anchors.fill: parent
                 visible: clusterUnit.stateMode === 1
 
-                // Odometer (Bottom Right: number large, unit small)
-                Row {
-                    anchors.bottom: parent.bottom
-                    anchors.bottomMargin: 14
-                    anchors.right: parent.right
-                    anchors.rightMargin: 14
-                    spacing: 1
-
-                    Text {
-                        id: s1OdoNum
-                        text: (controller ? controller.odoKm : 29710)
-                        font.pixelSize: 15
-                        font.family: "Hyundai Sans Head"
-                        font.weight: Font.Medium
-                        color: "#CCD8E8"
-                    }
-
-                    Text {
-                        text: "km"
-                        font.pixelSize: 11
-                        font.family: "Hyundai Sans Head"
-                        color: "#CCD8E8"
-                        anchors.bottom: s1OdoNum.bottom
-                        anchors.bottomMargin: 1
-                    }
+                StartupAnimationView {
+                    anchors.fill: parent
                 }
             }
 
-            // --- TFT STATE 2: Boot / System Check (Matches OEM Photo) ---
+            // --- TFT STATE 2: Boot / Startup Vehicle View (Matches OEM Photo) ---
             Item {
                 anchors.fill: parent
                 visible: clusterUnit.stateMode === 2
-
-                Text {
-                    anchors.top: parent.top
-                    anchors.topMargin: 24
-                    anchors.horizontalCenter: parent.horizontalCenter
-                    text: "System check"
-                    font.pixelSize: 18
-                    font.family: "Hyundai Sans Head"
-                    font.weight: Font.DemiBold
-                    color: "#FFFFFF"
-                    font.letterSpacing: 0.3
-                }
 
                 VehicleCheckView {
                     anchors.fill: parent
@@ -405,11 +646,21 @@ Item {
                 }
             }
 
-            // --- TFT STATE 3: Normal Driving (Gear, DTE, Trip, ODO, Temp) ---
+            // --- TFT STATE 3 & STATE 5 (Door Wake): Normal Driving or Ignition-OFF Door Ajar View ---
             CenterTripDisplay {
                 id: centerTrip
                 anchors.fill: parent
-                visible: clusterUnit.stateMode === 3
+                visible: (clusterUnit.stateMode === 3) || (clusterUnit.stateMode === 5 && controller && controller.doorOpenAlert)
+            }
+
+            // --- TFT STATE 4: Ignition OFF / Good-bye Screen ---
+            Item {
+                anchors.fill: parent
+                visible: clusterUnit.stateMode === 4
+
+                GoodbyeView {
+                    anchors.fill: parent
+                }
             }
         }
     }

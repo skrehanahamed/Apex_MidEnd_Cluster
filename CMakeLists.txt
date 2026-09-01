@@ -8,7 +8,7 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
 
-find_package(Qt6 6.5 REQUIRED COMPONENTS Quick QuickControls2 Gui Qml Svg)
+find_package(Qt6 6.5 REQUIRED COMPONENTS Quick QuickControls2 Gui Qml Svg Multimedia)
 
 qt_standard_project_setup()
 qt_policy(SET QTP0001 NEW)
@@ -32,9 +32,10 @@ qt_add_qml_module(HyundaiExterClusterApp
         qml/gauges/RpmDisplay.qml
         qml/gauges/SevenSegmentDigit.qml
         qml/center/CenterTripDisplay.qml
+        qml/center/StartupAnimationView.qml
         qml/center/VehicleCheckView.qml
-        qml/center/TripComputerCard.qml
         qml/center/InstantEcoGauge.qml
+        qml/center/GoodbyeView.qml
         qml/center/UserSettingsView.qml
         qml/center/TpmsDisplayView.qml
         qml/simulator/EcuSimulatorPanel.qml
@@ -50,6 +51,32 @@ qt_add_qml_module(HyundaiExterClusterApp
         resources/icons/abs.png
         resources/icons/seatbelt.png
         resources/icons/smart_key.png
+        resources/icons/hyundai_smart_key_fob.png
+        resources/icons/engine_start_button_oem.png
+        resources/icons/engine_start_button_fob.png
+        resources/icons/pedal_press_indicator.png
+        resources/icons/car_doors_closed.png
+        resources/icons/car_door_fl.png
+        resources/icons/car_door_fl_half.png
+        resources/icons/car_door_fr.png
+        resources/icons/car_door_fr_half.png
+        resources/icons/car_door_rl.png
+        resources/icons/car_door_rl_half.png
+        resources/icons/car_door_rr.png
+        resources/icons/car_door_rr_half.png
+        resources/icons/car_doors_left_both.png
+        resources/icons/car_doors_left_both_half.png
+        resources/icons/car_doors_right_both.png
+        resources/icons/car_doors_right_both_half.png
+        resources/icons/car_doors_front_both.png
+        resources/icons/car_doors_front_both_half.png
+        resources/icons/car_doors_rear_both.png
+        resources/icons/car_doors_rear_both_half.png
+        resources/icons/car_doors_all_open.png
+        resources/icons/car_doors_all_half.png
+        resources/icons/car_bonnet_red_glow.png
+        resources/icons/car_trunk_red_glow.png
+        resources/icons/car_topdown_shadow.png
         resources/icons/tpms.png
         resources/icons/steering.png
         resources/icons/battery.png
@@ -59,13 +86,30 @@ qt_add_qml_module(HyundaiExterClusterApp
         resources/icons/trip_car.png
         resources/icons/trip_clock.png
         resources/icons/trip_fuel.png
-        resources/icons/eco_gauge_hq.png
-        resources/icons/eco_gauge_base_empty.png
-        resources/icons/eco_gauge_glow_fill.png
         resources/icons/menu_tab_car.png
         resources/icons/menu_tab_settings.png
         resources/icons/menu_tab_info.png
         resources/icons/tpms_car_top.png
+        resources/icons/turn_left.png
+        resources/icons/turn_right.png
+        resources/icons/high_beam.png
+        resources/icons/low_beam.png
+        resources/icons/position_lamp.png
+        resources/icons/master_warning.png
+        resources/icons/light_warning.png
+        resources/icons/esc.png
+        resources/icons/esc_off.png
+        resources/icons/engine_mil.png
+        resources/icons/cruise_green.png
+        resources/icons/cruise_white.png
+        resources/icons/media_usb.png
+        resources/icons/media_bluetooth.png
+        resources/icons/media_carplay.png
+        resources/icons/media_android_auto.png
+        resources/icons/media_note.png
+        resources/audio/tick.wav
+        resources/audio/tock.wav
+        resources/audio/hyundai_chime.wav
         assets/speed_line1.svg
         assets/speed_line2.svg
         assets/speed_line3.svg
@@ -87,6 +131,7 @@ target_link_libraries(HyundaiExterClusterApp PRIVATE
     Qt6::Gui
     Qt6::Qml
     Qt6::Svg
+    Qt6::Multimedia
 )
 
 target_include_directories(HyundaiExterClusterApp PRIVATE

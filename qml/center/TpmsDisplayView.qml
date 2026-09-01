@@ -22,6 +22,7 @@ Item {
         }
     }
 
+    readonly property bool isHindi: controller && (controller.language === "हिन्दी" || controller.language === "Hindi")
     readonly property bool hasLowPressure: (flPsi < 32.0 || frPsi < 32.0 || rlPsi < 32.0 || rrPsi < 32.0)
 
     // 1. Title Header: "Tyre pressure" or "Low pressure" (Matches OEM Photo 1 & 2)
@@ -29,7 +30,7 @@ Item {
         id: titleText
         anchors.top: parent.top
         anchors.horizontalCenter: parent.horizontalCenter
-        text: (tpmsRoot.calibrated && tpmsRoot.hasLowPressure) ? "Low pressure" : "Tyre pressure"
+        text: isHindi ? ((tpmsRoot.calibrated && tpmsRoot.hasLowPressure) ? "कम दबाव" : "टायर प्रेशर") : ((tpmsRoot.calibrated && tpmsRoot.hasLowPressure) ? "Low pressure" : "Tyre pressure")
         font.pixelSize: 19
         font.family: "Hyundai Sans Head Medium"
         font.weight: Font.DemiBold
@@ -131,64 +132,183 @@ Item {
             return "#FFFFFF";
         }
 
-        // Front Left PSI
-        Text {
-            x: -38
-            y: 18
-            width: 32
-            horizontalAlignment: Text.AlignRight
-            text: Math.round(tpmsRoot.flPsi)
-            font.pixelSize: 22
-            font.family: "Hyundai Sans Head Medium"
-            font.weight: Font.DemiBold
-            color: pressureValuesContainer.getPsiColor(tpmsRoot.flPsi)
+        function formatPressure(psi) {
+            var unit = controller ? controller.tpmsUnit : "psi";
+            if (unit === "bar") {
+                return (psi * 0.0689476).toFixed(1);
+            } else if (unit === "kPa") {
+                return Math.round(psi * 6.89476).toString();
+            }
+            return Math.round(psi).toString();
         }
 
-        // Front Right PSI
-        Text {
-            x: carContainer.width + 6
-            y: 18
-            width: 32
-            horizontalAlignment: Text.AlignLeft
-            text: Math.round(tpmsRoot.frPsi)
-            font.pixelSize: 22
-            font.family: "Hyundai Sans Head Medium"
-            font.weight: Font.DemiBold
-            color: pressureValuesContainer.getPsiColor(tpmsRoot.frPsi)
+        // Front Left PSI Interactive Target
+        Rectangle {
+            x: -46
+            y: 14
+            width: 44
+            height: 32
+            radius: 4
+            color: flArea.containsMouse ? "#3000E5FF" : "transparent"
+            border.color: flArea.containsMouse ? "#8000E5FF" : "transparent"
+            border.width: 1
+
+            Text {
+                anchors.centerIn: parent
+                text: pressureValuesContainer.formatPressure(tpmsRoot.flPsi)
+                font.pixelSize: (controller && controller.tpmsUnit === "kPa") ? 18 : 22
+                font.family: "Hyundai Sans Head Medium"
+                font.weight: Font.DemiBold
+                color: pressureValuesContainer.getPsiColor(tpmsRoot.flPsi)
+            }
+
+            MouseArea {
+                id: flArea
+                anchors.fill: parent
+                hoverEnabled: true
+                cursorShape: Qt.PointingHandCursor
+                onClicked: {
+                    if (controller) {
+                        // Cycle through realistic presets: 35 -> 31 -> 24 -> 38 -> 35
+                        var nextPsi = tpmsRoot.flPsi >= 35 ? 31 : (tpmsRoot.flPsi === 31 ? 24 : (tpmsRoot.flPsi === 24 ? 38 : 35));
+                        controller.setFlPsi(nextPsi);
+                    }
+                }
+                onWheel: function(wheel) {
+                    if (controller) {
+                        var delta = wheel.angleDelta.y > 0 ? 1 : -1;
+                        controller.adjustPsi("FL", delta);
+                    }
+                }
+            }
         }
 
-        // Rear Left PSI
-        Text {
-            x: -38
-            y: 78
-            width: 32
-            horizontalAlignment: Text.AlignRight
-            text: Math.round(tpmsRoot.rlPsi)
-            font.pixelSize: 22
-            font.family: "Hyundai Sans Head Medium"
-            font.weight: Font.DemiBold
-            color: pressureValuesContainer.getPsiColor(tpmsRoot.rlPsi)
+        // Front Right PSI Interactive Target
+        Rectangle {
+            x: carContainer.width + 2
+            y: 14
+            width: 44
+            height: 32
+            radius: 4
+            color: frArea.containsMouse ? "#3000E5FF" : "transparent"
+            border.color: frArea.containsMouse ? "#8000E5FF" : "transparent"
+            border.width: 1
+
+            Text {
+                anchors.centerIn: parent
+                text: pressureValuesContainer.formatPressure(tpmsRoot.frPsi)
+                font.pixelSize: (controller && controller.tpmsUnit === "kPa") ? 18 : 22
+                font.family: "Hyundai Sans Head Medium"
+                font.weight: Font.DemiBold
+                color: pressureValuesContainer.getPsiColor(tpmsRoot.frPsi)
+            }
+
+            MouseArea {
+                id: frArea
+                anchors.fill: parent
+                hoverEnabled: true
+                cursorShape: Qt.PointingHandCursor
+                onClicked: {
+                    if (controller) {
+                        var nextPsi = tpmsRoot.frPsi >= 35 ? 31 : (tpmsRoot.frPsi === 31 ? 24 : (tpmsRoot.frPsi === 24 ? 38 : 35));
+                        controller.setFrPsi(nextPsi);
+                    }
+                }
+                onWheel: function(wheel) {
+                    if (controller) {
+                        var delta = wheel.angleDelta.y > 0 ? 1 : -1;
+                        controller.adjustPsi("FR", delta);
+                    }
+                }
+            }
         }
 
-        // Rear Right PSI (Sample 31 PSI Low in Photo 2)
-        Text {
-            x: carContainer.width + 6
-            y: 78
-            width: 32
-            horizontalAlignment: Text.AlignLeft
-            text: Math.round(tpmsRoot.rrPsi)
-            font.pixelSize: 22
-            font.family: "Hyundai Sans Head Medium"
-            font.weight: Font.DemiBold
-            color: pressureValuesContainer.getPsiColor(tpmsRoot.rrPsi)
+        // Rear Left PSI Interactive Target
+        Rectangle {
+            x: -46
+            y: 74
+            width: 44
+            height: 32
+            radius: 4
+            color: rlArea.containsMouse ? "#3000E5FF" : "transparent"
+            border.color: rlArea.containsMouse ? "#8000E5FF" : "transparent"
+            border.width: 1
+
+            Text {
+                anchors.centerIn: parent
+                text: pressureValuesContainer.formatPressure(tpmsRoot.rlPsi)
+                font.pixelSize: (controller && controller.tpmsUnit === "kPa") ? 18 : 22
+                font.family: "Hyundai Sans Head Medium"
+                font.weight: Font.DemiBold
+                color: pressureValuesContainer.getPsiColor(tpmsRoot.rlPsi)
+            }
+
+            MouseArea {
+                id: rlArea
+                anchors.fill: parent
+                hoverEnabled: true
+                cursorShape: Qt.PointingHandCursor
+                onClicked: {
+                    if (controller) {
+                        var nextPsi = tpmsRoot.rlPsi >= 35 ? 31 : (tpmsRoot.rlPsi === 31 ? 24 : (tpmsRoot.rlPsi === 24 ? 38 : 35));
+                        controller.setRlPsi(nextPsi);
+                    }
+                }
+                onWheel: function(wheel) {
+                    if (controller) {
+                        var delta = wheel.angleDelta.y > 0 ? 1 : -1;
+                        controller.adjustPsi("RL", delta);
+                    }
+                }
+            }
         }
 
-        // Unit Label "psi"
+        // Rear Right PSI Interactive Target
+        Rectangle {
+            x: carContainer.width + 2
+            y: 74
+            width: 44
+            height: 32
+            radius: 4
+            color: rrArea.containsMouse ? "#3000E5FF" : "transparent"
+            border.color: rrArea.containsMouse ? "#8000E5FF" : "transparent"
+            border.width: 1
+
+            Text {
+                anchors.centerIn: parent
+                text: pressureValuesContainer.formatPressure(tpmsRoot.rrPsi)
+                font.pixelSize: (controller && controller.tpmsUnit === "kPa") ? 18 : 22
+                font.family: "Hyundai Sans Head Medium"
+                font.weight: Font.DemiBold
+                color: pressureValuesContainer.getPsiColor(tpmsRoot.rrPsi)
+            }
+
+            MouseArea {
+                id: rrArea
+                anchors.fill: parent
+                hoverEnabled: true
+                cursorShape: Qt.PointingHandCursor
+                onClicked: {
+                    if (controller) {
+                        var nextPsi = tpmsRoot.rrPsi >= 35 ? 31 : (tpmsRoot.rrPsi === 31 ? 24 : (tpmsRoot.rrPsi === 24 ? 38 : 35));
+                        controller.setRrPsi(nextPsi);
+                    }
+                }
+                onWheel: function(wheel) {
+                    if (controller) {
+                        var delta = wheel.angleDelta.y > 0 ? 1 : -1;
+                        controller.adjustPsi("RR", delta);
+                    }
+                }
+            }
+        }
+
+        // Unit Label "psi" / "kPa" / "bar"
         Text {
             anchors.top: parent.bottom
             anchors.topMargin: 3
             anchors.horizontalCenter: parent.horizontalCenter
-            text: "psi"
+            text: controller ? controller.tpmsUnit : "psi"
             font.pixelSize: 15
             font.family: "Hyundai Sans Head Medium"
             font.weight: Font.DemiBold
@@ -213,8 +333,8 @@ Item {
 
         Text {
             anchors.centerIn: parent
-            text: "Drive to display"
-            font.pixelSize: 16
+            text: tpmsRoot.isHindi ? "प्रदर्शित करने के लिए ड्राइव करें" : "Drive to display"
+            font.pixelSize: tpmsRoot.isHindi ? 12 : 16
             font.family: "Hyundai Sans Head Medium"
             font.weight: Font.DemiBold
             color: "#FFFFFF"

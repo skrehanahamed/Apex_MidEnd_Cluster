@@ -94,47 +94,103 @@ ApplicationWindow {
                 }
             } else if (event.key === Qt.Key_I) {
                 if (controller) controller.triggerInfoMenu();
+            } else if (event.key === Qt.Key_L) {
+                if (controller) controller.cycleLightMode();
+            } else if (event.key === Qt.Key_C) {
+                if (controller) controller.toggleCruise();
             } else if (event.key === Qt.Key_F12 || event.key === Qt.Key_Tab) {
-                ecuSimulator.isOpen = !ecuSimulator.isOpen;
+                ecuSimulatorWindow.visible = !ecuSimulatorWindow.visible;
+                if (ecuSimulatorWindow.visible) ecuSimulatorWindow.raise();
+            }
+        }
+
+        // Floating Quick Button to Toggle / Focus ECU Simulator Window
+        Rectangle {
+            anchors.top: parent.top
+            anchors.right: parent.right
+            anchors.margins: 12
+            width: 130
+            height: 28
+            radius: 5
+            color: ecuSimulatorWindow.visible ? "#2500E5FF" : "#1A2230"
+            border.color: ecuSimulatorWindow.visible ? "#00E5FF" : "#304050"
+            border.width: 1.2
+            z: 9999
+
+            Row {
+                anchors.centerIn: parent
+                spacing: 5
+                Text { text: "🎛️"; font.pixelSize: 11 }
+                Text {
+                    text: ecuSimulatorWindow.visible ? "ECU Bench (ON)" : "ECU Bench (OFF)"
+                    font.pixelSize: 10
+                    font.bold: true
+                    color: ecuSimulatorWindow.visible ? "#00E5FF" : "#80A0C0"
+                }
+            }
+
+            MouseArea {
+                anchors.fill: parent
+                cursorShape: Qt.PointingHandCursor
+                onClicked: {
+                    ecuSimulatorWindow.visible = !ecuSimulatorWindow.visible;
+                    if (ecuSimulatorWindow.visible) ecuSimulatorWindow.raise();
+                }
             }
         }
     }
 
-    // 3. Interactive ECU Simulator Bench (Always visible & interactive)
-    EcuSimulatorPanel {
-        id: ecuSimulator
+    // =================================================================
+    // 2. SEPARATE MOVABLE ECU EMULATOR WINDOW
+    // =================================================================
+    Window {
+        id: ecuSimulatorWindow
+        title: "⚙️ Hyundai Exter — ECU Simulator Bench"
+        visible: true
+        width: 380
+        height: 680
+        minimumWidth: 340
+        minimumHeight: 400
+        x: appWindow.x + appWindow.width + 16
+        y: appWindow.y
+        color: "#080F18"
 
-        onBtnUpPressed: {
-            if (controller && controller.menuTab === 1) {
-                liveCluster.navSettingsUp();
-            } else if (controller) {
-                controller.prevTripPage();
+        EcuSimulatorPanel {
+            id: ecuSimulator
+            anchors.fill: parent
+
+            onBtnUpPressed: {
+                if (controller && controller.menuTab === 1) {
+                    liveCluster.navSettingsUp();
+                } else if (controller) {
+                    controller.prevTripPage();
+                }
             }
-        }
 
-        onBtnDownPressed: {
-            if (controller && controller.menuTab === 1) {
-                liveCluster.navSettingsDown();
-            } else if (controller) {
-                controller.nextTripPage();
+            onBtnDownPressed: {
+                if (controller && controller.menuTab === 1) {
+                    liveCluster.navSettingsDown();
+                } else if (controller) {
+                    controller.nextTripPage();
+                }
             }
-        }
 
-        onBtnOkPressed: {
-            if (controller && controller.menuTab === 1) {
-                liveCluster.selectSettings();
+            onBtnOkPressed: {
+                if (controller && controller.menuTab === 1) {
+                    liveCluster.selectSettings();
+                }
             }
-        }
 
-        onBtnBackPressed: {
-            if (controller && controller.menuTab === 1) {
-                liveCluster.backSettings();
+            onBtnBackPressed: {
+                if (controller && controller.menuTab === 1) {
+                    liveCluster.backSettings();
+                }
             }
-        }
 
-        onBtnInfoPressed: {
-            if (controller) {
-                controller.triggerInfoMenu();
+            onBtnInfoPressed: {
+                if (controller) {
+                    controller.triggerInfoMenu();
+                }
             }
         }
     }

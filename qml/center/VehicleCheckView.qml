@@ -21,6 +21,24 @@ Item {
     }
 
     // ========================================================
+    // 0. SYSTEM CHECK TITLE HEADER (Matches OEM Photo 1:1)
+    // ========================================================
+    Text {
+        id: systemCheckTitle
+        anchors.top: parent.top
+        anchors.topMargin: 80
+        anchors.horizontalCenter: parent.horizontalCenter
+        text: (controller && (controller.language === "हिन्दी" || controller.language === "Hindi")) ? "सिस्टम जाँच" : "System check"
+        font.pixelSize: 18
+        font.family: "Hyundai Sans Head Medium"
+        font.weight: Font.DemiBold
+        color: "#FFFFFF"
+        font.letterSpacing: 0.3
+        z: 10
+        opacity: Math.min(1.0, vehicleRoot.checkProgress * 2.5)
+    }
+
+    // ========================================================
     // 1. OEM STUDIO ILLUMINATED BLUE ASPHALT ROAD BACKGROUND
     // ========================================================
     Image {
