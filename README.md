@@ -1,4 +1,4 @@
-# 🚗 Hyundai Exter AMT Digital Instrument Cluster HMI
+# Hyundai Exter AMT Digital Instrument Cluster HMI
 
 <p align="center">
   <img src="assets/hyundai_exter_car.png" alt="Hyundai Exter" width="380" />
@@ -12,78 +12,78 @@
   <img src="https://img.shields.io/badge/License-MIT-green.svg?style=for-the-badge" />
 </p>
 
-A production-grade, photorealistic **Automotive Digital Instrument Cluster HMI** for the **Hyundai Exter AMT (Smart Auto)**, engineered using **Qt 6 (QML / Qt Quick)** and modern **C++20**. Features authentic Hyundai typography, 1:1 OEM telltale layouts, dynamic multi-page trip computing, full 4-wheel TPMS simulation, an autonomous driving engine, standby power management with door-wake reactivity, and an infotainment media bridge.
+A production-grade, photorealistic Automotive Digital Instrument Cluster HMI for the Hyundai Exter AMT (Smart Auto), engineered using Qt 6 (QML / Qt Quick) and modern C++20. Features authentic Hyundai typography, 1:1 OEM telltale layouts, dynamic multi-page trip computing, full 4-wheel TPMS simulation, an autonomous driving engine, standby power management with door-wake reactivity, and an infotainment media bridge.
 
 ---
 
-## 🆕 What's New in This Release
+## What Is New in This Release
 
-### 🎵 1. OEM Infotainment & Media Popup Banner (Top-Line Emergence & Marquee)
-- **Top-Line Emergence**: The media banner glides out smoothly directly from inside the top white TFT divider line (`520ms` entrance with `Easing.OutCubic`) rather than dropping from outside the housing.
-- **5-Second Auto-Dismiss**: Stays visible for 5 seconds upon starting or switching tracks, then glides back up into the top line.
-- **Every-Song Re-Triggering**: Switching songs always re-triggers the slide-out entrance and resets the text position to `x: 0`.
-- **Marquee Text Scrolling**:
+### 1. OEM Infotainment & Media Popup Banner (Top-Line Emergence & Marquee)
+- Top-Line Emergence: The media banner glides out smoothly directly from inside the top white TFT divider line (520ms entrance with OutCubic easing) rather than dropping from outside the housing.
+- 5-Second Auto-Dismiss: Stays visible for 5 seconds upon starting or switching tracks, then glides back up into the top line.
+- Every-Song Re-Triggering: Switching songs always re-triggers the slide-out entrance and resets the text position to start.
+- Marquee Text Scrolling:
   - Short track titles stay centered.
-  - Long song & artist titles hold for 1.2s at the start, glide smoothly horizontally to reveal the full title, hold for 1.2s at the end, and glide back in a continuous loop.
-- **Official OEM Source Icons**:
-  - 💾 **USB**: Authentic USB drive with metal connector and engraved USB trident.
-  - 📱 **Apple CarPlay**: Official Apple CarPlay dashboard touchscreen with dock and app grid.
-  - ᛒ **Bluetooth Audio**: Official high-definition Bluetooth symbol.
-  - 🤖 **Android Auto**: Official Android Auto chevron arrow.
-  - 📻 **FM Radio**: Crisp radio broadcast icon.
+  - Long song and artist titles hold for 1.2 seconds at the start, glide smoothly horizontally to reveal the full title, hold for 1.2 seconds at the end, and glide back in a continuous loop.
+- Official OEM Source Icons:
+  - USB: Authentic USB drive with metal connector and engraved USB trident.
+  - Apple CarPlay: Official Apple CarPlay dashboard touchscreen with dock and app grid.
+  - Bluetooth Audio: Official high-definition Bluetooth symbol.
+  - Android Auto: Official Android Auto chevron arrow.
+  - FM Radio: Radio broadcast icon.
 
 ---
 
-### 🛞 2. Full 4-Wheel Interactive TPMS Control Station
-- **2×2 Interactive Wheel Grid** in ECU Simulator:
-  - Dedicated cards for **Front-Left (FL)**, **Front-Right (FR)**, **Rear-Left (RL)**, and **Rear-Right (RR)** tyres.
-  - **Live Status Readout**: Color-coded in Green (OK ≥ 32 PSI), Yellow/Amber (Low 26–31 PSI), and Red (Flat/Puncture < 26 PSI).
-  - **`−` / `+` Steppers**: Fine-tune each tyre pressure in 1 PSI increments.
-  - **Quick One-Touch Presets**: `Low 24`, `Flat 16`, and `OK 35` per tyre.
-- **Master Calibration & Unit Switcher**:
-  - `🟢 CALIBRATED` vs `⚪ DRIVE TO DISPLAY` modes.
-  - Live unit conversion between **`psi`**, **`kPa`**, and **`bar`** across cluster and simulator.
-- **Center Vehicle Diagram Reaction**: Under-inflated tyres pulse with authentic amber/red glowing pills, triggering the cluster TPMS telltale and amber TFT accent lines.
+### 2. Full 4-Wheel Interactive TPMS Control Station
+- 2x2 Interactive Wheel Grid in ECU Simulator:
+  - Dedicated cards for Front-Left (FL), Front-Right (FR), Rear-Left (RL), and Rear-Right (RR) tyres.
+  - Live Status Readout: Color-coded in Green (OK >= 32 PSI), Yellow/Amber (Low 26-31 PSI), and Red (Flat/Puncture < 26 PSI).
+  - Steppers: Fine-tune each tyre pressure in 1 PSI increments.
+  - Quick One-Touch Presets: Low 24, Flat 16, and OK 35 per tyre.
+- Master Calibration & Unit Switcher:
+  - Calibrated vs Drive to Display modes.
+  - Live unit conversion between psi, kPa, and bar across cluster and simulator.
+- Center Vehicle Diagram Reaction: Under-inflated tyres pulse with authentic amber/red glowing pills, triggering the cluster TPMS telltale and amber TFT accent lines.
 
 ---
 
-### 🌑 3. Standby Ignition-OFF Mode with Door-Wake Reactivity
-- **State 5 (Ignition OFF / Standby)**:
-  - When all doors are closed, the entire instrument cluster is **100% pitch black** (total dark, zero dials, zero background glow).
-- **Door-Wake Reactivity**:
+### 3. Standby Ignition-OFF Mode with Door-Wake Reactivity
+- State 5 (Ignition OFF / Standby):
+  - When all doors are closed, the entire instrument cluster is 100% pitch black (total dark, zero dials, zero background glow).
+- Door-Wake Reactivity:
   - Opening any door, bonnet, or trunk instantly wakes the central TFT display.
-  - Displays **pure crisp white curved top and bottom divider lines (`#FFFFFF`)**, the **large centered vehicle animation** showing open door swings and blinking red hazard hoods, and **ONLY the ODO at the bottom right** (temperature, gear, and DTE headers remain hidden).
-  - Closing all doors smoothly fades the cluster back to **100% total darkness**.
+  - Displays pure crisp white curved top and bottom divider lines, the large centered vehicle animation showing open door swings and blinking red hazard hoods, and ONLY the Odometer at the bottom right (temperature, gear, and DTE headers remain hidden).
+  - Closing all doors smoothly fades the cluster back to 100% total darkness.
 
 ---
 
-### 🚗 4. Pixel-Locked Zero-Movement Car Door Animation & Hazard Glows
-- **Zero-Drift Pixel Lock**: All 19 car door animation frames are mathematically normalized against the base chassis (`0.000` pixel drift). When doors open or close, the chassis, roof, windshield, and wheels remain **completely motionless** — only the door flaps physically swing outward.
-- **Contoured Bonnet & Trunk Hazards**: Photorealistic red hazard glow overlays following the exact vehicle body stamping lines, pulsing at a 400ms cadence.
+### 4. Pixel-Locked Zero-Movement Car Door Animation & Hazard Glows
+- Zero-Drift Pixel Lock: All 19 car door animation frames are mathematically normalized against the base chassis (0.000 pixel drift). When doors open or close, the chassis, roof, windshield, and wheels remain completely motionless — only the door flaps physically swing outward.
+- Contoured Bonnet & Trunk Hazards: Photorealistic red hazard glow overlays following the exact vehicle body stamping lines, pulsing at a 400ms cadence.
 
 ---
 
-### 🎲 5. Autonomous Dynamic Driving Simulation Engine
-- **Multi-Phase Driving Cycle (~60s realistic highway/city loop)**:
-  - **Phase 1: City Start & Acceleration** (`0 ➔ 45 km/h`) with automatic gear shifting `D1 ➔ D2 ➔ D3`.
-  - **Phase 2: Left Lane Change** with automatic **Left Turn Signal (3s flashing)**.
-  - **Phase 3: Highway Ramp Acceleration** (`55 ➔ 105 km/h`) through `D4 ➔ D5` with matching RPM powerband curves.
-  - **Phase 4: Highway Cruise Control** locked at `100 km/h` with green `CRUISE` telltale.
-  - **Phase 5: Right Lane Exit** with automatic **Right Turn Signal (3s flashing)**.
-  - **Phase 6: Deceleration / Coasting** (`80 ➔ 0 km/h`) with instant fuel economy maxing out at `30 km/L`.
-  - **Phase 7: Traffic Light Idle** at `0 km/h` with idle RPM (`0.8 ×1000 RPM`).
-- **Live Telemetry Synchronization**: ODO, trip distance, trip time, and average economy continuously update in real-time.
+### 5. Autonomous Dynamic Driving Simulation Engine
+- Multi-Phase Driving Cycle (approx. 60 seconds realistic highway/city loop):
+  - Phase 1: City Start & Acceleration (0 to 45 km/h) with automatic gear shifting D1 to D2 to D3.
+  - Phase 2: Left Lane Change with automatic Left Turn Signal (3s flashing).
+  - Phase 3: Highway Ramp Acceleration (55 to 105 km/h) through D4 to D5 with matching RPM powerband curves.
+  - Phase 4: Highway Cruise Control locked at 100 km/h with green CRUISE telltale.
+  - Phase 5: Right Lane Exit with automatic Right Turn Signal (3s flashing).
+  - Phase 6: Deceleration / Coasting (80 to 0 km/h) with instant fuel economy maxing out at 30 km/L.
+  - Phase 7: Traffic Light Idle at 0 km/h with idle RPM (0.8 x1000 RPM).
+- Live Telemetry Synchronization: Odometer, trip distance, trip time, and average economy continuously update in real-time.
 
 ---
 
-### ⚠️ 6. OEM Warning Telltale Realignment
-- Swapped **Master Warning** to Far-Left (mid-height beside speedometer).
-- Swapped **Bulb Fault** to Bottom-Left (near lower gauge curved line).
-- Aligned Smart Key alert triggers into a clean 2×2 grid with full-width dismiss bar.
+### 6. OEM Warning Telltale Realignment
+- Swapped Master Warning to Far-Left (mid-height beside speedometer).
+- Swapped Bulb Fault to Bottom-Left (near lower gauge curved line).
+- Aligned Smart Key alert triggers into a clean 2x2 grid with full-width dismiss bar.
 
 ---
 
-## 🏛️ System Architecture
+## System Architecture
 
 ```mermaid
 graph TD
@@ -131,32 +131,32 @@ graph TD
 
 ---
 
-## 🕹️ Controls & Steering Wheel Switches
+## Controls & Steering Wheel Switches
 
-You can operate the cluster using either the **ECU Simulator Bench** (`[F12]` or `[Tab]`) or keyboard shortcuts:
+You can operate the cluster using either the ECU Simulator Bench ([F12] or [Tab]) or keyboard shortcuts:
 
 | Steering Switch | Keyboard Key | Action |
 | :--- | :--- | :--- |
-| **📄 INFO / TAB** | `[ I ]` | Cycle between Trip Computer, User Settings, and TPMS tabs |
-| **▲ UP** | `[ ↑ ]` | Scroll up / Previous trip page / Brightness `+` |
-| **▼ DOWN** | `[ ↓ ]` | Scroll down / Next trip page / Brightness `—` |
-| **OK** | `[ Enter ]` / `[ Return ]` | Enter submenu / Toggle checkbox / Select option |
-| **↩ BACK** | `[ Esc ]` / `[ Backspace ]` | Return to previous parent menu |
-| **THROTTLE** | `[ → ]` / `[ ← ]` | Accelerate / Decelerate speed & RPM |
-| **PARK BRAKE** | `[ B ]` | Toggle Handbrake telltale |
-| **AUTO DRIVE** | `[ A ]` | Start/Stop autonomous driving simulation |
-| **IGNITION** | `[ O ]` | Toggle Ignition ON / OFF standby mode |
-| **SIMULATOR** | `[ F12 ]` / `[ Tab ]` | Open/Close ECU Simulator Bench panel |
+| INFO / TAB | [ I ] | Cycle between Trip Computer, User Settings, and TPMS tabs |
+| UP | [ Up Arrow ] | Scroll up / Previous trip page / Brightness increment |
+| DOWN | [ Down Arrow ] | Scroll down / Next trip page / Brightness decrement |
+| OK | [ Enter ] / [ Return ] | Enter submenu / Toggle checkbox / Select option |
+| BACK | [ Esc ] / [ Backspace ] | Return to previous parent menu |
+| THROTTLE | [ Right Arrow ] / [ Left Arrow ] | Accelerate / Decelerate speed and RPM |
+| PARK BRAKE | [ B ] | Toggle Handbrake telltale |
+| AUTO DRIVE | [ A ] | Start/Stop autonomous driving simulation |
+| IGNITION | [ O ] | Toggle Ignition ON / OFF standby mode |
+| SIMULATOR | [ F12 ] / [ Tab ] | Open/Close ECU Simulator Bench panel |
 
 ---
 
-## 🛠️ Build & Run Instructions
+## Build & Run Instructions
 
 ### Prerequisites
-- **Qt 6.5+** (Qt Quick, QML, Core, Gui, Multimedia, Svg)
-- **CMake 3.20+**
-- **C++20 compatible compiler** (Clang / GCC / MSVC)
-- **Ninja** or **Make**
+- Qt 6.5+ (Qt Quick, QML, Core, Gui, Multimedia, Svg)
+- CMake 3.20+
+- C++20 compatible compiler (Clang / GCC / MSVC)
+- Ninja or Make
 
 ### Quick Start
 ```bash
@@ -180,7 +180,7 @@ make run
 
 ---
 
-## 📂 Project Structure
+## Project Structure
 
 ```text
 hyundai-exter-cluster/
@@ -218,5 +218,5 @@ hyundai-exter-cluster/
 
 ---
 
-## 📜 License
+## License
 This project is created for educational, portfolio, and automotive UI/UX demonstration purposes.
