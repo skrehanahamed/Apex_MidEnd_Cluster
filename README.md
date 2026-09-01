@@ -1,4 +1,4 @@
-# Hyundai Exter AMT Digital Instrument Cluster HMI
+# Next-Gen Automotive Digital Instrument Cluster & Cockpit HMI
 
 <img width="2286" height="816" alt="image" src="https://github.com/user-attachments/assets/c62203a5-bfb2-44a0-aba9-de9c7c5c85c7" />
 
