@@ -2,7 +2,6 @@
 
 <img width="2286" height="816" alt="image" src="https://github.com/user-attachments/assets/c62203a5-bfb2-44a0-aba9-de9c7c5c85c7" />
 
-
 <p align="center">
   <img src="https://img.shields.io/badge/Version-2.0.0-blue.svg?style=for-the-badge" />
   <img src="https://img.shields.io/badge/Release_Date-September_2,_2026-orange.svg?style=for-the-badge" />
@@ -22,7 +21,7 @@ A production-grade, photorealistic Automotive Digital Instrument Cluster HMI for
 ### 1. OEM Infotainment & Media Popup Banner (Top-Line Emergence & Marquee)
 
 <p align="center">
-  <img src="assets/features/08_media_popup_usb.png" alt="OEM Infotainment Media Popup Banner" width="95%" />
+  <img src="assets/features/usb midea.png" alt="OEM Infotainment Media Popup Banner" width="95%" />
 </p>
 
 - Top-Line Emergence: The media banner glides out smoothly directly from inside the top white TFT divider line (520ms entrance with OutCubic easing) rather than dropping from outside the housing.
@@ -43,7 +42,7 @@ A production-grade, photorealistic Automotive Digital Instrument Cluster HMI for
 ### 2. Full 4-Wheel Interactive TPMS Control Station
 
 <p align="center">
-  <img src="assets/features/11_tpms_4wheel_status.png" alt="TPMS 4-Wheel Pressure Monitoring" width="95%" />
+  <img src="assets/features/tpms .png" alt="TPMS 4-Wheel Pressure Monitoring" width="95%" />
 </p>
 
 - 2x2 Interactive Wheel Grid in ECU Simulator:
@@ -61,7 +60,7 @@ A production-grade, photorealistic Automotive Digital Instrument Cluster HMI for
 ### 3. Standby Ignition-OFF Mode with Door-Wake Reactivity
 
 <p align="center">
-  <img src="assets/features/03_ignition_door_wake.png" alt="Standby Ignition-OFF Door Wake" width="95%" />
+  <img src="assets/features/igntion off door activity.png" alt="Standby Ignition-OFF Door Wake" width="95%" />
 </p>
 
 - State 5 (Ignition OFF / Standby):
@@ -76,7 +75,7 @@ A production-grade, photorealistic Automotive Digital Instrument Cluster HMI for
 ### 4. Pixel-Locked Zero-Movement Car Door Animation & Hazard Glows
 
 <p align="center">
-  <img src="assets/features/13_car_door_open_animation.png" alt="Pixel-Locked Car Door Animation" width="95%" />
+  <img src="assets/features/all door open with green theme .png" alt="All Doors Open with Green Theme" width="95%" />
 </p>
 
 - Zero-Drift Pixel Lock: All 19 car door animation frames are mathematically normalized against the base chassis (0.000 pixel drift). When doors open or close, the chassis, roof, windshield, and wheels remain completely motionless — only the door flaps physically swing outward.
@@ -87,7 +86,7 @@ A production-grade, photorealistic Automotive Digital Instrument Cluster HMI for
 ### 5. Autonomous Dynamic Driving Simulation Engine
 
 <p align="center">
-  <img src="assets/features/15_autonomous_drive_simulation.png" alt="Autonomous Dynamic Driving Simulation" width="95%" />
+  <img src="assets/features/red theme with speed.png" alt="Autonomous Dynamic Driving Simulation" width="95%" />
 </p>
 
 - Multi-Phase Driving Cycle (approx. 60 seconds realistic highway/city loop):
@@ -112,17 +111,27 @@ A production-grade, photorealistic Automotive Digital Instrument Cluster HMI for
 ## Feature Gallery
 
 <p align="center">
-  <img src="assets/features/05_user_settings_menu.png" alt="OEM Hierarchical User Settings" width="48%" />
-  <img src="assets/features/06_cluster_theme_selection.png" alt="Cluster Theme Selection" width="48%" />
+  <img src="assets/features/green theme .png" alt="Emerald Green Cluster Theme" width="48%" />
+  <img src="assets/features/red theme .png" alt="Crimson Red Cluster Theme" width="48%" />
 </p>
 
 <p align="center">
-  <img src="assets/features/07_illumination_slider.png" alt="3D Illumination Arc Gauge" width="48%" />
-  <img src="assets/features/04_trip_computer_drive_info.png" alt="Trip Computer Drive Info" width="48%" />
+  <img src="assets/features/normal withh gear and all telltale .png" alt="Cluster Gauges and Telltales" width="48%" />
+  <img src="assets/features/all telltale on in red theme .png" alt="Telltale Verification in Red Theme" width="48%" />
 </p>
 
 <p align="center">
-  <img src="assets/features/14_car_bonnet_trunk_hazards.png" alt="Bonnet and Trunk Hazard Warnings" width="95%" />
+  <img src="assets/features/press start buttin .png" alt="Smart Key Press Start Button Prompt" width="48%" />
+  <img src="assets/features/key issue .png" alt="Smart Key Not Detected Alert" width="48%" />
+</p>
+
+<p align="center">
+  <img src="assets/features/system check.png" alt="Startup Diagnostic System Check Sweep" width="48%" />
+  <img src="assets/features/good bye screen.png" alt="Goodbye Shutdown Summary Screen" width="48%" />
+</p>
+
+<p align="center">
+  <img src="assets/features/lines.png" alt="Curved Digital Gauge Lines and Cluster Architecture" width="95%" />
 </p>
 
 ---
