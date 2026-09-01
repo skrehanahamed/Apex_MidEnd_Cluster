@@ -83,10 +83,30 @@ A production-grade, photorealistic Automotive Digital Instrument Cluster HMI for
 
 ---
 
-### 5. Autonomous Dynamic Driving Simulation Engine
+### 5. Regional Multi-Language Localization (English & Hindi)
 
 <p align="center">
-  <img src="assets/features/red_theme_speed.png" alt="Autonomous Dynamic Driving Simulation" width="95%" />
+  <img src="assets/features/hindi_language_menu.png" alt="Vernacular Hindi Localization Menu" width="95%" />
+</p>
+
+- Real-Time Language Switching: Seamlessly toggle between English and Hindi (हिन्दी) through the User Settings menu (`Settings -> Language -> English / हिन्दी`).
+- Full Vernacular Localization: All primary categories, submenus, vehicle diagnostics, prompts, and settings translated into authentic OEM Hindi terminology:
+  - चालक सहायता (Driver assistance)
+  - क्लस्टर (Cluster)
+  - लाइट्स (Lights)
+  - डोर (Door)
+  - सुविधा (Convenience)
+  - यूनिट सेटिंग (Unit setting)
+  - भाषा (Language)
+  - सेटिंग्स रीसेट करें (Reset settings)
+- Responsive Devnagari Typography: Integrated with clean Unicode line spacing and dynamic centering across all TFT views.
+
+---
+
+### 6. Autonomous Dynamic Driving Simulation Engine & OEM Telltales
+
+<p align="center">
+  <img src="assets/features/normal_gear_all_telltale.png" alt="Normal Cluster View with Gears and Telltales" width="95%" />
 </p>
 
 - Multi-Phase Driving Cycle (approx. 60 seconds realistic highway/city loop):
@@ -97,14 +117,7 @@ A production-grade, photorealistic Automotive Digital Instrument Cluster HMI for
   - Phase 5: Right Lane Exit with automatic Right Turn Signal (3s flashing).
   - Phase 6: Deceleration / Coasting (80 to 0 km/h) with instant fuel economy maxing out at 30 km/L.
   - Phase 7: Traffic Light Idle at 0 km/h with idle RPM (0.8 x1000 RPM).
-- Live Telemetry Synchronization: Odometer, trip distance, trip time, and average economy continuously update in real-time.
-
----
-
-### 6. OEM Warning Telltale Realignment
-- Swapped Master Warning to Far-Left (mid-height beside speedometer).
-- Swapped Bulb Fault to Bottom-Left (near lower gauge curved line).
-- Aligned Smart Key alert triggers into a clean 2x2 grid with full-width dismiss bar.
+- Realigned OEM Telltales: Master Warning on Far-Left and Bulb Fault on Bottom-Left matching physical cluster blueprints.
 
 ---
 
@@ -116,8 +129,8 @@ A production-grade, photorealistic Automotive Digital Instrument Cluster HMI for
 </p>
 
 <p align="center">
-  <img src="assets/features/normal_gear_all_telltale.png" alt="Cluster Gauges and Telltales" width="48%" />
   <img src="assets/features/all_telltale_red_theme.png" alt="Telltale Verification in Red Theme" width="48%" />
+  <img src="assets/features/lines.png" alt="Curved Digital Gauge Lines and Cluster Architecture" width="48%" />
 </p>
 
 <p align="center">
@@ -128,10 +141,6 @@ A production-grade, photorealistic Automotive Digital Instrument Cluster HMI for
 <p align="center">
   <img src="assets/features/system_check.png" alt="Startup Diagnostic System Check Sweep" width="48%" />
   <img src="assets/features/good_bye_screen.png" alt="Goodbye Shutdown Summary Screen" width="48%" />
-</p>
-
-<p align="center">
-  <img src="assets/features/lines.png" alt="Curved Digital Gauge Lines and Cluster Architecture" width="95%" />
 </p>
 
 ---
@@ -149,7 +158,7 @@ graph TD
         CENTER["CenterTripDisplay.qml"]
         MEDIA["MediaPopupBanner.qml<br>(Top-Line Emergence & Marquee)"]
         TPMS_VIEW["TpmsDisplayView.qml<br>(4-Wheel Graphic & Glowing Pills)"]
-        SETTINGS["UserSettingsView.qml<br>(Hierarchical OEM Menus)"]
+        SETTINGS["UserSettingsView.qml<br>(Hierarchical OEM Menus & Hindi Localization)"]
         ECO["InstantEcoGauge.qml<br>(3D Extruded Glow Gauge)"]
         STARTUP["StartupAnimationView.qml<br>(Welcome Light Wave)"]
         CHECK["VehicleCheckView.qml<br>(Self-Diagnostic Sweep)"]
