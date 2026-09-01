@@ -1,8 +1,7 @@
 # Hyundai Exter AMT Digital Instrument Cluster HMI
 
-<p align="center">
-  <img src="assets/cluster_preview.png" alt="Hyundai Exter AMT Digital Instrument Cluster" width="100%" />
-</p>
+<img width="2286" height="816" alt="image" src="https://github.com/user-attachments/assets/c62203a5-bfb2-44a0-aba9-de9c7c5c85c7" />
+
 
 <p align="center">
   <img src="https://img.shields.io/badge/Version-2.0.0-blue.svg?style=for-the-badge" />
