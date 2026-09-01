@@ -3,6 +3,8 @@
 <img width="2646" height="966" alt="image" src="https://github.com/user-attachments/assets/897b027e-8802-445d-888c-0f5f209b11a7" />
 
 <p align="center">
+  <img src="https://img.shields.io/badge/Version-2.0.0-blue.svg?style=for-the-badge" />
+  <img src="https://img.shields.io/badge/Release_Date-September_2,_2026-orange.svg?style=for-the-badge" />
   <img src="https://img.shields.io/badge/Qt-6.6+-41CD52.svg?style=for-the-badge&logo=Qt&logoColor=white" />
   <img src="https://img.shields.io/badge/C%2B%2B-20-00599C.svg?style=for-the-badge&logo=c%2B%2B&logoColor=white" />
   <img src="https://img.shields.io/badge/CMake-3.20+-064F8C.svg?style=for-the-badge&logo=cmake&logoColor=white" />
@@ -14,7 +16,7 @@ A production-grade, photorealistic Automotive Digital Instrument Cluster HMI for
 
 ---
 
-## What Is New in This Release
+## Release Notes - Version 2.0.0 (Updated: September 2, 2026)
 
 ### 1. OEM Infotainment & Media Popup Banner (Top-Line Emergence & Marquee)
 - Top-Line Emergence: The media banner glides out smoothly directly from inside the top white TFT divider line (520ms entrance with OutCubic easing) rather than dropping from outside the housing.
