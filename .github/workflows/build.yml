@@ -1,4 +1,4 @@
-name: Qt 6 Multi-Platform Build & Verification
+name: Qt 6 Build & Verification
 
 on:
   push:
@@ -8,23 +8,14 @@ on:
 
 jobs:
   build:
-    name: Build on ${{ matrix.os }}
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - os: macos-13
-            qt_arch: clang_64
-          - os: ubuntu-22.04
-            qt_arch: gcc_64
+    name: Build (Ubuntu 22.04 / Qt 6.5.3)
+    runs-on: ubuntu-22.04
 
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
       - name: Install Linux Dependencies
-        if: runner.os == 'Linux'
         env:
           DEBIAN_FRONTEND: noninteractive
         run: |
@@ -47,7 +38,7 @@ jobs:
         uses: jurplel/install-qt-action@v3
         with:
           version: '6.5.3'
-          arch: ${{ matrix.qt_arch }}
+          arch: gcc_64
           modules: 'qtmultimedia'
           cache: true
           cache-key-prefix: 'install-qt-action-6.5.3'
