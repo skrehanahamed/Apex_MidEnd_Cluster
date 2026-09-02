@@ -461,7 +461,7 @@ Item {
                                 width: (parent.width - 12) / 4; height: 24; radius: 3
                                 color: "#142030"; border.color: "#283848"
                                 Text { anchors.centerIn: parent; text: "SET / −"; font.pixelSize: 8; font.bold: true; color: "#00E5FF" }
-                                MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: if (typeof controller !== "undefined" && controller) controller.cruiseSet() }
+                                MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: if (typeof controller !== "undefined" && controller) controller.cruiseSetMinus() }
                             }
                             Rectangle {
                                 width: (parent.width - 12) / 4; height: 24; radius: 3

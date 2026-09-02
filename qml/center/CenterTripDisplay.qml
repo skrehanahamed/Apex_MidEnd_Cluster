@@ -272,8 +272,8 @@ Item {
                     spacing: 4
 
                     Image {
-                        width: 14
-                        height: 14
+                        width: 22
+                        height: 22
                         anchors.verticalCenter: parent.verticalCenter
                         source: "qrc:/qt/qml/HyundaiExterCluster/resources/icons/fuel_pump.png"
                         fillMode: Image.PreserveAspectFit
@@ -540,8 +540,8 @@ Item {
                     visible: !(centerRoot.menuTab === 1 && userSettingsView && userSettingsView.showHelpHint)
 
                     Image {
-                        width: 28
-                        height: 28
+                        width: 32
+                        height: 32
                         anchors.verticalCenter: parent.verticalCenter
                         source: "qrc:/qt/qml/HyundaiExterCluster/resources/icons/fuel_pump.png"
                         fillMode: Image.PreserveAspectFit
