@@ -146,9 +146,6 @@ qt_add_qml_module(HyundaiExterClusterApp
         assets/hyundai_exter_car.png
         assets/oem_studio_ground.png
         assets/car_ground_shadow.png
-        assets/welcome_laser_beam.png
-        assets/car_silhouette_glow.png
-        assets/welcome_wave_swoop.png
 )
 
 target_link_libraries(HyundaiExterClusterApp PRIVATE
