@@ -157,12 +157,12 @@ ApplicationWindow {
         id: ecuSimulatorWindow
         title: "⚙️ Hyundai Exter — ECU Simulator Bench"
         visible: true
-        width: 380
-        height: 680
-        minimumWidth: 340
-        minimumHeight: 400
-        x: appWindow.x + appWindow.width + 16
-        y: appWindow.y
+        width: 1060
+        height: 480
+        minimumWidth: 680
+        minimumHeight: 320
+        x: appWindow.x + (appWindow.width - width) / 2
+        y: appWindow.y + appWindow.height + 12
         color: "#080F18"
 
         EcuSimulatorPanel {
