@@ -122,21 +122,21 @@ Item {
         }
 
         // 3.2 Photorealistic Specular Edge Highlight (Roofline/Windshield)
-        Image {
-            id: carSilhouetteGlowImg
+        Rectangle {
+            id: carSilhouetteGlow
             anchors.fill: parent
-            source: "qrc:/qt/qml/HyundaiExterCluster/assets/car_silhouette_glow.png"
-            fillMode: Image.PreserveAspectFit
-            smooth: true
-            mipmap: true
+            color: "transparent"
+            border.color: "#8000E5FF"
+            border.width: 1
+            radius: 4
             z: 8
             opacity: {
                 if (vehicleRoot.checkProgress < 0.10) {
                     return vehicleRoot.checkProgress / 0.10;
                 } else if (vehicleRoot.checkProgress < 0.45) {
-                    return 0.85;
+                    return 0.50;
                 } else if (vehicleRoot.checkProgress < 0.80) {
-                    return Math.max(0.0, 0.85 * (1.0 - (vehicleRoot.checkProgress - 0.45) / 0.35));
+                    return Math.max(0.0, 0.50 * (1.0 - (vehicleRoot.checkProgress - 0.45) / 0.35));
                 }
                 return 0.0;
             }
@@ -197,16 +197,12 @@ Item {
     // ========================================================
     // 4. AUTHENTIC OEM LASER BEAM (Passes across Headlights/Waistline)
     // ========================================================
-    Image {
-        id: laserBeamTexture
+    Item {
+        id: laserBeamContainer
         anchors.centerIn: parent
         anchors.verticalCenterOffset: vehicleRoot.baseCarY - 3
-        width: parent.width * 1.25
-        height: 28
-        source: "qrc:/qt/qml/HyundaiExterCluster/assets/welcome_laser_beam.png"
-        fillMode: Image.Stretch
-        smooth: true
-        mipmap: true
+        width: parent.width * 1.15
+        height: 14
         z: 12
         opacity: {
             if (vehicleRoot.checkProgress < 0.08) {
@@ -219,6 +215,36 @@ Item {
             return 0.0;
         }
         visible: opacity > 0.001
+
+        // Center intense cyan core line
+        Rectangle {
+            anchors.centerIn: parent
+            width: parent.width
+            height: 2
+            gradient: Gradient {
+                orientation: Gradient.Horizontal
+                GradientStop { position: 0.0; color: "transparent" }
+                GradientStop { position: 0.2; color: "#00E5FF" }
+                GradientStop { position: 0.5; color: "#FFFFFF" }
+                GradientStop { position: 0.8; color: "#00E5FF" }
+                GradientStop { position: 1.0; color: "transparent" }
+            }
+        }
+
+        // Soft halo glow
+        Rectangle {
+            anchors.centerIn: parent
+            width: parent.width
+            height: 8
+            gradient: Gradient {
+                orientation: Gradient.Horizontal
+                GradientStop { position: 0.0; color: "transparent" }
+                GradientStop { position: 0.25; color: "#3000E5FF" }
+                GradientStop { position: 0.50; color: "#8000E5FF" }
+                GradientStop { position: 0.75; color: "#3000E5FF" }
+                GradientStop { position: 1.0; color: "transparent" }
+            }
+        }
     }
 
     // ========================================================
