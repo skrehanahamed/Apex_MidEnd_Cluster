@@ -29,7 +29,9 @@ A production-grade, photorealistic Automotive Digital Instrument Cluster HMI for
 
 ### 2. Accurate Live Trip Telemetry (Distance, Time, and Fuel Economy per Page)
 
-<img width="195" height="371" alt="Screenshot 2026-09-03 at 2 16 28 AM" src="https://github.com/user-attachments/assets/08357cb1-e817-4a06-aef1-89f27c7204db" /><img width="195" height="371" alt="Screenshot 2026-09-03 at 2 16 28 AM" src="https://github.com/user-attachments/assets/290ee345-556c-43a4-bbca-b6027ede8993" />
+<img width="195" height="371" alt="Screenshot 2026-09-03 at 2 16 28 AM" src="https://github.com/user-attachments/assets/08357cb1-e817-4a06-aef1-89f27c7204db" /><img width="196" height="371" alt="Screenshot 2026-09-03 at 2 17 49 AM" src="https://github.com/user-attachments/assets/90d9d9f6-fa8c-455e-b277-d9159f79d21e" /><img width="200" height="371" alt="Screenshot 2026-09-03 at 2 17 58 AM" src="https://github.com/user-attachments/assets/fa8bb43c-6070-46e8-b3bf-724ae9235dee" />
+
+
 
 
 
