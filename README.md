@@ -204,34 +204,38 @@ A production-grade, photorealistic Automotive Digital Instrument Cluster HMI for
 graph TD
     subgraph "Core C++ Engine (Qt 6 / C++20)"
         MAIN["main.cpp<br>QGuiApplication & QQmlApplicationEngine"]
-        CTRL["ClusterController (QObject Singleton)<br>CAN / ECU Telemetry, Timers & Power Engine"]
+        CTRL["ClusterController (QObject Singleton)<br>CAN / ECU Telemetry, AMT Powertrain,<br>Trip Accumulators, Timers & Power Engine"]
     end
 
     subgraph "Central TFT Display (4.2-inch MFD)"
-        CENTER["CenterTripDisplay.qml"]
+        CENTER["CenterTripDisplay.qml<br>(Trip Pages, DTE, ODO, Gear, Temp)"]
         MEDIA["MediaPopupBanner.qml<br>(Top-Line Emergence & Marquee)"]
         TPMS_VIEW["TpmsDisplayView.qml<br>(4-Wheel Graphic & Glowing Pills)"]
         SETTINGS["UserSettingsView.qml<br>(Hierarchical OEM Menus & Hindi Localization)"]
         ECO["InstantEcoGauge.qml<br>(3D Extruded Glow Gauge)"]
-        STARTUP["StartupAnimationView.qml<br>(Welcome Light Wave)"]
-        CHECK["VehicleCheckView.qml<br>(Self-Diagnostic Sweep)"]
+        STARTUP["StartupAnimationView.qml<br>(5-Line Welcome & Laser Convergence)"]
+        CHECK["VehicleCheckView.qml<br>(Self-Diagnostic Bulb Check)"]
         GOODBYE["GoodbyeView.qml<br>(Trip Summary & Shutdown)"]
     end
 
     subgraph "Digital Gauges & Telltales"
         SPEED["SpeedDisplay.qml<br>(7-Segment Speed & Arc Bars)"]
-        RPM["RpmDisplay.qml<br>(7-Segment RPM & Torque Curve)"]
-        BEZEL["BlueFrame.qml / ClusterUnit.qml<br>(Curved Bezel, Telltales & Master Warnings)"]
+        RPM["RpmDisplay.qml<br>(7-Segment AMT RPM & Torque Curve)"]
+        FUEL["FuelGauge.qml + FuelIcon.qml<br>(Custom OEM Fuel Bar & Low Fuel Icon)"]
+        TEMP["TempGauge.qml + TempIcon.qml<br>(Custom OEM Coolant Temp Bar & Icon)"]
+        BEZEL["BlueFrame.qml / ClusterUnit.qml<br>(Speed-Driven Concentric Arc Lines,<br>Telltales & Master Warnings)"]
     end
 
     subgraph "ECU Simulation & Test Bench"
-        ECU["EcuSimulatorPanel.qml<br>(Media Player, 4-Wheel TPMS, Auto-Drive, Smart Key)"]
+        ECU["EcuSimulatorPanel.qml<br>(Media Player, 4-Wheel TPMS,<br>AMT Auto-Drive Card, Smart Key)"]
     end
 
     MAIN --> CTRL
     CTRL --> CENTER
     CTRL --> SPEED
     CTRL --> RPM
+    CTRL --> FUEL
+    CTRL --> TEMP
     CTRL --> BEZEL
     CTRL <--> ECU
 
@@ -299,39 +303,82 @@ make run
 
 ```text
 hyundai-exter-cluster/
-├── CMakeLists.txt            # CMake build configuration and QML type registration
-├── Makefile                  # Helper make targets (run, build, clean)
-├── README.md                 # Complete project documentation
+├── CMakeLists.txt              # CMake build configuration and QML type registration
+├── Makefile                    # Helper make targets (run, build, clean)
+├── README.md                   # Complete project documentation
 ├── assets/
-│   ├── cluster_preview.png   # Full digital cluster overview screenshot
-│   └── features/             # Feature screenshots and component illustrations
+│   ├── cluster_preview.png     # Full digital cluster overview screenshot
+│   ├── hyundai_exter_car.png   # OEM Exter silhouette for TFT center display
+│   ├── oem_studio_ground.png   # Studio ground plane for car render
+│   ├── car_ground_shadow.png   # Ground shadow overlay
+│   ├── rpm_line1-5.svg         # Right gauge concentric arc line SVGs
+│   ├── speed_line1-5.svg       # Left gauge concentric arc line SVGs
+│   └── features/               # Feature screenshots and component illustrations
 ├── src/
-│   ├── main.cpp              # Application entry point & QML engine initialization
-│   ├── ClusterController.h   # C++ controller (CAN/ECU state, Media, TPMS, Power, Themes)
-│   └── ClusterController.cpp # Simulation logic, driving loops, and properties
+│   ├── main.cpp                # Application entry point & QML engine initialization
+│   ├── ClusterController.h     # C++ controller header (AMT, Trip, Media, TPMS, Power, Themes)
+│   └── ClusterController.cpp   # Simulation engine: AMT powertrain, trip accumulators,
+│                               #   demo drive loop, instant economy, chime triggers
 ├── qml/
-│   ├── Main.qml              # Root application window & global keyboard handlers
-│   ├── ClusterUnit.qml       # Main cluster frame & gauge layout container
+│   ├── Main.qml                # Root application window & global keyboard handlers
+│   ├── ClusterUnit.qml         # Master cluster frame, state machine, gauge layout
 │   ├── center/
-│   │   ├── CenterTripDisplay.qml   # Central TFT controller (Media Popup, Tabs, DTE, ODO)
-│   │   ├── InstantEcoGauge.qml     # 3D curved instant ECO gauge
-│   │   ├── UserSettingsView.qml    # OEM User Settings with subpages & Hindi localization
-│   │   ├── TpmsDisplayView.qml     # 3D top-down TPMS screen with tyre warning glow
-│   │   ├── StartupAnimationView.qml # Welcome light wave sequence
-│   │   ├── VehicleCheckView.qml    # Startup vehicle self-check sweep
-│   │   └── GoodbyeView.qml         # Trip summary & shutdown sequence
+│   │   ├── CenterTripDisplay.qml    # Central TFT: trip pages, DTE, ODO, gear, temp, media
+│   │   ├── InstantEcoGauge.qml      # 3D curved instant fuel economy gauge
+│   │   ├── UserSettingsView.qml     # OEM User Settings: subpages, Hindi localization
+│   │   ├── TpmsDisplayView.qml      # 3D top-down TPMS screen with tyre warning glow
+│   │   ├── StartupAnimationView.qml # Welcome animation: 5-line arc & laser convergence
+│   │   ├── VehicleCheckView.qml     # Startup self-diagnostic bulb check sweep
+│   │   └── GoodbyeView.qml          # Ignition-off trip summary & shutdown sequence
 │   ├── gauges/
-│   │   ├── SpeedDisplay.qml        # Digital speed readout & arc graphics
-│   │   ├── RpmDisplay.qml          # Digital RPM readout & gauge styling
-│   │   └── SevenSegmentDigit.qml   # Custom 7-segment display component
+│   │   ├── SpeedDisplay.qml         # 7-segment digital speed readout & arc bars
+│   │   ├── RpmDisplay.qml           # 7-segment AMT RPM readout & torque curve
+│   │   ├── FuelGauge.qml            # Custom OEM-style horizontal fuel bar gauge
+│   │   ├── FuelIcon.qml             # Fuel pump icon with low-fuel warning state
+│   │   ├── TempGauge.qml            # Custom OEM-style horizontal coolant temp bar
+│   │   ├── TempIcon.qml             # Coolant thermometer icon with overheat warning
+│   │   └── SevenSegmentDigit.qml    # Reusable 7-segment display digit component
 │   ├── frame/
-│   │   └── BlueFrame.qml           # Outer bezel and background glow frame
+│   │   └── BlueFrame.qml            # Outer bezel, speed-driven arc lines, glow frame
 │   └── simulator/
-│       └── EcuSimulatorPanel.qml   # Interactive ECU test bench (Media, TPMS, Auto-Drive, Doors)
+│       └── EcuSimulatorPanel.qml    # ECU test bench: media, TPMS, AMT auto-drive card,
+│                                    #   smart key, doors, telltales, light stalk
 └── resources/
-    ├── fonts/                # Authentic Hyundai Sans Head & automotive typography
-    ├── icons/                # OEM telltales, media icons (USB, CarPlay, BT), TPMS car
-    └── audio/                # Turn signal ticks and warning chimes
+    ├── fonts/
+    │   ├── HyundaiSansHead-Regular.ttf   # Hyundai Sans Head (patched name table)
+    │   ├── HyundaiSansHead-Medium.ttf    # Hyundai Sans Head Medium weight
+    │   ├── HyundaiSansHead-Bold.ttf      # Hyundai Sans Head Bold weight
+    │   ├── NotoSansDevanagari-Regular.ttf # Hindi localization typeface
+    │   ├── DSEG7Classic-Bold.ttf         # 7-segment display font
+    │   ├── DSEG7Classic-Regular.ttf      # 7-segment display font (regular)
+    │   ├── Orbitron-Bold.ttf             # Futuristic HUD accent font
+    │   └── Rajdhani-Bold.ttf             # Automotive display accent font
+    ├── icons/
+    │   ├── (OEM telltale PNGs)           # abs, airbag, battery, brake, engine_mil,
+    │   │                                 #   esc, high_beam, low_beam, master_warning,
+    │   │                                 #   oil, seatbelt, steering, tpms, etc.
+    │   ├── (Media source icons)          # media_usb, media_carplay, media_bluetooth,
+    │   │                                 #   media_android_auto, media_note
+    │   ├── (Gauge icons)                 # fuel_meter_icon, temp_meter_icon,
+    │   │                                 #   low_fuel_warning_3d, fuel_pump
+    │   ├── (Car door animation frames)   # car_door_fl/fr/rl/rr + half variants,
+    │   │                                 #   car_doors_all_open, bonnet/trunk glow
+    │   ├── (TPMS)                        # tpms_car_top, tpms
+    │   ├── (Trip computer)               # trip_car, trip_clock, trip_fuel
+    │   ├── (Smart Key)                   # smart_key, hyundai_smart_key_fob,
+    │   │                                 #   engine_start_button_oem
+    │   └── (Cruise control)              # cruise_green, cruise_white
+    └── audio/
+        ├── tick.wav                      # Turn signal tick (left / right)
+        ├── tock.wav                      # Turn signal tock (left / right)
+        ├── hyundai_chime.wav             # OEM Hyundai 3-tone startup chime
+        ├── welcome_chime.wav             # Welcome screen entry tone
+        ├── startup_animation_tone.wav    # Boot animation tone
+        ├── goodbye_chime.wav             # Ignition-off shutdown chime
+        ├── key_alert_chime.wav           # Smart key not detected alert
+        ├── seatbelt_chime.wav            # Seatbelt reminder chime
+        ├── speed_alert_chime.wav         # Overspeed warning chime
+        └── warning_chime.wav             # Generic telltale warning chime
 ```
 
 ---
