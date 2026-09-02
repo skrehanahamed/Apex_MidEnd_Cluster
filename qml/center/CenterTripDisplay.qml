@@ -9,11 +9,13 @@
  */
 
 import QtQuick
+import QtQuick.Effects
 
 Item {
     id: centerRoot
     property string gearValue: controller ? controller.gear : "N"
     property int dteKm: controller ? controller.dteKm : 52
+    readonly property string dteDisplay: (controller && (controller.fuelLevel === 0 || controller.dteKm <= 0)) ? "---" : (centerRoot.dteKm.toString())
     property double tripKm: controller ? controller.tripKm : 0.0
     property string tripTime: controller ? controller.tripTime : "0:00"
     property double tripEconomy: controller ? controller.tripEconomy : 0.0
@@ -28,6 +30,27 @@ Item {
     property int ambientTemp: controller ? controller.ambientTemp : 25
     property int odoKm: controller ? controller.odoKm : 3454
     property bool showResetPrompt: false
+
+    // 4-Second Initial Startup Seatbelt Display Timer
+    property bool initialSeatbeltDone: false
+    Timer {
+        id: startupSeatbeltTimer
+        interval: 4000
+        running: controller && controller.clusterState === 3 && !centerRoot.initialSeatbeltDone
+        repeat: false
+        onTriggered: {
+            centerRoot.initialSeatbeltDone = true;
+        }
+    }
+
+    Connections {
+        target: controller
+        function onClusterStateChanged() {
+            if (controller && controller.clusterState !== 3) {
+                centerRoot.initialSeatbeltDone = false;
+            }
+        }
+    }
 
     // 5-Second Timer to Show "Hold [OK] : Reset" when pressing Up/Down, then return to ECO
     Timer {
@@ -53,7 +76,7 @@ Item {
     readonly property bool isIgnitionOff: controller && (controller.clusterState === 4 || controller.clusterState === 5)
 
     // Warning Priority Hierarchy (Strictly ONE warning shown at a time):
-    // 0 = None, 1 = Reduce Speed, 2 = Smart Key, 3 = Press START/Clutch Again, 4 = Door Open, 5 = Sunroof Open, 6 = Service Reminder
+    // 0 = None, 1 = Reduce Speed, 2 = Smart Key, 3 = Press START/Clutch Again, 4 = Door Open, 5 = Sunroof Open, 6 = Service Reminder, 7 = Low Fuel Alert
     readonly property int activeWarningId: {
         if (isIgnitionOff) {
             return (controller && controller.doorOpenAlert) ? 4 : 0;
@@ -65,6 +88,7 @@ Item {
         if (controller.doorOpenAlert) return 4;
         if (controller.sunroofAlertActive) return 5;
         if (controller.servicePopupActive) return 6;
+        if (controller.fuelLevel <= 2 && controller.clusterState === 3) return 7;
         return 0;
     }
     readonly property bool isWarningActive: activeWarningId > 0
@@ -89,15 +113,16 @@ Item {
     implicitHeight: 366
 
     // =================================================================
-    // 🔤 HYUNDAI SANS HEAD FONT LOADERS
+    // 🔤 HYUNDAI SANS HEAD & DEVANAGARI FONT LOADERS
     // =================================================================
     FontLoader { id: hyundaiRegular; source: "qrc:/qt/qml/HyundaiExterCluster/resources/fonts/HyundaiSansHead-Regular.ttf" }
     FontLoader { id: hyundaiMedium; source: "qrc:/qt/qml/HyundaiExterCluster/resources/fonts/HyundaiSansHead-Medium.ttf" }
     FontLoader { id: hyundaiBold; source: "qrc:/qt/qml/HyundaiExterCluster/resources/fonts/HyundaiSansHead-Bold.ttf" }
+    FontLoader { id: notoDevanagari; source: "qrc:/qt/qml/HyundaiExterCluster/resources/fonts/NotoSansDevanagari-Regular.ttf" }
 
-    readonly property string fontHeadRegular: hyundaiRegular.status === FontLoader.Ready ? hyundaiRegular.name : "Hyundai Sans Head Regular"
-    readonly property string fontHeadMedium: hyundaiMedium.status === FontLoader.Ready ? hyundaiMedium.name : "Hyundai Sans Head Medium"
-    readonly property string fontHeadBold: hyundaiBold.status === FontLoader.Ready ? hyundaiBold.name : "Hyundai Sans Head Bold"
+    readonly property string fontHeadRegular: isHindi ? (notoDevanagari.status === FontLoader.Ready ? notoDevanagari.name : "Noto Sans Devanagari") : (hyundaiRegular.status === FontLoader.Ready ? hyundaiRegular.name : "Hyundai Sans Head Regular")
+    readonly property string fontHeadMedium: isHindi ? (notoDevanagari.status === FontLoader.Ready ? notoDevanagari.name : "Noto Sans Devanagari") : (hyundaiMedium.status === FontLoader.Ready ? hyundaiMedium.name : "Hyundai Sans Head Medium")
+    readonly property string fontHeadBold: isHindi ? (notoDevanagari.status === FontLoader.Ready ? notoDevanagari.name : "Noto Sans Devanagari") : (hyundaiBold.status === FontLoader.Ready ? hyundaiBold.name : "Hyundai Sans Head Bold")
 
     // =================================================================
     // 🎛️ DUAL ACCENT LINE FAST ENTRANCE ANIMATION (Snappy 350ms)
@@ -258,7 +283,7 @@ Item {
 
                     Text {
                         anchors.verticalCenter: parent.verticalCenter
-                        text: centerRoot.dteKm
+                        text: centerRoot.dteDisplay
                         font.pixelSize: 15
                         font.family: centerRoot.fontHeadMedium
                         font.weight: Font.Bold
@@ -527,7 +552,7 @@ Item {
                     Text {
                         id: dteValueText
                         anchors.verticalCenter: parent.verticalCenter
-                        text: centerRoot.dteKm
+                        text: centerRoot.dteDisplay
                         font.pixelSize: 22
                         font.family: centerRoot.fontHeadMedium
                         font.weight: Font.DemiBold
@@ -1799,6 +1824,106 @@ Item {
         }
     }
 
+    // =================================================================
+    // 2. MIDDLE CARD: WARNING 7 - LOW FUEL ALERT (Matches OEM Photo 1:1)
+    // =================================================================
+    Item {
+        id: lowFuelWarningItem
+        anchors.top: topDteSection.bottom
+        anchors.topMargin: 20
+        anchors.horizontalCenter: parent.horizontalCenter
+        width: parent.width * 0.92
+        height: 204
+        visible: centerRoot.activeWarningId === 7
+        z: 40
+
+        Column {
+            anchors.centerIn: parent
+            spacing: 16
+            width: parent.width
+
+            // Title: "Low fuel" (or "ईंधन कम है" in Hindi)
+            Text {
+                anchors.horizontalCenter: parent.horizontalCenter
+                text: centerRoot.isHindi ? "ईंधन कम है" : "Low fuel"
+                font.pixelSize: 19
+                font.family: centerRoot.fontHeadMedium
+                font.weight: Font.DemiBold
+                color: "#FFFFFF"
+                font.letterSpacing: 0.3
+            }
+
+            // 3D Low Fuel Warning Icon with Ground Shadow & Connected Floor Mirror Reflection
+            Item {
+                anchors.horizontalCenter: parent.horizontalCenter
+                width: 110
+                height: 125
+
+                // 1. Primary High-Res 3D Amber Fuel Pump Image (Direct PNG)
+                Image {
+                    id: pumpWarningImage
+                    anchors.top: parent.top
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    width: 92
+                    height: 69
+                    source: "qrc:/qt/qml/HyundaiExterCluster/resources/icons/low_fuel_warning_3d.png"
+                    fillMode: Image.PreserveAspectFit
+                    smooth: true
+                    mipmap: true
+                }
+
+                // 2. Ground Contact Shadow Oval
+                Rectangle {
+                    id: pumpGroundShadow
+                    anchors.horizontalCenter: pumpWarningImage.horizontalCenter
+                    anchors.top: pumpWarningImage.bottom
+                    anchors.topMargin: -1
+                    width: 64
+                    height: 4
+                    radius: 32
+                    color: "#90000000"
+                }
+
+                // 3. Inverted Floor Mirror Reflection directly touching base (No far gap)
+                Item {
+                    id: pumpReflectionContainer
+                    anchors.top: pumpWarningImage.bottom
+                    anchors.topMargin: 0
+                    anchors.horizontalCenter: pumpWarningImage.horizontalCenter
+                    width: pumpWarningImage.width
+                    height: 28
+                    clip: true
+
+                    Image {
+                        id: pumpReflectionImage
+                        anchors.top: parent.top
+                        anchors.horizontalCenter: parent.horizontalCenter
+                        width: pumpWarningImage.width
+                        height: pumpWarningImage.height
+                        source: pumpWarningImage.source
+                        fillMode: Image.PreserveAspectFit
+                        rotation: 180
+                        mirror: true
+                        opacity: 0.35
+                        smooth: true
+                        mipmap: true
+                    }
+
+                    // Mirror Reflection Gradient Fade Mask
+                    Rectangle {
+                        anchors.fill: parent
+                        gradient: Gradient {
+                            orientation: Gradient.Vertical
+                            GradientStop { position: 0.0; color: "transparent" }
+                            GradientStop { position: 0.50; color: "#D003060C" }
+                            GradientStop { position: 1.0; color: "#03060C" }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     UserSettingsView {
         id: userSettingsView
         anchors.top: topDteSection.bottom
@@ -1932,13 +2057,13 @@ Item {
             // Row 1: Distance
             Item {
                 width: parent.width
-                height: 32
+                height: 34
 
                 Image {
                     anchors.left: parent.left
                     anchors.verticalCenter: parent.verticalCenter
-                    width: 34
-                    height: 30
+                    width: 40
+                    height: 34
                     source: "qrc:/qt/qml/HyundaiExterCluster/resources/icons/trip_car.png"
                     fillMode: Image.PreserveAspectFit
                     smooth: true
@@ -1951,7 +2076,12 @@ Item {
                     anchors.right: parent.right
                     anchors.rightMargin: 46
                     anchors.verticalCenter: parent.verticalCenter
-                    text: centerRoot.activeTripKm.toFixed(1)
+                    text: {
+                        if (!controller) return "0.0";
+                        if (controller.tripPage === 1) return controller.refuelKm.toFixed(1);
+                        if (controller.tripPage === 2) return controller.accumKm.toFixed(1);
+                        return controller.tripKm.toFixed(1);
+                    }
                     font.pixelSize: 24
                     font.family: centerRoot.fontHeadMedium
                     font.weight: Font.DemiBold
@@ -1974,14 +2104,14 @@ Item {
             // Row 2: Elapsed Time (0:00 h:m)
             Item {
                 width: parent.width
-                height: 32
+                height: 34
 
                 Image {
                     anchors.left: parent.left
                     anchors.leftMargin: 2
                     anchors.verticalCenter: parent.verticalCenter
-                    width: 30
-                    height: 30
+                    width: 36
+                    height: 34
                     source: "qrc:/qt/qml/HyundaiExterCluster/resources/icons/trip_clock.png"
                     fillMode: Image.PreserveAspectFit
                     smooth: true
@@ -1994,7 +2124,12 @@ Item {
                     anchors.right: parent.right
                     anchors.rightMargin: 46
                     anchors.verticalCenter: parent.verticalCenter
-                    text: centerRoot.activeTripTime
+                    text: {
+                        if (!controller) return "0:00";
+                        if (controller.tripPage === 1) return controller.refuelTime;
+                        if (controller.tripPage === 2) return controller.accumTime;
+                        return controller.tripTime;
+                    }
                     font.pixelSize: 24
                     font.family: centerRoot.fontHeadMedium
                     font.weight: Font.DemiBold
@@ -2017,14 +2152,14 @@ Item {
             // Row 3: Fuel Economy
             Item {
                 width: parent.width
-                height: 32
+                height: 34
 
                 Image {
                     anchors.left: parent.left
                     anchors.leftMargin: 2
                     anchors.verticalCenter: parent.verticalCenter
-                    width: 30
-                    height: 30
+                    width: 36
+                    height: 34
                     source: "qrc:/qt/qml/HyundaiExterCluster/resources/icons/trip_fuel.png"
                     fillMode: Image.PreserveAspectFit
                     smooth: true
@@ -2037,9 +2172,14 @@ Item {
                     anchors.right: parent.right
                     anchors.rightMargin: 46
                     anchors.verticalCenter: parent.verticalCenter
-                    text: (controller && controller.fuelUnit === "L/100km") ?
-                          (centerRoot.activeTripEconomy > 0.1 ? (100.0 / centerRoot.activeTripEconomy).toFixed(1) : "0.0") :
-                          centerRoot.activeTripEconomy.toFixed(1)
+                    text: {
+                        if (!controller) return "0.0";
+                        var econ = (controller.tripPage === 1) ? controller.refuelEconomy : ((controller.tripPage === 2) ? controller.accumEconomy : controller.tripEconomy);
+                        if (controller.fuelUnit === "L/100km") {
+                            return econ > 0.1 ? (100.0 / econ).toFixed(1) : "0.0";
+                        }
+                        return econ.toFixed(1);
+                    }
                     font.pixelSize: 24
                     font.family: centerRoot.fontHeadMedium
                     font.weight: Font.DemiBold
@@ -2116,26 +2256,29 @@ Item {
             }
         }
 
-        // 3 Occupant Seatbelt Icons (Visible ONLY if a rear passenger is unbuckled or alarming, hidden during warnings & menus)
+        // 3 Occupant Seatbelt Icons (Shows for 4s after startup in solid red, then vanishes unless unbuckled)
         Row {
             id: occupantRow
             anchors.bottom: bottomDividerLine.top
             anchors.bottomMargin: 2
             anchors.horizontalCenter: parent.horizontalCenter
-            spacing: 2
+            spacing: 3
 
-            property bool hasRearAlert: controller && (!controller.rearLeftBuckled || !controller.rearCenterBuckled || !controller.rearRightBuckled || controller.rearAlarmActive)
-            opacity: hasRearAlert ? 1.0 : 0.0
-            visible: centerRoot.menuTab === 0 && (!controller || (!controller.showLightPopup && !controller.reduceSpeedAlert && !controller.driverAttentionActive && !controller.servicePopupActive && !controller.sunroofAlertActive && controller.smartKeyPrompt === 0)) && (opacity > 0.01)
+            property bool inStartup4s: !centerRoot.initialSeatbeltDone && controller && (controller.clusterState === 3)
+            property bool hasUnbuckledSeat: controller && (!controller.rearLeftBuckled || !controller.rearCenterBuckled || !controller.rearRightBuckled || controller.rearAlarmActive)
+            property bool shouldShow: inStartup4s || hasUnbuckledSeat
+
+            visible: shouldShow && centerRoot.menuTab === 0 && (!controller || (!controller.showLightPopup && !controller.reduceSpeedAlert && !controller.driverAttentionActive && !controller.servicePopupActive && !controller.sunroofAlertActive && controller.smartKeyPrompt === 0))
+            opacity: shouldShow ? 1.0 : 0.0
             z: 10
 
-            Behavior on opacity { NumberAnimation { duration: 250 } }
+            Behavior on opacity { NumberAnimation { duration: 300 } }
 
             Repeater {
                 model: 3
                 Item {
-                    width: 20
-                    height: 22
+                    width: 22
+                    height: 24
 
                     property bool isUnbuckled: {
                         if (!controller) return false;
@@ -2144,7 +2287,8 @@ Item {
                         if (index === 2) return !controller.rearRightBuckled;
                         return false;
                     }
-                    property bool isAlarming: controller && controller.rearAlarmActive && (controller.rearAlarmSeat === index)
+                    property bool isStartupSolidRed: occupantRow.inStartup4s
+                    property bool isAlarming: isUnbuckled || (controller && controller.rearAlarmActive && (controller.rearAlarmSeat === index))
 
                     Image {
                         anchors.centerIn: parent
@@ -2154,18 +2298,13 @@ Item {
                         fillMode: Image.PreserveAspectFit
                         smooth: true
                         mipmap: true
-                        opacity: isAlarming ? (controller.rearSeatBlinkState ? 1.0 : 0.15) : (isUnbuckled ? 1.0 : 0.45)
-                    }
+                        opacity: isStartupSolidRed ? 1.0 : (isAlarming ? (controller && controller.rearSeatBlinkState ? 1.0 : 0.15) : 1.0)
 
-                    // Red pulsating alert glow when unbuckled or alarming
-                    Rectangle {
-                        anchors.centerIn: parent
-                        width: 14
-                        height: 16
-                        radius: 8
-                        color: "#FF1744"
-                        opacity: isAlarming ? (controller.rearSeatBlinkState ? 0.45 : 0.0) : (isUnbuckled ? 0.25 : 0.0)
-                        z: -1
+                        layer.enabled: !isStartupSolidRed && !isAlarming
+                        layer.effect: MultiEffect {
+                            colorization: 1.0
+                            colorizationColor: "#FFFFFF"
+                        }
                     }
                 }
             }
@@ -2183,14 +2322,14 @@ Item {
             z: 10
         }
 
-        // Action Prompt: Hold [OK] : Reset (Hidden during ANY warning/popup)
+        // Action Prompt: Hold [OK] : Reset (Only for Since refuelling & Accumulated info, hidden on Drive info)
         Row {
             id: resetPrompt
             anchors.bottom: bottomDividerLine.top
             anchors.bottomMargin: 28
             anchors.horizontalCenter: parent.horizontalCenter
             spacing: 5
-            visible: centerRoot.menuTab === 0 && centerRoot.showResetPrompt && !centerRoot.isWarningActive && (!controller || !controller.showLightPopup)
+            visible: centerRoot.menuTab === 0 && centerRoot.tripPage !== 0 && centerRoot.showResetPrompt && !centerRoot.isWarningActive && (!controller || !controller.showLightPopup)
             z: 10
 
             Text {

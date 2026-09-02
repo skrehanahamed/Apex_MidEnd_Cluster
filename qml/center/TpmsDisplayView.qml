@@ -32,6 +32,15 @@ Item {
         }
     }
 
+        FontLoader { id: hyundaiRegular; source: "qrc:/qt/qml/HyundaiExterCluster/resources/fonts/HyundaiSansHead-Regular.ttf" }
+    FontLoader { id: hyundaiMedium; source: "qrc:/qt/qml/HyundaiExterCluster/resources/fonts/HyundaiSansHead-Medium.ttf" }
+    FontLoader { id: hyundaiBold; source: "qrc:/qt/qml/HyundaiExterCluster/resources/fonts/HyundaiSansHead-Bold.ttf" }
+    FontLoader { id: notoDevanagari; source: "qrc:/qt/qml/HyundaiExterCluster/resources/fonts/NotoSansDevanagari-Regular.ttf" }
+
+    readonly property string fontHeadRegular: isHindi ? (notoDevanagari.status === FontLoader.Ready ? notoDevanagari.name : "Noto Sans Devanagari") : (hyundaiRegular.status === FontLoader.Ready ? hyundaiRegular.name : "Hyundai Sans Head Regular")
+    readonly property string fontHeadMedium: isHindi ? (notoDevanagari.status === FontLoader.Ready ? notoDevanagari.name : "Noto Sans Devanagari") : (hyundaiMedium.status === FontLoader.Ready ? hyundaiMedium.name : "Hyundai Sans Head Medium")
+    readonly property string fontHeadBold: isHindi ? (notoDevanagari.status === FontLoader.Ready ? notoDevanagari.name : "Noto Sans Devanagari") : (hyundaiBold.status === FontLoader.Ready ? hyundaiBold.name : "Hyundai Sans Head Bold")
+
     readonly property bool isHindi: controller && (controller.language === "हिन्दी" || controller.language === "Hindi")
     readonly property bool hasLowPressure: (flPsi < 32.0 || frPsi < 32.0 || rlPsi < 32.0 || rrPsi < 32.0)
 
@@ -42,7 +51,7 @@ Item {
         anchors.horizontalCenter: parent.horizontalCenter
         text: isHindi ? ((tpmsRoot.calibrated && tpmsRoot.hasLowPressure) ? "कम दबाव" : "टायर प्रेशर") : ((tpmsRoot.calibrated && tpmsRoot.hasLowPressure) ? "Low pressure" : "Tyre pressure")
         font.pixelSize: 19
-        font.family: "Hyundai Sans Head Medium"
+        font.family: tpmsRoot.fontHeadMedium
         font.weight: Font.DemiBold
         color: "#FFFFFF"
     }
@@ -167,7 +176,7 @@ Item {
                 anchors.centerIn: parent
                 text: pressureValuesContainer.formatPressure(tpmsRoot.flPsi)
                 font.pixelSize: (controller && controller.tpmsUnit === "kPa") ? 18 : 22
-                font.family: "Hyundai Sans Head Medium"
+                font.family: tpmsRoot.fontHeadMedium
                 font.weight: Font.DemiBold
                 color: pressureValuesContainer.getPsiColor(tpmsRoot.flPsi)
             }
@@ -208,7 +217,7 @@ Item {
                 anchors.centerIn: parent
                 text: pressureValuesContainer.formatPressure(tpmsRoot.frPsi)
                 font.pixelSize: (controller && controller.tpmsUnit === "kPa") ? 18 : 22
-                font.family: "Hyundai Sans Head Medium"
+                font.family: tpmsRoot.fontHeadMedium
                 font.weight: Font.DemiBold
                 color: pressureValuesContainer.getPsiColor(tpmsRoot.frPsi)
             }
@@ -248,7 +257,7 @@ Item {
                 anchors.centerIn: parent
                 text: pressureValuesContainer.formatPressure(tpmsRoot.rlPsi)
                 font.pixelSize: (controller && controller.tpmsUnit === "kPa") ? 18 : 22
-                font.family: "Hyundai Sans Head Medium"
+                font.family: tpmsRoot.fontHeadMedium
                 font.weight: Font.DemiBold
                 color: pressureValuesContainer.getPsiColor(tpmsRoot.rlPsi)
             }
@@ -288,7 +297,7 @@ Item {
                 anchors.centerIn: parent
                 text: pressureValuesContainer.formatPressure(tpmsRoot.rrPsi)
                 font.pixelSize: (controller && controller.tpmsUnit === "kPa") ? 18 : 22
-                font.family: "Hyundai Sans Head Medium"
+                font.family: tpmsRoot.fontHeadMedium
                 font.weight: Font.DemiBold
                 color: pressureValuesContainer.getPsiColor(tpmsRoot.rrPsi)
             }
@@ -320,7 +329,7 @@ Item {
             anchors.horizontalCenter: parent.horizontalCenter
             text: controller ? controller.tpmsUnit : "psi"
             font.pixelSize: 15
-            font.family: "Hyundai Sans Head Medium"
+            font.family: tpmsRoot.fontHeadMedium
             font.weight: Font.DemiBold
             color: "#FFFFFF"
         }
@@ -345,7 +354,7 @@ Item {
             anchors.centerIn: parent
             text: tpmsRoot.isHindi ? "प्रदर्शित करने के लिए ड्राइव करें" : "Drive to display"
             font.pixelSize: tpmsRoot.isHindi ? 12 : 16
-            font.family: "Hyundai Sans Head Medium"
+            font.family: tpmsRoot.fontHeadMedium
             font.weight: Font.DemiBold
             color: "#FFFFFF"
         }

@@ -3,7 +3,7 @@
  * Project:        Automotive Digital Instrument Cluster HMI
  * File:           VehicleCheckView.qml
  * Author:         SK Rehan Ahamed
- * Description:    Self-Diagnostic Vehicle Check Sweep Sequence
+ * Description:    Authentic OEM Hyundai System Check - Photorealistic Texture Sequence
  * Copyright (c) 2026 SK Rehan Ahamed. All rights reserved.
  * ============================================================================
  */
@@ -14,10 +14,14 @@ import QtQuick.Effects
 Item {
     id: vehicleRoot
     implicitWidth: 198
-    implicitHeight: 200
+    implicitHeight: 366
 
-    // Master Timeline Progress Property (0.0 to 1.0 over 800ms smooth entry)
+    // Master Timeline Progress Property (0.0 to 1.0 over 2000ms reveal)
     property real checkProgress: 0.0
+    readonly property bool isHindi: controller && (controller.language === "हिन्दी" || controller.language === "Hindi")
+    FontLoader { id: hyundaiMedium; source: "qrc:/qt/qml/HyundaiExterCluster/resources/fonts/HyundaiSansHead-Medium.ttf" }
+    FontLoader { id: notoDevanagari; source: "qrc:/qt/qml/HyundaiExterCluster/resources/fonts/NotoSansDevanagari-Regular.ttf" }
+    readonly property string fontHeadMedium: isHindi ? (notoDevanagari.status === FontLoader.Ready ? notoDevanagari.name : "Noto Sans Devanagari") : (hyundaiMedium.status === FontLoader.Ready ? hyundaiMedium.name : "Hyundai Sans Head Medium")
 
     NumberAnimation {
         id: checkTimelineAnim
@@ -25,13 +29,19 @@ Item {
         property: "checkProgress"
         from: 0.0
         to: 1.0
-        duration: 800
-        easing.type: Easing.OutCubic
+        duration: 2000
+        easing.type: Easing.InOutQuad
         running: vehicleRoot.visible
     }
 
+    // Deep Midnight Base Background
+    Rectangle {
+        anchors.fill: parent
+        color: "#01040A"
+    }
+
     // ========================================================
-    // 0. SYSTEM CHECK TITLE HEADER (Matches OEM Photo 1:1)
+    // 0. SYSTEM CHECK TITLE HEADER
     // ========================================================
     Text {
         id: systemCheckTitle
@@ -40,13 +50,16 @@ Item {
         anchors.horizontalCenter: parent.horizontalCenter
         text: (controller && (controller.language === "हिन्दी" || controller.language === "Hindi")) ? "सिस्टम जाँच" : "System check"
         font.pixelSize: 18
-        font.family: "Hyundai Sans Head Medium"
+        font.family: vehicleRoot.fontHeadMedium
         font.weight: Font.DemiBold
         color: "#FFFFFF"
         font.letterSpacing: 0.3
-        z: 10
-        opacity: Math.min(1.0, vehicleRoot.checkProgress * 2.5)
+        z: 20
+        opacity: Math.min(1.0, Math.max(0.0, (vehicleRoot.checkProgress - 0.10) / 0.30))
     }
+
+    // Base vertical positioning on the ground
+    readonly property real baseCarY: 18.0
 
     // ========================================================
     // 1. OEM STUDIO ILLUMINATED BLUE ASPHALT ROAD BACKGROUND
@@ -58,13 +71,12 @@ Item {
         fillMode: Image.PreserveAspectCrop
         smooth: true
         mipmap: true
+        z: 1
+        opacity: Math.min(1.0, Math.max(0.0, (vehicleRoot.checkProgress - 0.15) / 0.55))
     }
 
-    // Base vertical positioning on the ground
-    readonly property real baseCarY: 18.0
-
     // ========================================================
-    // 2. PHOTOREALISTIC GROUND CONTACT SHADOW (Anchored to Floor)
+    // 2. PHOTOREALISTIC GROUND CONTACT SHADOW
     // ========================================================
     Image {
         id: groundShadowImg
@@ -72,33 +84,26 @@ Item {
         anchors.verticalCenterOffset: vehicleRoot.baseCarY + 27
         width: 170
         height: 48
-        z: 1
+        z: 2
         source: "qrc:/qt/qml/HyundaiExterCluster/assets/car_ground_shadow.png"
         fillMode: Image.PreserveAspectFit
         smooth: true
         mipmap: true
-
-        // Fades in smoothly and stays 100% visible till the end
-        opacity: Math.min(1.0, vehicleRoot.checkProgress * 2.0)
+        opacity: Math.min(1.0, Math.max(0.0, (vehicleRoot.checkProgress - 0.25) / 0.50))
     }
 
     // ========================================================
-    // 3. HYUNDAI EXTER VEHICLE (Firmly grounded with continuous shine)
+    // 3. HYUNDAI EXTER 3D VEHICLE REVEAL
     // ========================================================
     Item {
         id: carContainer
         anchors.centerIn: parent
         width: 142
         height: 90
-        z: 2
-
-        // Planted firmly on the ground surface
+        z: 5
         anchors.verticalCenterOffset: vehicleRoot.baseCarY
 
-        // Opacity: Fades in smoothly on entry, stays 100% visible till the end
-        opacity: Math.min(1.0, 0.05 + 0.95 * vehicleRoot.checkProgress)
-
-        // Base High-Resolution Hyundai Exter Vehicle Render
+        // 3.1 Base 3D Vehicle Render (Fades in out of the horizontal beam)
         Image {
             id: exterCarImg
             anchors.fill: parent
@@ -106,11 +111,39 @@ Item {
             fillMode: Image.PreserveAspectFit
             smooth: true
             mipmap: true
+            opacity: {
+                if (vehicleRoot.checkProgress < 0.15) {
+                    return (vehicleRoot.checkProgress / 0.15) * 0.25;
+                } else if (vehicleRoot.checkProgress < 0.70) {
+                    return 0.25 + ((vehicleRoot.checkProgress - 0.15) / 0.55) * 0.75;
+                }
+                return 1.0;
+            }
         }
 
-        // ========================================================
-        // Continuous Sweeping Metallic Specular Light Beam
-        // ========================================================
+        // 3.2 Photorealistic Specular Edge Highlight (Roofline/Windshield)
+        Image {
+            id: carSilhouetteGlowImg
+            anchors.fill: parent
+            source: "qrc:/qt/qml/HyundaiExterCluster/assets/car_silhouette_glow.png"
+            fillMode: Image.PreserveAspectFit
+            smooth: true
+            mipmap: true
+            z: 8
+            opacity: {
+                if (vehicleRoot.checkProgress < 0.10) {
+                    return vehicleRoot.checkProgress / 0.10;
+                } else if (vehicleRoot.checkProgress < 0.45) {
+                    return 0.85;
+                } else if (vehicleRoot.checkProgress < 0.80) {
+                    return Math.max(0.0, 0.85 * (1.0 - (vehicleRoot.checkProgress - 0.45) / 0.35));
+                }
+                return 0.0;
+            }
+            visible: opacity > 0.001
+        }
+
+        // 3.3 Continuous Metallic Specular Light Sweep
         Item {
             id: sweepLightSource
             anchors.fill: parent
@@ -136,7 +169,7 @@ Item {
                 // Continuous infinite left-to-right shine loop
                 SequentialAnimation on x {
                     loops: Animation.Infinite
-                    running: vehicleRoot.visible
+                    running: vehicleRoot.visible && vehicleRoot.checkProgress > 0.40
                     NumberAnimation {
                         from: -sweepBeam.width - 20
                         to: carContainer.width + sweepBeam.width + 20
@@ -156,68 +189,48 @@ Item {
             maskSource: exterCarImg
             maskThresholdMin: 0.05
             maskSpreadAtMin: 0.05
-            opacity: 0.90
-        }
-
-        // ========================================================
-        // Headlights & Signature H-DRL Brief Illumination Flare
-        // ========================================================
-        Item {
-            id: headlightFlareLayer
-            anchors.fill: parent
-            z: 10
-
-            // Illuminates during the initial entry sweep
-            opacity: {
-                if (vehicleRoot.checkProgress >= 0.40 && vehicleRoot.checkProgress <= 0.90) {
-                    var t = (vehicleRoot.checkProgress - 0.40) / 0.50;
-                    return Math.sin(t * Math.PI) * 0.95;
-                }
-                return 0.0;
-            }
-            visible: opacity > 0.01
-
-            // Signature Front Headlight Projector Flare
-            Rectangle {
-                x: parent.width * 0.28
-                y: parent.height * 0.48
-                width: 20
-                height: 16
-                radius: 8
-                color: "transparent"
-                gradient: Gradient {
-                    GradientStop { position: 0.0; color: "#FFFFFF" }
-                    GradientStop { position: 0.5; color: "#8000F0FF" }
-                    GradientStop { position: 1.0; color: "transparent" }
-                }
-            }
-
-            // Signature Upper H-LED DRL Glow
-            Rectangle {
-                x: parent.width * 0.24
-                y: parent.height * 0.38
-                width: 32
-                height: 8
-                radius: 4
-                color: "transparent"
-                gradient: Gradient {
-                    GradientStop { position: 0.0; color: "#FFFFFF" }
-                    GradientStop { position: 0.6; color: "#6000E5FF" }
-                    GradientStop { position: 1.0; color: "transparent" }
-                }
-            }
+            opacity: Math.min(0.90, Math.max(0.0, (vehicleRoot.checkProgress - 0.30) / 0.30 * 0.90))
+            z: 9
         }
     }
 
     // ========================================================
-    // 4. 3 OCCUPANT SEATBELT ALERT ICONS (Exact same position as trip screen)
+    // 4. AUTHENTIC OEM LASER BEAM (Passes across Headlights/Waistline)
+    // ========================================================
+    Image {
+        id: laserBeamTexture
+        anchors.centerIn: parent
+        anchors.verticalCenterOffset: vehicleRoot.baseCarY - 3
+        width: parent.width * 1.25
+        height: 28
+        source: "qrc:/qt/qml/HyundaiExterCluster/assets/welcome_laser_beam.png"
+        fillMode: Image.Stretch
+        smooth: true
+        mipmap: true
+        z: 12
+        opacity: {
+            if (vehicleRoot.checkProgress < 0.08) {
+                return vehicleRoot.checkProgress / 0.08;
+            } else if (vehicleRoot.checkProgress < 0.38) {
+                return 1.0;
+            } else if (vehicleRoot.checkProgress < 0.75) {
+                return Math.max(0.0, 1.0 - (vehicleRoot.checkProgress - 0.38) / 0.37);
+            }
+            return 0.0;
+        }
+        visible: opacity > 0.001
+    }
+
+    // ========================================================
+    // 5. 3 OCCUPANT SEATBELT ALERT ICONS (Startup bulb check: All 3 solid red)
     // ========================================================
     Row {
         anchors.bottom: parent.bottom
         anchors.bottomMargin: 60
         anchors.horizontalCenter: parent.horizontalCenter
-        spacing: 1
-        opacity: Math.min(1.0, vehicleRoot.checkProgress * 2.0)
+        spacing: 3
+        opacity: Math.min(1.0, Math.max(0.0, (vehicleRoot.checkProgress - 0.15) / 0.35))
+        z: 20
 
         Repeater {
             model: 3

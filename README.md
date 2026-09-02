@@ -3,8 +3,8 @@
 <img width="2286" height="816" alt="image" src="https://github.com/user-attachments/assets/c62203a5-bfb2-44a0-aba9-de9c7c5c85c7" />
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Version-2.0.0-blue.svg?style=for-the-badge" />
-  <img src="https://img.shields.io/badge/Release_Date-September_2,_2026-orange.svg?style=for-the-badge" />
+  <img src="https://img.shields.io/badge/Version-2.1.0-blue.svg?style=for-the-badge" />
+  <img src="https://img.shields.io/badge/Release_Date-September_3,_2026-orange.svg?style=for-the-badge" />
   <img src="https://img.shields.io/badge/Qt-6.6+-41CD52.svg?style=for-the-badge&logo=Qt&logoColor=white" />
   <img src="https://img.shields.io/badge/C%2B%2B-20-00599C.svg?style=for-the-badge&logo=c%2B%2B&logoColor=white" />
   <img src="https://img.shields.io/badge/CMake-3.20+-064F8C.svg?style=for-the-badge&logo=cmake&logoColor=white" />
@@ -13,6 +13,59 @@
 </p>
 
 A production-grade, photorealistic Automotive Digital Instrument Cluster HMI for the Hyundai Exter AMT (Smart Auto), engineered using Qt 6 (QML / Qt Quick) and modern C++20. Features authentic Hyundai typography, 1:1 OEM telltale layouts, dynamic multi-page trip computing, full 4-wheel TPMS simulation, an autonomous driving engine, standby power management with door-wake reactivity, and an infotainment media bridge.
+
+---
+
+## Release Notes - Version 2.1.0 (Updated: September 3, 2026)
+
+### 1. AMT Powertrain Simulation (Speed-Coupled Gear Shifts and Engine RPM)
+
+- Hyundai Exter 1.2L Kappa 5-Speed Smart Auto AMT logic fully integrated into the C++ simulation engine.
+- Vehicle speed directly drives automatic gear selection: D1 (0-16 km/h), D2 (17-34 km/h), D3 (35-58 km/h), D4 (59-82 km/h), D5 (83+ km/h).
+- Engine RPM curve calculated realistically per gear using gear-ratio fraction interpolation with a brief RPM drop on every upshift.
+- Both left (speedometer) and right (tachometer) concentric arc lines 2 through 5 illuminate based on speed thresholds (30, 60, 90, 120 km/h) instead of a separate RPM input.
+- Removed the manual RPM slider from the ECU Simulator. RPM is now fully automatic, derived from speed and gear state. A live AMT RPM readout is displayed in the bench panel.
+
+### 2. Accurate Live Trip Telemetry (Distance, Time, and Fuel Economy per Page)
+
+- All three trip pages - Drive Info, Since Refuelling, and Accumulated Info - now accumulate distance (km), elapsed driving time (h:m), and average fuel economy (km/L) independently and update in real time as the speed slider changes.
+- Root cause of the non-updating trip display identified and fixed: the C++ setters were overwriting the internal floating-point accumulator with a rounded display value each tick, causing sub-0.1 km increments to be silently discarded.
+- Introduced separate raw accumulator variables (m_rawTripKm, m_rawRefuelKm, m_rawAccumKm) that are never touched by the Qt property setters, ensuring precise accumulation across all ticks.
+- Same fix applied to both the manual speed mode and the auto demo drive mode.
+- Odometer (ODO) and Estimated Range (DTE) counters use the same raw accumulator pattern via m_rawOdoAcc and m_rawDteAcc, replacing static local variables that could not be reset.
+
+### 3. Trip Timer Accuracy and Reset Fix
+
+- Timer now advances only when the vehicle is moving (speed greater than 0). Previously it ticked at idle, causing the elapsed time to show random non-zero values at startup.
+- The fractional second accumulator was previously declared as a static local inside the simulation tick function, making it impossible to reset between sessions. Moved to m_engineSecAcc, a proper member variable initialized to zero.
+- All three reset functions (resetTrip, resetSinceRefuel, resetAccumInfo) now correctly zero their corresponding raw distance accumulators, litre accumulators, second counters, and the engine time accumulator.
+- All trip member variable initial values corrected from hardcoded demo values (e.g. "0:42", 154.9 km, 3454.0 km) to clean zeros so the cluster starts fresh on every launch.
+
+### 4. Demo Drive Simulation Card (Premium ECU Bench Control)
+
+- The flat one-line demo drive toggle button has been replaced with a live telemetry control card in the ECU Simulator panel.
+- When idle: compact 44 px row with a grey status LED and a cyan START button.
+- When running: animates to 86 px showing a pulsing green LED, a live scenario label (e.g. Highway Cruise Control 100 km/h Active), an animated speed progress bar (0-120 km/h range), and a red STOP button.
+- Speed bar uses three colour states: orange for idle/stop, blue for city speed (5-60 km/h), and green for highway (60+ km/h), each transitioning with a 400 ms colour animation.
+- Border pulses with a glowing green animation while the simulation is active.
+- All static local variables in the demo tick loop (cycleTime, prevGearNum, odoAcc, dteAcc) promoted to member variables (m_demoCycleTime, m_demoPrevGear, m_rawOdoAcc, m_rawDteAcc) so the demo resets cleanly each time it is started.
+
+### 5. Fuel Range Display at Zero Fuel
+
+- When the fuel gauge reaches 0 bars, the Estimated Range (DTE) field in the center TFT displays three dashes (---) instead of 0 km, matching the OEM Hyundai Exter instrument cluster behavior.
+
+### 6. Welcome Screen Concentric Line Sequencing
+
+- During the welcome animation (StateInitialStartup), all five concentric arc lines on both gauge rings are lit in glowing blue.
+- When the welcome animation ends and the system check begins (StateBootCheck), all lines collapse to only line 1 (the baseline arc).
+- The system check then runs with only the single baseline line active, matching the authentic OEM power-on sequence.
+
+### 7. Hyundai Sans Head Font Name Table Patch
+
+- All three Hyundai Sans Head typeface files (Regular, Medium, Bold) had a broken OpenType name table with no registered family name (nameID 1 was absent), causing Qt to log a missing font family warning on every launch.
+- The font files were patched in-place using Python fonttools to inject correct name records: family "Hyundai Sans Head", styles Regular / Medium / Bold.
+- QML files that used CSS-style font stacks (Hyundai Sans Head, Segoe UI, Roboto, Helvetica, Arial, sans-serif) were updated to the single Qt-compatible family name "Hyundai Sans Head". Qt does not support comma-separated font fallback stacks in the font.family property.
+- The console now prints QList("Hyundai Sans Head") for all three weights with no font alias warnings.
 
 ---
 

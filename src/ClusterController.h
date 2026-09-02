@@ -387,6 +387,9 @@ public slots:
 
     void triggerStartupSequence();
     void resetTrip();
+    Q_INVOKABLE void resetActiveTripPage();
+    Q_INVOKABLE void resetSinceRefuel();
+    Q_INVOKABLE void resetAccumInfo();
     void cycleGear();
     void driveDemo();
 
@@ -416,6 +419,13 @@ signals:
     void rearAlarmSeatChanged();
     void rearSeatBlinkStateChanged();
     void signalPlayChime();
+    void signalStartupAnimationTone();
+    void signalWelcomeChime();
+    void signalGoodbyeChime();
+    void signalWarningChime();
+    void signalSeatbeltChime();
+    void signalKeyAlertChime();
+    void signalSpeedAlertChime();
     void clusterStateChanged();
     void speedChanged();
     void rpmChanged();
@@ -558,14 +568,30 @@ private:
     double m_tripKm = 0.0;
     QString m_tripTime = "0:00";
     double m_tripEconomy = 0.0;
+    int m_tripSeconds = 0;
     int m_tripPage = 1; // 0 = Drive info, 1 = Since refuelling, 2 = Accumulated info
-    double m_refuelKm = 154.9;
-    QString m_refuelTime = "10:21";
-    double m_refuelEconomy = 12.5;
-    double m_accumKm = 3454.0;
-    QString m_accumTime = "84:12";
-    double m_accumEconomy = 14.2;
-    double m_instantEconomy = 26.1;
+    double m_refuelKm = 0.0;
+    QString m_refuelTime = "0:00";
+    double m_refuelEconomy = 0.0;
+    int m_refuelSeconds = 0;
+    double m_accumKm = 0.0;
+    QString m_accumTime = "0:00";
+    double m_accumEconomy = 0.0;
+    int m_accumSeconds = 0;
+    double m_instantEconomy = 0.0;
+    double m_tripLitres = 0.0;
+    double m_refuelLitres = 0.0;
+    double m_accumLitres = 0.0;
+    double m_fuelBarAccumulator = 0.0;
+    double m_engineSecAcc       = 0.0; // Fractional second accumulator for trip timers
+    // Raw (un-rounded) distance accumulators – never overwritten by setter
+    double m_rawTripKm    = 0.0;
+    double m_rawRefuelKm  = 0.0;
+    double m_rawAccumKm   = 0.0;
+    double m_rawOdoAcc    = 0.0;  // sub-km odo accumulator (replaces static local)
+    double m_rawDteAcc    = 0.0;  // sub-km DTE accumulator (replaces static local)
+    double m_demoCycleTime = 0.0; // Demo drive scenario clock (seconds since demo start)
+    int    m_demoPrevGear  = 1;   // Previous gear num for RPM-drop on shift event
     int m_menuTab = 0; // 0 = Trip (Car), 1 = User Settings (Cog), 2 = TPMS/Info (i)
     bool m_showMenuTabs = false;
 

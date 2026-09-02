@@ -59,6 +59,27 @@ Item {
     property string languageSetting: controller ? controller.language : "English"
     readonly property bool isHindi: languageSetting === "हिन्दी" || languageSetting === "Hindi" || (controller && (controller.language === "हिन्दी" || controller.language === "Hindi"))
 
+    FontLoader { id: hyundaiRegular; source: "qrc:/qt/qml/HyundaiExterCluster/resources/fonts/HyundaiSansHead-Regular.ttf" }
+    FontLoader { id: hyundaiMedium; source: "qrc:/qt/qml/HyundaiExterCluster/resources/fonts/HyundaiSansHead-Medium.ttf" }
+    FontLoader { id: hyundaiBold; source: "qrc:/qt/qml/HyundaiExterCluster/resources/fonts/HyundaiSansHead-Bold.ttf" }
+    FontLoader { id: notoDevanagari; source: "qrc:/qt/qml/HyundaiExterCluster/resources/fonts/NotoSansDevanagari-Regular.ttf" }
+
+    readonly property string fontHeadRegular: isHindi ? (notoDevanagari.status === FontLoader.Ready ? notoDevanagari.name : "Noto Sans Devanagari") : (hyundaiRegular.status === FontLoader.Ready ? hyundaiRegular.name : "Hyundai Sans Head Regular")
+    readonly property string fontHeadMedium: isHindi ? (notoDevanagari.status === FontLoader.Ready ? notoDevanagari.name : "Noto Sans Devanagari") : (hyundaiMedium.status === FontLoader.Ready ? hyundaiMedium.name : "Hyundai Sans Head Medium")
+    readonly property string fontHeadBold: isHindi ? (notoDevanagari.status === FontLoader.Ready ? notoDevanagari.name : "Noto Sans Devanagari") : (hyundaiBold.status === FontLoader.Ready ? hyundaiBold.name : "Hyundai Sans Head Bold")
+
+    function getDevanagariFont(str) {
+        if (!str) return isHindi ? "Noto Sans Devanagari" : (hyundaiMedium.status === FontLoader.Ready ? hyundaiMedium.name : "Hyundai Sans Head Medium");
+        var s = String(str);
+        for (var i = 0; i < s.length; ++i) {
+            var code = s.charCodeAt(i);
+            if (code >= 0x0900 && code <= 0x097F) {
+                return "Noto Sans Devanagari";
+            }
+        }
+        return isHindi ? "Noto Sans Devanagari" : (hyundaiMedium.status === FontLoader.Ready ? hyundaiMedium.name : "Hyundai Sans Head Medium");
+    }
+
     function tr(key) {
         if (!isHindi) return key;
         var map = {
@@ -480,7 +501,7 @@ Item {
             anchors.centerIn: parent
             text: settingsRoot.getMenuTitle()
             font.pixelSize: 18
-            font.family: "Hyundai Sans Head Medium"
+            font.family: settingsRoot.getDevanagariFont(text)
             font.weight: Font.DemiBold
             color: "#FFFFFF"
         }
@@ -653,7 +674,7 @@ Item {
                             Text {
                                 text: settingsRoot.tr("Back")
                                 font.pixelSize: 14
-                                font.family: "Hyundai Sans Head Medium"
+                                font.family: settingsRoot.getDevanagariFont(text)
                                 font.weight: isSelected ? Font.Bold : Font.DemiBold
                                 color: isSelected ? "#FFFFFF" : "#CCD8E8"
                                 anchors.verticalCenter: parent.verticalCenter
@@ -668,7 +689,7 @@ Item {
                             visible: !modelData.isBack
                             text: settingsRoot.tr(modelData.label)
                             font.pixelSize: 14
-                            font.family: "Hyundai Sans Head Medium"
+                            font.family: settingsRoot.getDevanagariFont(text)
                             font.weight: isSelected ? Font.Bold : Font.DemiBold
                             color: isSelected ? "#FFFFFF" : "#D0E0F0"
                         }
@@ -681,7 +702,7 @@ Item {
                             visible: modelData.hasSub === true
                             text: ">"
                             font.pixelSize: 14
-                            font.family: "Hyundai Sans Head Bold"
+                            font.family: settingsRoot.fontHeadBold
                             font.weight: Font.Bold
                             color: isSelected ? settingsRoot.neonEdgeColor : "#80A0C0"
                         }
@@ -694,7 +715,7 @@ Item {
                             visible: (modelData.isToggle === true || modelData.isValue === true)
                             text: modelData.value ? settingsRoot.tr(modelData.value) : ""
                             font.pixelSize: 12
-                            font.family: "Hyundai Sans Head Medium"
+                            font.family: settingsRoot.getDevanagariFont(text)
                             font.bold: true
                             color: (modelData.value === "On" || isSelected) ? settingsRoot.neonEdgeColor : "#80A0C0"
                         }
@@ -747,7 +768,7 @@ Item {
                                 visible: modelData.checked === true
                                 text: "✓"
                                 font.pixelSize: 11
-                                font.family: "Hyundai Sans Head Bold"
+                                font.family: settingsRoot.fontHeadBold
                                 font.bold: true
                                 color: "#000000"
                             }
@@ -779,7 +800,7 @@ Item {
                 anchors.verticalCenterOffset: 2
                 text: settingsRoot.serviceRemainingKm + " km / " + settingsRoot.serviceRemainingDays + " " + settingsRoot.tr("days")
                 font.pixelSize: 13
-                font.family: "Hyundai Sans Head Medium"
+                font.family: settingsRoot.fontHeadMedium
                 font.weight: Font.DemiBold
                 color: "#CCD8E8"
             }
@@ -999,7 +1020,7 @@ Item {
                 anchors.horizontalCenter: parent.horizontalCenter
                 text: settingsRoot.lightBrightness === 20 ? "Max" : settingsRoot.lightBrightness.toString()
                 font.pixelSize: settingsRoot.lightBrightness === 20 ? 24 : 26
-                font.family: "Hyundai Sans Head Medium"
+                font.family: settingsRoot.fontHeadMedium
                 font.weight: Font.DemiBold
                 color: "#FFFFFF"
             }
@@ -1013,7 +1034,7 @@ Item {
             anchors.verticalCenterOffset: 12
             text: "—"
             font.pixelSize: 24
-            font.family: "Hyundai Sans Head Bold"
+            font.family: settingsRoot.fontHeadBold
             font.bold: true
             color: settingsRoot.lightBrightness > 1 ? "#CCD8E8" : "#406080"
         }
@@ -1026,7 +1047,7 @@ Item {
             anchors.verticalCenterOffset: 12
             text: "+"
             font.pixelSize: 26
-            font.family: "Hyundai Sans Head Bold"
+            font.family: settingsRoot.fontHeadBold
             font.bold: true
             color: settingsRoot.lightBrightness < 20 ? "#CCD8E8" : "#406080"
         }
@@ -1080,7 +1101,7 @@ Item {
                             anchors.centerIn: parent
                             text: Math.floor(settingsRoot.serviceIntervalKm / 10000).toString()
                             font.pixelSize: 22
-                            font.family: "Hyundai Sans Head Bold"
+                            font.family: settingsRoot.fontHeadBold
                             font.bold: true
                             color: "#FFFFFF"
                         }
@@ -1102,7 +1123,7 @@ Item {
                     anchors.verticalCenter: parent.verticalCenter
                     text: (settingsRoot.serviceIntervalKm % 10000).toString().padStart(4, '0') + " km"
                     font.pixelSize: 22
-                    font.family: "Hyundai Sans Head Medium"
+                    font.family: settingsRoot.fontHeadMedium
                     font.bold: true
                     color: "#D0E0F0"
                 }
@@ -1126,7 +1147,7 @@ Item {
                         anchors.centerIn: parent
                         text: settingsRoot.serviceIntervalMonths.toString()
                         font.pixelSize: 20
-                        font.family: "Hyundai Sans Head Bold"
+                        font.family: settingsRoot.fontHeadBold
                         font.bold: true
                         color: "#FFFFFF"
                     }
@@ -1136,7 +1157,7 @@ Item {
                     anchors.verticalCenter: parent.verticalCenter
                     text: settingsRoot.tr("months")
                     font.pixelSize: 18
-                    font.family: "Hyundai Sans Head Medium"
+                    font.family: settingsRoot.fontHeadMedium
                     font.weight: Font.DemiBold
                     color: "#D0E0F0"
                 }
@@ -1172,7 +1193,7 @@ Item {
                           (settingsRoot.isHindi ? "फ़ैक्टरी सेटिंग्स" : "Reset to") :
                           (settingsRoot.isHindi ? "समय और दूरी" : "Reset time")
                     font.pixelSize: 18
-                    font.family: "Hyundai Sans Head Medium"
+                    font.family: settingsRoot.fontHeadMedium
                     font.weight: Font.DemiBold
                     color: "#FFFFFF"
                 }
@@ -1183,7 +1204,7 @@ Item {
                           (settingsRoot.isHindi ? "रीसेट करें?" : "factory default?") :
                           (settingsRoot.isHindi ? "रीसेट करें?" : "and distance?")
                     font.pixelSize: 18
-                    font.family: "Hyundai Sans Head Medium"
+                    font.family: settingsRoot.fontHeadMedium
                     font.weight: Font.DemiBold
                     color: "#FFFFFF"
                 }
@@ -1207,7 +1228,7 @@ Item {
                         anchors.centerIn: parent
                         text: settingsRoot.tr("Yes")
                         font.pixelSize: 15
-                        font.family: "Hyundai Sans Head Medium"
+                        font.family: settingsRoot.fontHeadMedium
                         font.weight: settingsRoot.resetChoice === 0 ? Font.Bold : Font.DemiBold
                         color: settingsRoot.resetChoice === 0 ? "#FFFFFF" : "#A0B8D0"
                     }
@@ -1227,7 +1248,7 @@ Item {
                         anchors.centerIn: parent
                         text: settingsRoot.tr("No")
                         font.pixelSize: 15
-                        font.family: "Hyundai Sans Head Medium"
+                        font.family: settingsRoot.fontHeadMedium
                         font.weight: settingsRoot.resetChoice === 1 ? Font.Bold : Font.DemiBold
                         color: settingsRoot.resetChoice === 1 ? "#FFFFFF" : "#A0B8D0"
                     }
@@ -1254,7 +1275,7 @@ Item {
                     anchors.horizontalCenter: parent.horizontalCenter
                     text: modelData
                     font.pixelSize: 18
-                    font.family: "Hyundai Sans Head Medium"
+                    font.family: settingsRoot.fontHeadMedium
                     font.weight: Font.DemiBold
                     color: "#FFFFFF"
                 }

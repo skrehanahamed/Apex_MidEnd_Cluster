@@ -39,6 +39,10 @@ qt_add_qml_module(HyundaiExterClusterApp
         qml/gauges/SpeedDisplay.qml
         qml/gauges/RpmDisplay.qml
         qml/gauges/SevenSegmentDigit.qml
+        qml/gauges/FuelGauge.qml
+        qml/gauges/FuelIcon.qml
+        qml/gauges/TempGauge.qml
+        qml/gauges/TempIcon.qml
         qml/center/CenterTripDisplay.qml
         qml/center/StartupAnimationView.qml
         qml/center/VehicleCheckView.qml
@@ -51,10 +55,13 @@ qt_add_qml_module(HyundaiExterClusterApp
         resources/fonts/HyundaiSansHead-Regular.ttf
         resources/fonts/HyundaiSansHead-Medium.ttf
         resources/fonts/HyundaiSansHead-Bold.ttf
+        resources/fonts/NotoSansDevanagari-Regular.ttf
         resources/fonts/Orbitron-Bold.ttf
         resources/fonts/Rajdhani-Bold.ttf
         resources/fonts/DSEG7Classic-Bold.ttf
         resources/fonts/DSEG7Classic-Regular.ttf
+        resources/icons/fuel_meter_icon.png
+        resources/icons/temp_meter_icon.png
         resources/icons/brake.png
         resources/icons/abs.png
         resources/icons/seatbelt.png
@@ -91,6 +98,7 @@ qt_add_qml_module(HyundaiExterClusterApp
         resources/icons/airbag.png
         resources/icons/oil.png
         resources/icons/fuel_pump.png
+        resources/icons/low_fuel_warning_3d.png
         resources/icons/trip_car.png
         resources/icons/trip_clock.png
         resources/icons/trip_fuel.png
@@ -118,6 +126,13 @@ qt_add_qml_module(HyundaiExterClusterApp
         resources/audio/tick.wav
         resources/audio/tock.wav
         resources/audio/hyundai_chime.wav
+        resources/audio/startup_animation_tone.wav
+        resources/audio/welcome_chime.wav
+        resources/audio/goodbye_chime.wav
+        resources/audio/warning_chime.wav
+        resources/audio/seatbelt_chime.wav
+        resources/audio/key_alert_chime.wav
+        resources/audio/speed_alert_chime.wav
         assets/speed_line1.svg
         assets/speed_line2.svg
         assets/speed_line3.svg
@@ -131,6 +146,9 @@ qt_add_qml_module(HyundaiExterClusterApp
         assets/hyundai_exter_car.png
         assets/oem_studio_ground.png
         assets/car_ground_shadow.png
+        assets/welcome_laser_beam.png
+        assets/car_silhouette_glow.png
+        assets/welcome_wave_swoop.png
 )
 
 target_link_libraries(HyundaiExterClusterApp PRIVATE

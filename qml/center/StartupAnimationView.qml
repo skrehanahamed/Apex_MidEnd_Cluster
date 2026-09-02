@@ -3,7 +3,7 @@
  * Project:        Automotive Digital Instrument Cluster HMI
  * File:           StartupAnimationView.qml
  * Author:         SK Rehan Ahamed
- * Description:    Cluster Power-On Welcome Wave Animation Sequence
+ * Description:    Authentic OEM Hyundai HD Welcome Sequence - Frame-Accurate Blue Matrix Funnel & Laser Convergence
  * Copyright (c) 2026 SK Rehan Ahamed. All rights reserved.
  * ============================================================================
  */
@@ -25,19 +25,19 @@ Item {
         from: 0.0
         to: 1.0
         duration: 3800
-        easing.type: Easing.InOutSine
+        easing.type: Easing.InOutQuad
         running: startupAnimRoot.visible
     }
 
-    // Deep Pure Black Cluster Background
+    // Deep Midnight Pure Black Cluster Background
     Rectangle {
         anchors.fill: parent
-        color: "#02060E"
+        color: "#01040A"
     }
 
-    // Photorealistic 3-Section Fluid "Wave of Light" Canvas (3.8s Welcome Sequence)
+    // Canvas: OEM Blue Dot-Matrix Funnel & Laser Convergence (Frame-Accurate Recreation)
     Canvas {
-        id: waveCanvas
+        id: welcomeCanvas
         anchors.fill: parent
         renderTarget: Canvas.FramebufferObject
 
@@ -46,170 +46,163 @@ Item {
             ctx.clearRect(0, 0, width, height);
 
             var p = startupAnimRoot.animProgress;
-            var cy = height / 2;
             var w = width;
+            var h = height;
+            var cy = h / 2 + 15.0; // Exactly matches side gauge baseline level
 
-            // Master Entry & Exit Envelope
+            // Master envelope
             var masterAlpha = 1.0;
-            if (p < 0.12) {
-                masterAlpha = p / 0.12; // Smooth 0.4s fade-in
+            if (p < 0.06) {
+                masterAlpha = p / 0.06;
             } else if (p > 0.88) {
-                masterAlpha = Math.max(0.0, 1.0 - (p - 0.88) / 0.12); // Smooth dissolve out
+                masterAlpha = Math.max(0.0, 1.0 - (p - 0.88) / 0.12);
             }
 
             if (masterAlpha <= 0.001) return;
 
             // =================================================================
-            // SECTION 1: EXPANDING AMBIENT RADIAL LIGHT AURA & HORIZON GLOW
+            // 1. VOLUMETRIC AMBIENT AURA
             // =================================================================
-            var auraPulse = Math.sin(p * Math.PI);
-            var glowX = w * (0.15 + 0.7 * p);
-            var mistGrad = ctx.createRadialGradient(glowX, cy, 10, glowX, cy, 110);
-            mistGrad.addColorStop(0.0, "rgba(0, 229, 255, " + (0.32 * masterAlpha * auraPulse) + ")");
-            mistGrad.addColorStop(0.4, "rgba(0, 110, 240, " + (0.16 * masterAlpha * auraPulse) + ")");
-            mistGrad.addColorStop(1.0, "rgba(0, 20, 90, 0.0)");
-
-            ctx.fillStyle = mistGrad;
-            ctx.fillRect(0, cy - 120, w, 240);
+            var auraAlpha = Math.sin(p * Math.PI) * 0.40 * masterAlpha;
+            var auraGrad = ctx.createRadialGradient(w / 2, cy, 10, w / 2, cy, 140);
+            auraGrad.addColorStop(0.0, "rgba(0, 160, 255, " + auraAlpha + ")");
+            auraGrad.addColorStop(0.5, "rgba(0, 50, 180, " + (auraAlpha * 0.5) + ")");
+            auraGrad.addColorStop(1.0, "rgba(0, 5, 30, 0.0)");
+            ctx.fillStyle = auraGrad;
+            ctx.fillRect(0, cy - 160, w, 320);
 
             // =================================================================
-            // SECTION 2: MULTI-LAYERED UNDULATING WAVE OF LIGHT (Flowing 3D Ribbons)
+            // 2. STAGE 1: OEM BLUE DOT-MATRIX HYPERBOLIC FUNNEL (0.0 to 0.70)
             // =================================================================
-            var cycleSpeed = p * Math.PI * 7.5;
+            if (p < 0.72) {
+                var s1Progress = p / 0.70;
+                var s1Alpha = Math.sin(Math.min(1.0, s1Progress * 1.15) * Math.PI) * masterAlpha;
 
-            // Envelope: Starts flat, undulates high during middle 2.5s, settles into horizon
-            var waveAmpMaster = Math.sin(p * Math.PI);
+                // Convergence factor (1.0 = wide funnel, 0.0 = collapsed to line)
+                var conv = Math.pow(Math.max(0.0, 1.0 - s1Progress), 1.6);
+                var waveShift = s1Progress * 80.0; // Matrix travels across
 
-            // --- Wave Layer 1: Deep Blue-Cyan Ambient Ribbon ---
-            ctx.save();
-            ctx.beginPath();
-            var amp1 = 32.0 * waveAmpMaster;
-            ctx.moveTo(0, cy);
-            for (var x = 0; x <= w; x += 3) {
-                var normX = x / w;
-                var envelope = Math.sin(normX * Math.PI);
-                var y1 = cy + Math.sin(normX * 5.2 - cycleSpeed) * amp1 * envelope;
-                ctx.lineTo(x, y1);
-            }
-            ctx.strokeStyle = "rgba(0, 130, 255, " + (0.40 * masterAlpha) + ")";
-            ctx.lineWidth = 7.0;
-            ctx.lineCap = "round";
-            ctx.stroke();
-            ctx.restore();
+                ctx.save();
 
-            // --- Wave Layer 2: Secondary Harmonic Neon Ribbon ---
-            ctx.save();
-            ctx.beginPath();
-            var amp2 = 24.0 * waveAmpMaster;
-            ctx.moveTo(0, cy);
-            for (var x2 = 0; x2 <= w; x2 += 3) {
-                var normX2 = x2 / w;
-                var envelope2 = Math.sin(normX2 * Math.PI);
-                var y2 = cy + Math.sin(normX2 * 7.4 - cycleSpeed * 1.2 + 1.4) * amp2 * envelope2;
-                ctx.lineTo(x2, y2);
-            }
-            ctx.strokeStyle = "rgba(0, 229, 255, " + (0.80 * masterAlpha) + ")";
-            ctx.lineWidth = 3.2;
-            ctx.lineCap = "round";
-            ctx.stroke();
-            ctx.restore();
+                // 2.1 Render Glowing Dot-Matrix Grid inside the Funnel Envelope
+                var dotSpacingX = 8.0;
+                var dotSpacingY = 8.0;
 
-            // --- Wave Layer 3: Specular White Core Energy Beam ---
-            ctx.save();
-            ctx.beginPath();
-            var amp3 = 18.0 * waveAmpMaster;
-            ctx.moveTo(0, cy);
-            for (var x3 = 0; x3 <= w; x3 += 2) {
-                var normX3 = x3 / w;
-                var envelope3 = Math.sin(normX3 * Math.PI);
-                var y3 = cy + Math.sin(normX3 * 6.1 - cycleSpeed * 1.1 + 0.7) * amp3 * envelope3;
-                ctx.lineTo(x3, y3);
-            }
-            ctx.strokeStyle = "rgba(255, 255, 255, " + (0.95 * masterAlpha) + ")";
-            ctx.lineWidth = 1.8;
-            ctx.lineCap = "round";
-            ctx.stroke();
-            ctx.restore();
+                for (var gx = 0; gx <= w; gx += dotSpacingX) {
+                    var nx = gx / w;
+                    // Hyperbolic funnel upper and lower boundaries at column gx
+                    var halfSpan = (20.0 + 90.0 * Math.pow(nx, 1.5)) * conv;
+                    var yTopBound = cy - halfSpan;
+                    var yBotBound = cy + halfSpan;
 
-            // =================================================================
-            // SECTION 3: TRAVELING CREST PULSE FLARE & STREAM OF LIGHT PARTICLES
-            // =================================================================
-            var crestP = (p * 1.4) % 1.0;
-            var crestX = w * crestP;
-            var crestY = cy + Math.sin(crestP * 6.1 - cycleSpeed * 1.1 + 0.7) * amp3 * Math.sin(crestP * Math.PI);
+                    for (var gy = cy - 110; gy <= cy + 110; gy += dotSpacingY) {
+                        // Check if dot falls inside the hyperbolic funnel
+                        if (gy >= yTopBound && gy <= yBotBound) {
+                            var distFromCenterY = Math.abs(gy - cy) / Math.max(1.0, halfSpan);
+                            var dotAlpha = (1.0 - distFromCenterY * 0.6) * s1Alpha;
+                            
+                            // Dot size based on proximity to center and progress
+                            var dotR = (1.4 + 1.2 * (1.0 - distFromCenterY)) * (0.6 + 0.4 * conv);
 
-            if (crestP > 0.08 && crestP < 0.92) {
-                var flareR = 15.0 * Math.sin(crestP * Math.PI) * masterAlpha;
-                var flareGrad = ctx.createRadialGradient(crestX, crestY, 0, crestX, crestY, flareR * 2.2);
-                flareGrad.addColorStop(0.0, "rgba(255, 255, 255, " + (1.0 * masterAlpha) + ")");
-                flareGrad.addColorStop(0.35, "rgba(0, 229, 255, " + (0.85 * masterAlpha) + ")");
-                flareGrad.addColorStop(1.0, "rgba(0, 229, 255, 0.0)");
+                            // Staggered honeycomb offset
+                            var actualX = gx + ((Math.floor(gy / dotSpacingY) % 2 === 0) ? (dotSpacingX / 2) : 0);
 
-                ctx.fillStyle = flareGrad;
-                ctx.beginPath();
-                ctx.arc(crestX, crestY, flareR * 2.2, 0, Math.PI * 2);
-                ctx.fill();
+                            // Authentic Hyundai Royal Blue to Cyan Dot Color
+                            var r = Math.floor(0 + 100 * (1.0 - distFromCenterY));
+                            var g = Math.floor(100 + 155 * (1.0 - distFromCenterY));
+                            var b = 255;
 
-                // Specular Light Crosshair Glint
-                ctx.strokeStyle = "rgba(255, 255, 255, " + (0.95 * masterAlpha) + ")";
-                ctx.lineWidth = 1.4;
-                ctx.beginPath();
-                ctx.moveTo(crestX - 18, crestY);
-                ctx.lineTo(crestX + 18, crestY);
-                ctx.moveTo(crestX, crestY - 10);
-                ctx.lineTo(crestX, crestY + 10);
-                ctx.stroke();
-            }
-
-            // Trailing Luminous Energy Particles
-            var particles = [
-                { dx: -28, dy: -9, r: 1.8, a: 0.8 },
-                { dx: -16, dy: 11, r: 1.4, a: 0.75 },
-                { dx: -42, dy: 5, r: 2.1, a: 0.65 },
-                { dx: 20, dy: -14, r: 1.6, a: 0.7 },
-                { dx: 36, dy: 7, r: 1.3, a: 0.5 },
-                { dx: -60, dy: -6, r: 1.5, a: 0.45 },
-                { dx: -75, dy: 8, r: 1.2, a: 0.35 }
-            ];
-
-            for (var i = 0; i < particles.length; i++) {
-                var pt = particles[i];
-                var px = crestX + pt.dx;
-                var py = crestY + pt.dy;
-                if (px > 2 && px < w - 2) {
-                    ctx.fillStyle = "rgba(180, 245, 255, " + (pt.a * masterAlpha) + ")";
-                    ctx.beginPath();
-                    ctx.arc(px, py, pt.r, 0, Math.PI * 2);
-                    ctx.fill();
+                            ctx.fillStyle = "rgba(" + r + ", " + g + ", " + b + ", " + (dotAlpha * 0.85) + ")";
+                            ctx.beginPath();
+                            ctx.arc(actualX, gy, dotR, 0, Math.PI * 2);
+                            ctx.fill();
+                        }
+                    }
                 }
+
+                // 2.2 Glowing Cyan Top & Bottom Funnel Contour Lines
+                ctx.beginPath();
+                for (var x = 0; x <= w; x += 4) {
+                    var nxTop = x / w;
+                    var yT = cy - (20.0 + 90.0 * Math.pow(nxTop, 1.5)) * conv;
+                    if (x === 0) ctx.moveTo(x, yT);
+                    else ctx.lineTo(x, yT);
+                }
+                ctx.strokeStyle = "rgba(0, 229, 255, " + (0.90 * s1Alpha) + ")";
+                ctx.lineWidth = 2.4;
+                ctx.stroke();
+
+                ctx.beginPath();
+                for (var x2 = 0; x2 <= w; x2 += 4) {
+                    var nxBot = x2 / w;
+                    var yB = cy + (20.0 + 90.0 * Math.pow(nxBot, 1.5)) * conv;
+                    if (x2 === 0) ctx.moveTo(x2, yB);
+                    else ctx.lineTo(x2, yB);
+                }
+                ctx.strokeStyle = "rgba(0, 200, 255, " + (0.90 * s1Alpha) + ")";
+                ctx.lineWidth = 2.4;
+                ctx.stroke();
+
+                ctx.restore();
             }
 
             // =================================================================
-            // SECTION 4: HORIZONTAL SETTLE & DISSOLVE HORIZON (During final 1.0s)
+            // 3. STAGE 2: CRISP HORIZONTAL LASER BEAM BRIDGE (0.45 to 0.95)
             // =================================================================
-            if (p > 0.65) {
-                var settleP = (p - 0.65) / 0.35;
-                var horizonAlpha = Math.sin(settleP * Math.PI) * 0.7 * masterAlpha;
+            if (p > 0.42) {
+                var s2Progress = (p - 0.42) / 0.50;
+                var s2Alpha = Math.sin(Math.min(1.0, s2Progress) * Math.PI) * masterAlpha;
 
-                var hGrad = ctx.createLinearGradient(0, cy, w, cy);
-                hGrad.addColorStop(0.0, "rgba(0, 229, 255, 0.0)");
-                hGrad.addColorStop(0.2, "rgba(0, 229, 255, " + (0.5 * horizonAlpha) + ")");
-                hGrad.addColorStop(0.5, "rgba(255, 255, 255, " + horizonAlpha + ")");
-                hGrad.addColorStop(0.8, "rgba(0, 229, 255, " + (0.5 * horizonAlpha) + ")");
-                hGrad.addColorStop(1.0, "rgba(0, 229, 255, 0.0)");
+                ctx.save();
 
-                ctx.strokeStyle = hGrad;
+                // Outer Soft Cyan Halo
+                var haloGrad = ctx.createLinearGradient(0, cy, w, cy);
+                haloGrad.addColorStop(0.0, "rgba(0, 160, 255, 0.0)");
+                haloGrad.addColorStop(0.20, "rgba(0, 200, 255, " + (0.45 * s2Alpha) + ")");
+                haloGrad.addColorStop(0.50, "rgba(180, 240, 255, " + (0.85 * s2Alpha) + ")");
+                haloGrad.addColorStop(0.80, "rgba(0, 200, 255, " + (0.45 * s2Alpha) + ")");
+                haloGrad.addColorStop(1.0, "rgba(0, 160, 255, 0.0)");
+
+                ctx.strokeStyle = haloGrad;
+                ctx.lineWidth = 6.0;
+                ctx.beginPath();
+                ctx.moveTo(0, cy);
+                ctx.lineTo(w, cy);
+                ctx.stroke();
+
+                // Crisp Specular Laser Core
+                var coreGrad = ctx.createLinearGradient(0, cy, w, cy);
+                coreGrad.addColorStop(0.0, "rgba(255, 255, 255, 0.0)");
+                coreGrad.addColorStop(0.35, "rgba(255, 255, 255, " + (0.85 * s2Alpha) + ")");
+                coreGrad.addColorStop(0.50, "rgba(255, 255, 255, " + (1.0 * s2Alpha) + ")");
+                coreGrad.addColorStop(0.65, "rgba(255, 255, 255, " + (0.85 * s2Alpha) + ")");
+                coreGrad.addColorStop(1.0, "rgba(255, 255, 255, 0.0)");
+
+                ctx.strokeStyle = coreGrad;
                 ctx.lineWidth = 1.8;
                 ctx.beginPath();
-                ctx.moveTo(0, cy + 20 * (1.0 - settleP));
-                ctx.lineTo(w, cy + 20 * (1.0 - settleP));
+                ctx.moveTo(0, cy);
+                ctx.lineTo(w, cy);
                 ctx.stroke();
+
+                // Radiant Center Glint Burst
+                var glintGrad = ctx.createRadialGradient(w / 2, cy, 0, w / 2, cy, 14);
+                glintGrad.addColorStop(0.0, "rgba(255, 255, 255, " + (1.0 * s2Alpha) + ")");
+                glintGrad.addColorStop(0.40, "rgba(160, 240, 255, " + (0.75 * s2Alpha) + ")");
+                glintGrad.addColorStop(1.0, "rgba(0, 140, 255, 0.0)");
+
+                ctx.fillStyle = glintGrad;
+                ctx.beginPath();
+                ctx.arc(w / 2, cy, 14, 0, Math.PI * 2);
+                ctx.fill();
+
+                ctx.restore();
             }
         }
 
         Connections {
             target: startupAnimRoot
-            function onAnimProgressChanged() { waveCanvas.requestPaint(); }
+            function onAnimProgressChanged() { welcomeCanvas.requestPaint(); }
         }
     }
 }

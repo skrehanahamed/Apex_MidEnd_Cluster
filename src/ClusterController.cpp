@@ -32,7 +32,13 @@ void ClusterController::triggerStartupSequence()
     m_sequenceStepIndex = 1;
     setClusterState(StateInitialStartup);
 
-    // Initial state: Everything dark except frame + Odo
+    // Reset Drive info for new ignition start cycle
+    resetTrip();
+
+    // Play authentic Hyundai Startup Animation Tone
+    emit signalStartupAnimationTone();
+
+    // Initial state: Everything dark except frame + signature wave
     setSpeed(0);
     setRpm(0.0);
     setAllTelltales(false);
@@ -47,7 +53,10 @@ void ClusterController::onSequenceStep()
         m_sequenceStepIndex = 2;
         setClusterState(StateBootCheck);
 
-        // Turn on only legitimate safety self-test telltales (no turn signals, no high beam, no light stalk lamps)
+        // Play authentic Hyundai System Check Chime
+        emit signalWelcomeChime();
+
+        // Turn on safety self-test telltales & gauge sweep
         setBulbCheckTelltales(true);
 
         m_sequenceTimer.start(5000); // 5.0s in State 2 (System check)
@@ -93,9 +102,44 @@ void ClusterController::cycleGear()
 
 void ClusterController::resetTrip()
 {
+    m_tripSeconds  = 0;
+    m_tripLitres   = 0.0;
+    m_rawTripKm    = 0.0;
+    m_engineSecAcc = 0.0;
     setTripKm(0.0);
     setTripTime("0:00");
     setTripEconomy(0.0);
+}
+
+void ClusterController::resetActiveTripPage()
+{
+    if (m_tripPage == 1) {
+        resetSinceRefuel();
+    } else if (m_tripPage == 2) {
+        resetAccumInfo();
+    } else {
+        resetTrip();
+    }
+}
+
+void ClusterController::resetSinceRefuel()
+{
+    m_refuelSeconds = 0;
+    m_refuelLitres  = 0.0;
+    m_rawRefuelKm   = 0.0;
+    setRefuelKm(0.0);
+    setRefuelTime("0:00");
+    setRefuelEconomy(0.0);
+}
+
+void ClusterController::resetAccumInfo()
+{
+    m_accumSeconds = 0;
+    m_accumLitres  = 0.0;
+    m_rawAccumKm   = 0.0;
+    setAccumKm(0.0);
+    setAccumTime("0:00");
+    setAccumEconomy(0.0);
 }
 
 void ClusterController::driveDemo()
@@ -115,6 +159,8 @@ void ClusterController::driveDemo()
         m_demoScenario = "Starting Autonomous Drive";
         emit demoScenarioChanged();
     } else {
+        m_demoCycleTime = 0.0;
+        m_demoPrevGear  = 1;
         setGear("N");
         setSpeed(0);
         setRpm(0.0);
@@ -133,12 +179,10 @@ void ClusterController::driveDemo()
 void ClusterController::onDriveSimulationTick()
 {
     if (m_isDemoDriving && m_clusterState == StateNormalTrip) {
-        static double cycleTime = 0.0;
-        static int prevGearNum = 1;
-        cycleTime += 0.033; // 30Hz tick
+        m_demoCycleTime += 0.033; // 30Hz tick
 
         // Simulation loop duration: ~60 seconds total cycle
-        double phase = std::fmod(cycleTime, 60.0);
+        double phase = std::fmod(m_demoCycleTime, 60.0);
         double targetSpeed = 0.0;
         QString scenario = "City Driving";
 
@@ -221,9 +265,9 @@ void ClusterController::onDriveSimulationTick()
         if (nextSpeed > 0) {
             calculatedRpm = 1.1 + fraction * 2.8;
             // Brief RPM drop on gear shift
-            if (currentGearNum != prevGearNum) {
+            if (currentGearNum != m_demoPrevGear) {
                 calculatedRpm = 1.2;
-                prevGearNum = currentGearNum;
+                m_demoPrevGear = currentGearNum;
             }
         }
         setRpm(calculatedRpm);
@@ -237,42 +281,170 @@ void ClusterController::onDriveSimulationTick()
             instantEco = 9.5 + 4.0 * (1.0 - fraction);
         } else if (targetSpeed < currentSpeed - 2.0) {
             // Coasting / decelerating
-            instantEco = 28.5 + 1.5 * std::sin(cycleTime * 2.0);
+            instantEco = 28.5 + 1.5 * std::sin(m_demoCycleTime * 2.0);
         } else {
             // Cruising
-            instantEco = 19.2 + 2.5 * std::sin(cycleTime * 0.5);
+            instantEco = 19.2 + 2.5 * std::sin(m_demoCycleTime * 0.5);
         }
         setInstantEconomy(std::clamp(instantEco, 0.0, 30.0));
 
-        // Update trip distance & odometer
-        double distanceIncrement = (currentSpeed / 3600.0) * 0.033 * 6.0; // accelerated demo
-        double newTrip = m_tripKm + distanceIncrement;
-        setTripKm(std::round(newTrip * 10.0) / 10.0);
+        // Update trip distance & odometer (use raw accumulators – never truncated by setter)
+        double distanceIncrement = (currentSpeed / 3600.0) * 0.033 * 5.0;
+        m_rawTripKm   += distanceIncrement;
+        m_rawRefuelKm += distanceIncrement;
+        m_rawAccumKm  += distanceIncrement;
+        setTripKm(std::round(m_rawTripKm * 10.0) / 10.0);
+        setRefuelKm(std::round(m_rawRefuelKm * 10.0) / 10.0);
+        setAccumKm(std::round(m_rawAccumKm * 10.0) / 10.0);
 
         // Odometer increments
-        static double odoAcc = 0.0;
-        odoAcc += distanceIncrement;
-        if (odoAcc >= 1.0) {
-            setOdoKm(m_odoKm + static_cast<int>(odoAcc));
-            odoAcc = std::fmod(odoAcc, 1.0);
+        m_rawOdoAcc += distanceIncrement;
+        if (m_rawOdoAcc >= 1.0) {
+            int kmToAdd = static_cast<int>(m_rawOdoAcc);
+            setOdoKm(m_odoKm + kmToAdd);
+            m_rawOdoAcc -= kmToAdd;
         }
 
-        // Trip Time
-        int totalSeconds = static_cast<int>(cycleTime * 4.0);
-        int mins = (totalSeconds / 60) % 60;
-        int hours = totalSeconds / 3600;
-        char timeBuf[32];
-        std::snprintf(timeBuf, sizeof(timeBuf), "%d:%02d", hours, mins);
-        setTripTime(QString::fromUtf8(timeBuf));
+        // Range (DTE) consumption
+        m_rawDteAcc += distanceIncrement;
+        if (m_rawDteAcc >= 1.0) {
+            int kmToSub = static_cast<int>(m_rawDteAcc);
+            if (m_dteKm > kmToSub) {
+                setDteKm(m_dteKm - kmToSub);
+            }
+            m_rawDteAcc -= kmToSub;
+        }
 
-        // Average trip economy
-        double avgEcon = 17.2 + 1.8 * std::sin(cycleTime * 0.15);
-        setTripEconomy(std::round(avgEcon * 10.0) / 10.0);
+        // Consumed fuel
+        double litresDelta = (instantEco > 1.0) ? (distanceIncrement / instantEco) : (distanceIncrement / 16.0);
+        m_tripLitres += litresDelta;
+        m_refuelLitres += litresDelta;
+        m_accumLitres += litresDelta;
+        m_fuelBarAccumulator += litresDelta;
+        if (m_fuelBarAccumulator >= 3.08 && m_fuelLevel > 0) {
+            m_fuelBarAccumulator -= 3.08;
+            setFuelLevel(m_fuelLevel - 1);
+        }
+
+        // Average trip economy for each page (km / litres)
+        if (m_tripLitres > 0.005 && m_tripKm >= 0.1) {
+            double avgEcon = m_tripKm / m_tripLitres;
+            setTripEconomy(std::clamp(std::round(avgEcon * 10.0) / 10.0, 5.0, 30.0));
+        } else {
+            setTripEconomy(0.0);
+        }
+
+        if (m_refuelLitres > 0.005 && m_refuelKm >= 0.1) {
+            double avgRefuel = m_refuelKm / m_refuelLitres;
+            setRefuelEconomy(std::clamp(std::round(avgRefuel * 10.0) / 10.0, 5.0, 30.0));
+        } else {
+            setRefuelEconomy(0.0);
+        }
+
+        if (m_accumLitres > 0.005 && m_accumKm >= 0.1) {
+            double avgAccum = m_accumKm / m_accumLitres;
+            setAccumEconomy(std::clamp(std::round(avgAccum * 10.0) / 10.0, 5.0, 30.0));
+        } else {
+            setAccumEconomy(0.0);
+        }
 
         // Update Scenario string
         if (m_demoScenario != scenario) {
             m_demoScenario = scenario;
             emit demoScenarioChanged();
+        }
+    }
+    else if (!m_isDemoDriving && m_speed > 0 && m_clusterState == StateNormalTrip) {
+        // Manual driving live speed telemetry calculation
+        double speedVal = static_cast<double>(m_speed);
+
+        // Instant economy based on speed (km/L)
+        double instantEco = 16.0;
+        if (speedVal <= 15.0) instantEco = 8.5 + speedVal * 0.3;
+        else if (speedVal <= 65.0) instantEco = 13.0 + (speedVal - 15.0) * 0.22;
+        else if (speedVal <= 90.0) instantEco = 24.0 - (speedVal - 65.0) * 0.15;
+        else instantEco = 20.2 - (speedVal - 90.0) * 0.12;
+        setInstantEconomy(std::clamp(instantEco, 0.0, 30.0));
+
+        // Simulation distance increment (Responsive ~12x time compression for simulator bench)
+        double distanceIncrement = (speedVal / 3600.0) * 0.033 * 12.0;
+
+        // Use RAW accumulators so rounding in the setter never eats sub-0.1 km progress
+        m_rawTripKm   += distanceIncrement;
+        m_rawRefuelKm += distanceIncrement;
+        m_rawAccumKm  += distanceIncrement;
+        setTripKm(std::round(m_rawTripKm * 10.0) / 10.0);
+        setRefuelKm(std::round(m_rawRefuelKm * 10.0) / 10.0);
+        setAccumKm(std::round(m_rawAccumKm * 10.0) / 10.0);
+
+        // Odometer: only tick whole km
+        m_rawOdoAcc += distanceIncrement;
+        if (m_rawOdoAcc >= 1.0) {
+            int kmToAdd = static_cast<int>(m_rawOdoAcc);
+            setOdoKm(m_odoKm + kmToAdd);
+            m_rawOdoAcc -= kmToAdd;
+        }
+
+        // DTE: only decrease whole km
+        m_rawDteAcc += distanceIncrement;
+        if (m_rawDteAcc >= 1.0) {
+            int kmToSub = static_cast<int>(m_rawDteAcc);
+            if (m_dteKm > kmToSub) {
+                setDteKm(m_dteKm - kmToSub);
+            }
+            m_rawDteAcc -= kmToSub;
+        }
+
+        // Fuel consumption calculation
+        double litresDelta = (instantEco > 1.0) ? (distanceIncrement / instantEco) : (distanceIncrement / 16.0);
+        m_tripLitres += litresDelta;
+        m_refuelLitres += litresDelta;
+        m_accumLitres += litresDelta;
+        m_fuelBarAccumulator += litresDelta;
+        if (m_fuelBarAccumulator >= 3.08 && m_fuelLevel > 0) {
+            m_fuelBarAccumulator -= 3.08;
+            setFuelLevel(m_fuelLevel - 1);
+        }
+
+        // Accurate average mileage calculations (km / L)
+        if (m_tripLitres > 0.002 && m_tripKm >= 0.05) {
+            double avgEcon = m_tripKm / m_tripLitres;
+            setTripEconomy(std::clamp(std::round(avgEcon * 10.0) / 10.0, 5.0, 30.0));
+        }
+
+        if (m_refuelLitres > 0.002 && m_refuelKm >= 0.05) {
+            double avgRefuel = m_refuelKm / m_refuelLitres;
+            setRefuelEconomy(std::clamp(std::round(avgRefuel * 10.0) / 10.0, 5.0, 30.0));
+        }
+
+        if (m_accumLitres > 0.002 && m_accumKm >= 0.05) {
+            double avgAccum = m_accumKm / m_accumLitres;
+            setAccumEconomy(std::clamp(std::round(avgAccum * 10.0) / 10.0, 5.0, 30.0));
+        }
+    }
+
+    // Engine running time clock (Updates only when vehicle is moving)
+    if (m_clusterState == StateNormalTrip && m_speed > 0) {
+        double timeRate = 0.20; // Accelerated (1s wall clock = 6s trip time) for responsive bench testing
+        m_engineSecAcc += timeRate;
+        if (m_engineSecAcc >= 1.0) {
+            int sec = static_cast<int>(m_engineSecAcc);
+            m_engineSecAcc -= sec;
+            m_tripSeconds    += sec;
+            m_refuelSeconds  += sec;
+            m_accumSeconds   += sec;
+
+            auto fmtTime = [](int s) -> QString {
+                int mins  = (s / 60) % 60;
+                int hours = s / 3600;
+                char buf[32];
+                std::snprintf(buf, sizeof(buf), "%d:%02d", hours, mins);
+                return QString::fromUtf8(buf);
+            };
+
+            setTripTime(fmtTime(m_tripSeconds));
+            setRefuelTime(fmtTime(m_refuelSeconds));
+            setAccumTime(fmtTime(m_accumSeconds));
         }
     }
 }
@@ -282,7 +454,15 @@ void ClusterController::setTempUnit(const QString& unit) { if (m_tempUnit != uni
 void ClusterController::setFuelUnit(const QString& unit) { if (m_fuelUnit != unit) { m_fuelUnit = unit; emit fuelUnitChanged(); } }
 void ClusterController::setTpmsUnit(const QString& unit) { if (m_tpmsUnit != unit) { m_tpmsUnit = unit; emit tpmsUnitChanged(); } }
 void ClusterController::setIllumination(int level) { if (m_illumination != level) { m_illumination = level; emit illuminationChanged(); } }
-void ClusterController::setClusterState(int state) { if (m_clusterState != state) { m_clusterState = state; emit clusterStateChanged(); } }
+void ClusterController::setClusterState(int state) {
+    if (m_clusterState != state) {
+        m_clusterState = state;
+        emit clusterStateChanged();
+        if (state == StateShutdown) {
+            emit signalGoodbyeChime();
+        }
+    }
+}
 void ClusterController::setCruiseEnabled(bool enabled) {
     if (m_cruiseEnabled != enabled) {
         m_cruiseEnabled = enabled;
@@ -412,19 +592,44 @@ void ClusterController::setSpeed(int s)
         m_speed = s;
         emit speedChanged();
 
-        // When in Drive or numbered gears, display direct gear 1-5 as speed increases
-        bool isDriveMode = (m_gear == "D" || m_gear == "1" || m_gear == "2" || m_gear == "3" || m_gear == "4" || m_gear == "5");
-        if (isDriveMode) {
-            QString targetGear = "D";
-            if (m_speed == 0) targetGear = "D";
-            else if (m_speed <= 15) targetGear = "1";
-            else if (m_speed <= 32) targetGear = "2";
-            else if (m_speed <= 55) targetGear = "3";
-            else if (m_speed <= 78) targetGear = "4";
-            else targetGear = "5";
+        // If speed increases while in startup/boot check, transition directly to normal trip mode
+        if (m_speed > 0 && m_clusterState != StateNormalTrip) {
+            m_sequenceTimer.stop();
+            setClusterState(StateNormalTrip);
+        }
 
-            if (m_gear != targetGear) {
-                setGear(targetGear);
+        // =============================================================
+        // HYUNDAI EXTER 1.2L KAPPA 5-SPEED SMART AUTO AMT COUPLING:
+        // Speed directly drives realistic AMT gear shifts and engine RPM
+        // =============================================================
+        int currentGearNum = 1;
+        if (m_speed <= 18) currentGearNum = 1;
+        else if (m_speed <= 36) currentGearNum = 2;
+        else if (m_speed <= 58) currentGearNum = 3;
+        else if (m_speed <= 82) currentGearNum = 4;
+        else currentGearNum = 5;
+
+        // Gear display (Auto D mode)
+        if (m_speed == 0) {
+            setGear("D");
+        } else {
+            setGear(QString("D%1").arg(currentGearNum));
+        }
+
+        // Realistic AMT RPM curve coupled to speed per gear
+        if (m_clusterState == StateNormalTrip) {
+            if (m_speed == 0) {
+                setRpm(0.8); // 800 RPM smooth idle in D
+            } else {
+                double gearMin = (currentGearNum == 1) ? 0.0 : (currentGearNum == 2 ? 18.0 : (currentGearNum == 3 ? 36.0 : (currentGearNum == 4 ? 58.0 : 82.0)));
+                double gearMax = (currentGearNum == 1) ? 24.0 : (currentGearNum == 2 ? 44.0 : (currentGearNum == 3 ? 68.0 : (currentGearNum == 4 ? 92.0 : 175.0)));
+                double frac = (m_speed - gearMin) / std::max(1.0, gearMax - gearMin);
+                frac = std::clamp(frac, 0.0, 1.0);
+
+                double baseR = (currentGearNum == 1) ? 0.9 : 1.4;
+                double topR = (currentGearNum == 5) ? 5.8 : 3.2;
+                double calcRpm = baseR + frac * (topR - baseR);
+                setRpm(std::round(calcRpm * 10.0) / 10.0);
             }
         }
 
@@ -436,6 +641,7 @@ void ClusterController::setSpeed(int s)
         if (m_speed >= 80 && prevSpeed < 80 && !m_speed80Triggered) {
             m_speed80Triggered = true;
             triggerReduceSpeedAlert();
+            emit signalSpeedAlertChime();
         } else if (m_speed < 76) {
             m_speed80Triggered = false; // Reset 80 km/h trigger with hysteresis
         }
@@ -444,6 +650,7 @@ void ClusterController::setSpeed(int s)
             if (prevSpeed < 120 && !m_speed120Triggered) {
                 m_speed120Triggered = true;
                 triggerReduceSpeedAlert();
+                emit signalSpeedAlertChime();
             }
 
             if (!m_overspeedBeepTimer) {
@@ -452,7 +659,7 @@ void ClusterController::setSpeed(int s)
             }
             if (!m_overspeedBeepTimer->isActive()) {
                 m_overspeedBeepTimer->start(1000); // 1-second continuous chime intervals
-                emit signalPlayChime();
+                emit signalSpeedAlertChime();
             }
         } else {
             m_speed120Triggered = false;
@@ -463,26 +670,47 @@ void ClusterController::setSpeed(int s)
     }
 }
 void ClusterController::setRpm(double r) { if (std::abs(m_rpm - r) > 0.01) { m_rpm = r; emit rpmChanged(); } }
-void ClusterController::setFuelLevel(int f) { if (m_fuelLevel != f) { m_fuelLevel = f; emit fuelLevelChanged(); } }
+void ClusterController::setFuelLevel(int f) {
+    if (m_fuelLevel != f) {
+        int oldLevel = m_fuelLevel;
+        m_fuelLevel = f;
+        emit fuelLevelChanged();
+
+        // Calculate DTE (Range) based on remaining fuel in 37L tank and economy
+        double remainingLitres = (f / 12.0) * 37.0;
+        double effectiveEcon = m_refuelEconomy > 5.0 ? m_refuelEconomy : (m_accumEconomy > 5.0 ? m_accumEconomy : 15.5);
+        int calculatedDte = static_cast<int>(std::round(remainingLitres * effectiveEcon));
+        setDteKm(calculatedDte);
+
+        // Auto-reset Since refuelling when fuel level increases (car refuelled)
+        if (f > oldLevel) {
+            resetSinceRefuel();
+        }
+
+        if (oldLevel > 2 && f <= 2 && m_clusterState == StateNormalTrip) {
+            emit signalWarningChime();
+        }
+    }
+}
 void ClusterController::setTempLevel(int t) { if (m_tempLevel != t) { m_tempLevel = t; emit tempLevelChanged(); } }
 void ClusterController::setGear(const QString& g) { if (m_gear != g) { m_gear = g; emit gearChanged(); } }
 void ClusterController::setOdoKm(int odo) { if (m_odoKm != odo) { m_odoKm = odo; emit odoKmChanged(); } }
 void ClusterController::setDteKm(int dte) { if (m_dteKm != dte) { m_dteKm = dte; emit dteKmChanged(); } }
 void ClusterController::setAmbientTemp(int temp) { if (m_ambientTemp != temp) { m_ambientTemp = temp; emit ambientTempChanged(); } }
-void ClusterController::setTripKm(double km) { if (std::abs(m_tripKm - km) > 0.01) { m_tripKm = km; emit tripKmChanged(); } }
+void ClusterController::setTripKm(double km) { m_tripKm = km; emit tripKmChanged(); }
 void ClusterController::setTripTime(const QString& time) { if (m_tripTime != time) { m_tripTime = time; emit tripTimeChanged(); } }
-void ClusterController::setTripEconomy(double econ) { if (std::abs(m_tripEconomy - econ) > 0.01) { m_tripEconomy = econ; emit tripEconomyChanged(); } }
+void ClusterController::setTripEconomy(double econ) { m_tripEconomy = econ; emit tripEconomyChanged(); }
 void ClusterController::setTripPage(int page) { int p = (page % 3 + 3) % 3; if (m_tripPage != p) { m_tripPage = p; emit tripPageChanged(); } }
 void ClusterController::nextTripPage() { setTripPage(m_tripPage + 1); }
 void ClusterController::prevTripPage() { setTripPage(m_tripPage - 1); }
 
-void ClusterController::setRefuelKm(double km) { if (std::abs(m_refuelKm - km) > 0.01) { m_refuelKm = km; emit refuelKmChanged(); } }
+void ClusterController::setRefuelKm(double km) { m_refuelKm = km; emit refuelKmChanged(); }
 void ClusterController::setRefuelTime(const QString& time) { if (m_refuelTime != time) { m_refuelTime = time; emit refuelTimeChanged(); } }
-void ClusterController::setRefuelEconomy(double econ) { if (std::abs(m_refuelEconomy - econ) > 0.01) { m_refuelEconomy = econ; emit refuelEconomyChanged(); } }
+void ClusterController::setRefuelEconomy(double econ) { m_refuelEconomy = econ; emit refuelEconomyChanged(); }
 
-void ClusterController::setAccumKm(double km) { if (std::abs(m_accumKm - km) > 0.01) { m_accumKm = km; emit accumKmChanged(); } }
+void ClusterController::setAccumKm(double km) { m_accumKm = km; emit accumKmChanged(); }
 void ClusterController::setAccumTime(const QString& time) { if (m_accumTime != time) { m_accumTime = time; emit accumTimeChanged(); } }
-void ClusterController::setAccumEconomy(double econ) { if (std::abs(m_accumEconomy - econ) > 0.01) { m_accumEconomy = econ; emit accumEconomyChanged(); } }
+void ClusterController::setAccumEconomy(double econ) { m_accumEconomy = econ; emit accumEconomyChanged(); }
 void ClusterController::setInstantEconomy(double econ) { if (std::abs(m_instantEconomy - econ) > 0.01) { m_instantEconomy = std::clamp(econ, 0.0, 30.0); emit instantEconomyChanged(); } }
 void ClusterController::setMenuTab(int tab) { int t = (tab % 3 + 3) % 3; if (m_menuTab != t) { m_menuTab = t; emit menuTabChanged(); } }
 void ClusterController::setShowMenuTabs(bool show) { if (m_showMenuTabs != show) { m_showMenuTabs = show; emit showMenuTabsChanged(); } }
@@ -828,6 +1056,9 @@ void ClusterController::triggerShutdown() {
     setRpm(0.0);
     setAllTelltales(false);
 
+    // Play authentic Hyundai Goodbye Chime
+    emit signalGoodbyeChime();
+
     if (m_sunroofOpen) {
         setSunroofAlertActive(true);
     }
@@ -870,7 +1101,7 @@ void ClusterController::onReduceSpeedDismissTimeout() {
 
 void ClusterController::onOverspeedBeepTick() {
     if (m_speed >= 120) {
-        emit signalPlayChime();
+        emit signalSpeedAlertChime();
     }
 }
 
@@ -885,7 +1116,7 @@ void ClusterController::setPressStartAgainAlert(bool active) {
     if (m_pressStartAgainAlert != active) {
         m_pressStartAgainAlert = active;
         emit pressStartAgainAlertChanged();
-        if (active) emit signalPlayChime();
+        if (active) emit signalKeyAlertChime();
     }
 }
 
@@ -893,7 +1124,7 @@ void ClusterController::setStartPedalPrompt(int prompt) {
     if (m_startPedalPrompt != prompt) {
         m_startPedalPrompt = prompt;
         emit startPedalPromptChanged();
-        if (prompt > 0) emit signalPlayChime();
+        if (prompt > 0) emit signalKeyAlertChime();
     }
 }
 
@@ -906,7 +1137,7 @@ void ClusterController::setDoorOpenAlert(bool open) {
             setDoorFrontRight(true); // Default driver door
         }
         emit doorOpenAlertChanged();
-        if (open) emit signalPlayChime();
+        if (open) emit signalWarningChime();
     }
 }
 

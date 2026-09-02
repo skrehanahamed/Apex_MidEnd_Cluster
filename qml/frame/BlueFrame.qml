@@ -36,6 +36,8 @@ Item {
     readonly property real rpmThreshold4: 5.0
     readonly property real rpmThreshold5: 6.5
 
+    readonly property bool isWelcome: controller && (controller.clusterState === 1)
+
     // ========================================================
     // 🎛️ PROGRESSIVE STEPPED OPACITY (Fades inward little by little)
     // ========================================================
@@ -113,7 +115,7 @@ Item {
                 fillMode: Image.PreserveAspectFit
                 smooth: true
                 mipmap: true
-                opacity: root.illumination * root.line2Alpha * (root.speedValue >= root.speedThreshold2 ? 1.0 : 0.0)
+                opacity: root.illumination * root.line2Alpha * (root.isWelcome || root.speedValue >= root.speedThreshold2 ? 1.0 : 0.0)
                 Behavior on opacity { NumberAnimation { duration: 250; easing.type: Easing.OutQuad } }
             }
 
@@ -130,7 +132,7 @@ Item {
                 fillMode: Image.PreserveAspectFit
                 smooth: true
                 mipmap: true
-                opacity: root.illumination * root.line3Alpha * (root.speedValue >= root.speedThreshold3 ? 1.0 : 0.0)
+                opacity: root.illumination * root.line3Alpha * (root.isWelcome || root.speedValue >= root.speedThreshold3 ? 1.0 : 0.0)
                 Behavior on opacity { NumberAnimation { duration: 250; easing.type: Easing.OutQuad } }
             }
 
@@ -147,7 +149,7 @@ Item {
                 fillMode: Image.PreserveAspectFit
                 smooth: true
                 mipmap: true
-                opacity: root.illumination * root.line4Alpha * (root.speedValue >= root.speedThreshold4 ? 1.0 : 0.0)
+                opacity: root.illumination * root.line4Alpha * (root.isWelcome || root.speedValue >= root.speedThreshold4 ? 1.0 : 0.0)
                 Behavior on opacity { NumberAnimation { duration: 250; easing.type: Easing.OutQuad } }
             }
 
@@ -164,7 +166,7 @@ Item {
                 fillMode: Image.PreserveAspectFit
                 smooth: true
                 mipmap: true
-                opacity: root.illumination * root.line5Alpha * (root.speedValue >= root.speedThreshold5 ? 1.0 : 0.0)
+                opacity: root.illumination * root.line5Alpha * (root.isWelcome || root.speedValue >= root.speedThreshold5 ? 1.0 : 0.0)
                 Behavior on opacity { NumberAnimation { duration: 250; easing.type: Easing.OutQuad } }
             }
         }
@@ -202,7 +204,7 @@ Item {
                 Behavior on opacity { NumberAnimation { duration: 250; easing.type: Easing.OutQuad } }
             }
 
-            // RPM Line 2 (85% opacity)
+            // RPM Line 2 (85% opacity - driven by speed)
             Image {
                 id: rpmLine2Img
                 anchors.centerIn: parent
@@ -215,11 +217,11 @@ Item {
                 fillMode: Image.PreserveAspectFit
                 smooth: true
                 mipmap: true
-                opacity: root.illumination * root.line2Alpha * ((root.rpmValue >= root.rpmThreshold2 || root.speedValue >= root.speedThreshold2) ? 1.0 : 0.0)
+                opacity: root.illumination * root.line2Alpha * (root.isWelcome || root.speedValue >= root.speedThreshold2 ? 1.0 : 0.0)
                 Behavior on opacity { NumberAnimation { duration: 250; easing.type: Easing.OutQuad } }
             }
 
-            // RPM Line 3 (70% opacity)
+            // RPM Line 3 (70% opacity - driven by speed)
             Image {
                 id: rpmLine3Img
                 anchors.centerIn: parent
@@ -232,11 +234,11 @@ Item {
                 fillMode: Image.PreserveAspectFit
                 smooth: true
                 mipmap: true
-                opacity: root.illumination * root.line3Alpha * ((root.rpmValue >= root.rpmThreshold3 || root.speedValue >= root.speedThreshold3) ? 1.0 : 0.0)
+                opacity: root.illumination * root.line3Alpha * (root.isWelcome || root.speedValue >= root.speedThreshold3 ? 1.0 : 0.0)
                 Behavior on opacity { NumberAnimation { duration: 250; easing.type: Easing.OutQuad } }
             }
 
-            // RPM Line 4 (55% opacity)
+            // RPM Line 4 (55% opacity - driven by speed)
             Image {
                 id: rpmLine4Img
                 anchors.centerIn: parent
@@ -249,11 +251,11 @@ Item {
                 fillMode: Image.PreserveAspectFit
                 smooth: true
                 mipmap: true
-                opacity: root.illumination * root.line4Alpha * ((root.rpmValue >= root.rpmThreshold4 || root.speedValue >= root.speedThreshold4) ? 1.0 : 0.0)
+                opacity: root.illumination * root.line4Alpha * (root.isWelcome || root.speedValue >= root.speedThreshold4 ? 1.0 : 0.0)
                 Behavior on opacity { NumberAnimation { duration: 250; easing.type: Easing.OutQuad } }
             }
 
-            // RPM Line 5 (Innermost - 40% opacity)
+            // RPM Line 5 (Innermost - 40% opacity - driven by speed)
             Image {
                 id: rpmLine5Img
                 anchors.centerIn: parent
@@ -266,7 +268,7 @@ Item {
                 fillMode: Image.PreserveAspectFit
                 smooth: true
                 mipmap: true
-                opacity: root.illumination * root.line5Alpha * ((root.rpmValue >= root.rpmThreshold5 || root.speedValue >= root.speedThreshold5) ? 1.0 : 0.0)
+                opacity: root.illumination * root.line5Alpha * (root.isWelcome || root.speedValue >= root.speedThreshold5 ? 1.0 : 0.0)
                 Behavior on opacity { NumberAnimation { duration: 250; easing.type: Easing.OutQuad } }
             }
         }

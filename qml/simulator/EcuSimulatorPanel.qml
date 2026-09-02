@@ -282,12 +282,11 @@ Item {
                             { name: "1: Startup", state: 1 },
                             { name: "2: Check", state: 2 },
                             { name: "3: Drive", state: 3 },
-                            { name: "4: Goodbye", state: 4 },
-                            { name: "5: IGN OFF", state: 5 }
+                            { name: "4: IGN OFF", state: 5 }
                         ]
 
                         Rectangle {
-                            width: (parent.width - 16) / 5
+                            width: (parent.width - 12) / 4
                             height: 28
                             radius: 5
                             color: (typeof controller !== "undefined" && controller && controller.clusterState === modelData.state) ? (modelData.state === 5 ? "#40FF1744" : "#4000C8FF") : "#142030"
@@ -306,7 +305,7 @@ Item {
                                 cursorShape: Qt.PointingHandCursor
                                 onClicked: {
                                     if (modelData.state === 5) {
-                                        if (typeof controller !== "undefined" && controller) controller.setIgnitionOffDirect();
+                                        if (typeof controller !== "undefined" && controller) controller.triggerShutdown();
                                     } else {
                                         ecuRoot.changeState(modelData.state);
                                     }
@@ -525,19 +524,46 @@ Item {
                         }
                     }
 
-                    // Button 5: [ OK / ENTER ]
+                    // Button 5: [ OK / ENTER / HOLD: RESET ]
                     Rectangle {
+                        id: okBtnRect
                         width: (parent.width - 12) / 3
                         height: 32
                         radius: 5
                         color: "#0A3858"
                         border.color: "#00E5FF"
                         border.width: 1.2
+                        clip: true
+
+                        // Progress fill during Hold
+                        Rectangle {
+                            id: okHoldProgress
+                            anchors.left: parent.left
+                            anchors.top: parent.top
+                            anchors.bottom: parent.bottom
+                            width: 0
+                            color: "#00E5FF"
+                            opacity: 0.45
+
+                            PropertyAnimation {
+                                id: holdAnim
+                                target: okHoldProgress
+                                property: "width"
+                                from: 0
+                                to: okBtnRect.width
+                                duration: 800
+                                onFinished: {
+                                    if (typeof controller !== "undefined" && controller) {
+                                        controller.resetActiveTripPage();
+                                    }
+                                }
+                            }
+                        }
 
                         Text {
                             anchors.centerIn: parent
-                            text: "OK [Enter]"
-                            font.pixelSize: 11
+                            text: "OK [Hold: Reset]"
+                            font.pixelSize: 10
                             font.bold: true
                             color: "#FFFFFF"
                         }
@@ -545,7 +571,20 @@ Item {
                         MouseArea {
                             anchors.fill: parent
                             cursorShape: Qt.PointingHandCursor
-                            onClicked: ecuRoot.btnOkPressed()
+                            onPressed: holdAnim.start()
+                            onReleased: {
+                                if (holdAnim.running) {
+                                    holdAnim.stop();
+                                    okHoldProgress.width = 0;
+                                    ecuRoot.btnOkPressed();
+                                } else {
+                                    okHoldProgress.width = 0;
+                                }
+                            }
+                            onCanceled: {
+                                holdAnim.stop();
+                                okHoldProgress.width = 0;
+                            }
                         }
                     }
                 }
@@ -556,7 +595,7 @@ Item {
                 // 1.5 TRIP COMPUTER PAGES (Drive info, Since refuel, Accum info)
                 // -----------------------------------------------------
                 Text {
-                    text: "TRIP COMPUTER PAGE (PRESS [↓] / [↑])"
+                    text: "TRIP COMPUTER PAGES (PRESS [↓] / [↑])"
                     font.pixelSize: 10
                     font.bold: true
                     font.letterSpacing: 0.8
@@ -569,9 +608,9 @@ Item {
 
                     Repeater {
                         model: [
-                            { name: "Current trip", page: 0 },
+                            { name: "Drive info", page: 0 },
                             { name: "Since refuel", page: 1 },
-                            { name: "Last reset", page: 2 }
+                            { name: "Accumulated info", page: 2 }
                         ]
 
                         Rectangle {
@@ -584,7 +623,7 @@ Item {
                             Text {
                                 anchors.centerIn: parent
                                 text: modelData.name
-                                font.pixelSize: 10
+                                font.pixelSize: 9
                                 font.bold: true
                                 color: "#FFFFFF"
                             }
@@ -593,6 +632,37 @@ Item {
                                 anchors.fill: parent
                                 cursorShape: Qt.PointingHandCursor
                                 onClicked: if (typeof controller !== "undefined" && controller) controller.setTripPage(modelData.page)
+                            }
+                        }
+                    }
+                }
+
+                // Dedicated One-Touch [ 🔄 HOLD OK : RESET ACTIVE TRIP ]
+                Rectangle {
+                    width: parent.width
+                    height: 26
+                    radius: 4
+                    color: (typeof controller !== "undefined" && controller && controller.tripPage === 0) ? "#101824" : "#2000E5FF"
+                    border.color: (typeof controller !== "undefined" && controller && controller.tripPage === 0) ? "#304050" : "#00E5FF"
+                    opacity: (typeof controller !== "undefined" && controller && controller.tripPage === 0) ? 0.45 : 1.0
+
+                    Text {
+                        anchors.centerIn: parent
+                        text: (typeof controller !== "undefined" && controller && controller.tripPage === 0) ?
+                              "🔒 Drive info does not reset on Hold OK" :
+                              ((typeof controller !== "undefined" && controller && controller.tripPage === 1) ?
+                               "🔄 RESET: Since refuelling (Hold OK)" : "🔄 RESET: Accumulated info (Hold OK)")
+                        font.pixelSize: 10
+                        font.bold: true
+                        color: (typeof controller !== "undefined" && controller && controller.tripPage === 0) ? "#80A0B0" : "#00E5FF"
+                    }
+
+                    MouseArea {
+                        anchors.fill: parent
+                        cursorShape: (typeof controller !== "undefined" && controller && controller.tripPage !== 0) ? Qt.PointingHandCursor : Qt.ArrowCursor
+                        onClicked: {
+                            if (typeof controller !== "undefined" && controller && controller.tripPage !== 0) {
+                                controller.resetActiveTripPage();
                             }
                         }
                     }
@@ -1200,16 +1270,7 @@ Item {
 
                 Row {
                     width: parent.width
-                    Text { text: "RPM: " + (typeof controller !== "undefined" && controller ? controller.rpm.toFixed(1) : "0.0") + " x1000"; font.pixelSize: 11; font.bold: true; color: "#00E5FF" }
-                }
-
-                Slider {
-                    width: parent.width
-                    from: 0.0
-                    to: 7.0
-                    stepSize: 0.1
-                    value: typeof controller !== "undefined" && controller ? controller.rpm : 0.0
-                    onMoved: ecuRoot.changeRpm(value)
+                    Text { text: "⚙️ AMT AUTOMATIC RPM: " + (typeof controller !== "undefined" && controller ? controller.rpm.toFixed(1) : "0.8") + " x1000 (" + (typeof controller !== "undefined" && controller ? controller.gear : "D") + ")"; font.pixelSize: 11; font.bold: true; color: "#00E5FF" }
                 }
 
                 Row {
@@ -1226,27 +1287,197 @@ Item {
                     onMoved: if (typeof controller !== "undefined" && controller) controller.setInstantEconomy(value)
                 }
 
-                // Demo Drive Auto Button
-                Rectangle {
+                Row {
                     width: parent.width
-                    height: 32
-                    radius: 6
-                    color: (typeof controller !== "undefined" && controller && controller.isDemoDriving) ? "#3000E676" : "#2000E5FF"
-                    border.color: (typeof controller !== "undefined" && controller && controller.isDemoDriving) ? "#00E676" : "#00E5FF"
-                    border.width: 1.2
+                    Text { text: "⛽ FUEL LEVEL: " + (typeof controller !== "undefined" && controller ? controller.fuelLevel : 9) + " / 12 bars (Range: " + (typeof controller !== "undefined" && controller ? controller.dteKm : 420) + " km)"; font.pixelSize: 11; font.bold: true; color: (typeof controller !== "undefined" && controller && controller.fuelLevel <= 2) ? "#FF9F1C" : "#00E5FF" }
+                }
 
-                    Text {
-                        anchors.centerIn: parent
-                        text: (typeof controller !== "undefined" && controller && controller.isDemoDriving) ? "⏹ STOP DEMO DRIVE [A]" : "▶ START DEMO DRIVE [A]"
-                        font.pixelSize: 11
-                        font.bold: true
-                        color: "#FFFFFF"
+                Slider {
+                    width: parent.width
+                    from: 0
+                    to: 12
+                    stepSize: 1
+                    value: typeof controller !== "undefined" && controller ? controller.fuelLevel : 9
+                    onMoved: if (typeof controller !== "undefined" && controller) controller.setFuelLevel(Math.round(value))
+                }
+
+                Row {
+                    width: parent.width
+                    Text { text: "🛣️ RANGE (DTE): " + (typeof controller !== "undefined" && controller ? controller.dteKm : 420) + " km"; font.pixelSize: 11; font.bold: true; color: "#00E5FF" }
+                }
+
+                Slider {
+                    width: parent.width
+                    from: 0
+                    to: 750
+                    stepSize: 10
+                    value: typeof controller !== "undefined" && controller ? controller.dteKm : 420
+                    onMoved: if (typeof controller !== "undefined" && controller) controller.setDteKm(Math.round(value))
+                }
+
+                Row {
+                    width: parent.width
+                    Text { text: "🌡️ COOLANT TEMP: " + (typeof controller !== "undefined" && controller ? controller.tempLevel : 6) + " / 12 bars (" + Math.round(((typeof controller !== "undefined" && controller ? controller.tempLevel : 6)/12.0)*100) + "%)"; font.pixelSize: 11; font.bold: true; color: (typeof controller !== "undefined" && controller && controller.tempLevel >= 11) ? "#FF5252" : "#00E5FF" }
+                }
+
+                Slider {
+                    width: parent.width
+                    from: 0
+                    to: 12
+                    stepSize: 1
+                    value: typeof controller !== "undefined" && controller ? controller.tempLevel : 6
+                    onMoved: if (typeof controller !== "undefined" && controller) controller.setTempLevel(Math.round(value))
+                }
+
+                // ─────────────────────────────────────────────────
+                // AUTO SIMULATION — Premium Control Card
+                // ─────────────────────────────────────────────────
+                Rectangle {
+                    id: demoCard
+                    width: parent.width
+                    height: demoActive ? 86 : 44
+                    radius: 8
+                    clip: true
+                    property bool demoActive: typeof controller !== "undefined" && controller && controller.isDemoDriving
+
+                    // Animated height
+                    Behavior on height { NumberAnimation { duration: 220; easing.type: Easing.OutCubic } }
+
+                    // Background gradient
+                    gradient: Gradient {
+                        GradientStop { position: 0.0; color: demoCard.demoActive ? "#2800E676" : "#201a2a40" }
+                        GradientStop { position: 1.0; color: demoCard.demoActive ? "#1200b050" : "#10101828" }
+                    }
+                    border.color: demoCard.demoActive ? "#50E676" : "#3000E5FF"
+                    border.width: demoCard.demoActive ? 1.5 : 1.0
+
+                    // Animated border glow when active
+                    SequentialAnimation on border.color {
+                        running: demoCard.demoActive
+                        loops: Animation.Infinite
+                        ColorAnimation { to: "#00E676"; duration: 800 }
+                        ColorAnimation { to: "#50E676"; duration: 800 }
                     }
 
-                    MouseArea {
-                        anchors.fill: parent
-                        cursorShape: Qt.PointingHandCursor
-                        onClicked: ecuRoot.toggleDemo()
+                    // ── Top row: pulsing LED + label + STOP/START button
+                    Item {
+                        id: topRow
+                        width: parent.width
+                        height: 44
+                        anchors.top: parent.top
+
+                        // Pulsing status LED
+                        Rectangle {
+                            id: statusLed
+                            anchors.left: parent.left
+                            anchors.leftMargin: 10
+                            anchors.verticalCenter: parent.verticalCenter
+                            width: 8; height: 8; radius: 4
+                            color: demoCard.demoActive ? "#00E676" : "#445060"
+
+                            SequentialAnimation on opacity {
+                                running: demoCard.demoActive
+                                loops: Animation.Infinite
+                                NumberAnimation { to: 0.2; duration: 600 }
+                                NumberAnimation { to: 1.0; duration: 600 }
+                            }
+                        }
+
+                        // Label
+                        Text {
+                            anchors.left: statusLed.right
+                            anchors.leftMargin: 7
+                            anchors.verticalCenter: parent.verticalCenter
+                            text: demoCard.demoActive ? "AUTO SIMULATION RUNNING" : "AUTO SIMULATION"
+                            font.pixelSize: 11
+                            font.bold: true
+                            font.letterSpacing: 0.5
+                            color: demoCard.demoActive ? "#00E676" : "#80A0C0"
+                        }
+
+                        // START / STOP button (right side)
+                        Rectangle {
+                            anchors.right: parent.right
+                            anchors.rightMargin: 8
+                            anchors.verticalCenter: parent.verticalCenter
+                            width: 64; height: 26; radius: 5
+                            color: demoCard.demoActive ? "#40FF3B3B" : "#3000E5FF"
+                            border.color: demoCard.demoActive ? "#FF5252" : "#00E5FF"
+                            border.width: 1
+
+                            Text {
+                                anchors.centerIn: parent
+                                text: demoCard.demoActive ? "⏹ STOP" : "▶ START"
+                                font.pixelSize: 10
+                                font.bold: true
+                                color: demoCard.demoActive ? "#FF5252" : "#00E5FF"
+                            }
+
+                            MouseArea {
+                                anchors.fill: parent
+                                cursorShape: Qt.PointingHandCursor
+                                onClicked: ecuRoot.toggleDemo()
+                            }
+                        }
+                    }
+
+                    // ── Expanded info when running
+                    Column {
+                        visible: demoCard.demoActive
+                        opacity: demoCard.demoActive ? 1.0 : 0.0
+                        Behavior on opacity { NumberAnimation { duration: 180 } }
+                        anchors.left: parent.left
+                        anchors.right: parent.right
+                        anchors.leftMargin: 10
+                        anchors.rightMargin: 10
+                        anchors.top: topRow.bottom
+                        spacing: 4
+
+                        // Scenario name
+                        Text {
+                            width: parent.width
+                            text: (typeof controller !== "undefined" && controller && controller.demoScenario) ? controller.demoScenario : "—"
+                            font.pixelSize: 10
+                            color: "#C0E8FF"
+                            elide: Text.ElideRight
+                        }
+
+                        // Phase progress bar (60-second loop)
+                        Item {
+                            width: parent.width
+                            height: 10
+
+                            Rectangle {
+                                anchors.fill: parent
+                                radius: 3
+                                color: "#18303C"
+                            }
+
+                            Rectangle {
+                                id: progressFill
+                                anchors.left: parent.left
+                                anchors.top: parent.top
+                                anchors.bottom: parent.bottom
+                                radius: 3
+
+                                // Drive phase colour coding
+                                property real phase: typeof controller !== "undefined" && controller ? (controller.speed <= 5 ? 0 : controller.speed <= 60 ? 1 : 2) : 0
+                                color: phase === 0 ? "#FF8A00" : phase === 1 ? "#00B0FF" : "#00E676"
+                                Behavior on color { ColorAnimation { duration: 400 } }
+
+                                // Width driven by speed (0–120 km/h maps to 0–100%)
+                                width: parent.width * Math.min(1.0, (typeof controller !== "undefined" && controller ? controller.speed : 0) / 120.0)
+                                Behavior on width { NumberAnimation { duration: 300; easing.type: Easing.OutQuad } }
+                            }
+
+                            Text {
+                                anchors.centerIn: parent
+                                text: (typeof controller !== "undefined" && controller ? controller.speed : 0) + " km/h"
+                                font.pixelSize: 8
+                                font.bold: true
+                                color: "#FFFFFF"
+                            }
+                        }
                     }
                 }
 

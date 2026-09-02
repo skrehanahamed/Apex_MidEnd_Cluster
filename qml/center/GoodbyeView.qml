@@ -15,6 +15,15 @@ Item {
     implicitWidth: 198
     implicitHeight: 366
 
+        FontLoader { id: hyundaiRegular; source: "qrc:/qt/qml/HyundaiExterCluster/resources/fonts/HyundaiSansHead-Regular.ttf" }
+    FontLoader { id: hyundaiMedium; source: "qrc:/qt/qml/HyundaiExterCluster/resources/fonts/HyundaiSansHead-Medium.ttf" }
+    FontLoader { id: hyundaiBold; source: "qrc:/qt/qml/HyundaiExterCluster/resources/fonts/HyundaiSansHead-Bold.ttf" }
+    FontLoader { id: notoDevanagari; source: "qrc:/qt/qml/HyundaiExterCluster/resources/fonts/NotoSansDevanagari-Regular.ttf" }
+
+    readonly property string fontHeadRegular: isHindi ? (notoDevanagari.status === FontLoader.Ready ? notoDevanagari.name : "Noto Sans Devanagari") : (hyundaiRegular.status === FontLoader.Ready ? hyundaiRegular.name : "Hyundai Sans Head Regular")
+    readonly property string fontHeadMedium: isHindi ? (notoDevanagari.status === FontLoader.Ready ? notoDevanagari.name : "Noto Sans Devanagari") : (hyundaiMedium.status === FontLoader.Ready ? hyundaiMedium.name : "Hyundai Sans Head Medium")
+    readonly property string fontHeadBold: isHindi ? (notoDevanagari.status === FontLoader.Ready ? notoDevanagari.name : "Noto Sans Devanagari") : (hyundaiBold.status === FontLoader.Ready ? hyundaiBold.name : "Hyundai Sans Head Bold")
+
     property bool isHindi: controller && (controller.language === "हिन्दी" || controller.language === "Hindi")
     property string themeColor: controller ? controller.themeColor : "blue"
 
@@ -30,7 +39,56 @@ Item {
     }
 
     // =================================================================
-    // 1. TOP SECTION: UPPER ACCENT LINE (Nothing above it)
+    // 0. UPPER HEADER SECTION: FUEL ICON & DTE RANGE
+    // =================================================================
+    Item {
+        id: topHeaderSection
+        anchors.top: parent.top
+        anchors.topMargin: 8
+        anchors.left: parent.left
+        anchors.leftMargin: 18
+        anchors.right: parent.right
+        anchors.rightMargin: 18
+        height: 32
+
+        // Fuel Pump Icon & Range (DTE)
+        Row {
+            anchors.right: parent.right
+            anchors.verticalCenter: parent.verticalCenter
+            spacing: 6
+
+            Image {
+                width: 28
+                height: 28
+                anchors.verticalCenter: parent.verticalCenter
+                source: "qrc:/qt/qml/HyundaiExterCluster/resources/icons/fuel_pump.png"
+                fillMode: Image.PreserveAspectFit
+                smooth: true
+                mipmap: true
+            }
+
+            Text {
+                anchors.verticalCenter: parent.verticalCenter
+                text: (controller && (controller.fuelLevel === 0 || controller.dteKm <= 0)) ? "---" : (controller ? controller.dteKm : 52)
+                font.pixelSize: 22
+                font.family: goodbyeRoot.fontHeadMedium
+                font.weight: Font.DemiBold
+                color: "#FFFFFF"
+            }
+
+            Text {
+                anchors.verticalCenter: parent.verticalCenter
+                anchors.verticalCenterOffset: 2
+                text: "km"
+                font.pixelSize: 14
+                font.family: goodbyeRoot.fontHeadRegular
+                color: "#FFFFFF"
+            }
+        }
+    }
+
+    // =================================================================
+    // 1. TOP SECTION: UPPER ACCENT LINE
     // =================================================================
     Item {
         id: topSection
@@ -94,7 +152,7 @@ Item {
                 anchors.horizontalCenter: parent.horizontalCenter
                 text: goodbyeRoot.isHindi ? "ड्राइव जानकारी" : "Drive info"
                 font.pixelSize: 19
-                font.family: "Hyundai Sans Head Medium"
+                font.family: goodbyeRoot.fontHeadMedium
                 font.weight: Font.DemiBold
                 color: "#FFFFFF"
             }
@@ -108,13 +166,13 @@ Item {
                 // Row 1: Distance (🚗 15.4 km)
                 Item {
                     width: parent.width
-                    height: 32
+                    height: 34
 
                     Image {
                         anchors.left: parent.left
                         anchors.verticalCenter: parent.verticalCenter
-                        width: 34
-                        height: 30
+                        width: 40
+                        height: 34
                         source: "qrc:/qt/qml/HyundaiExterCluster/resources/icons/trip_car.png"
                         fillMode: Image.PreserveAspectFit
                         smooth: true
@@ -128,7 +186,7 @@ Item {
                         anchors.verticalCenter: parent.verticalCenter
                         text: (controller ? controller.tripKm.toFixed(1) : "15.4")
                         font.pixelSize: 24
-                        font.family: "Hyundai Sans Head Medium"
+                        font.family: goodbyeRoot.fontHeadMedium
                         font.weight: Font.DemiBold
                         color: "#FFFFFF"
                     }
@@ -140,7 +198,7 @@ Item {
                         anchors.bottomMargin: 2
                         text: "km"
                         font.pixelSize: 14
-                        font.family: "Hyundai Sans Head Regular"
+                        font.family: goodbyeRoot.fontHeadRegular
                         color: "#FFFFFF"
                     }
                 }
@@ -148,14 +206,14 @@ Item {
                 // Row 2: Elapsed Time (🕒 0:42 h:m)
                 Item {
                     width: parent.width
-                    height: 32
+                    height: 34
 
                     Image {
                         anchors.left: parent.left
                         anchors.leftMargin: 2
                         anchors.verticalCenter: parent.verticalCenter
-                        width: 30
-                        height: 30
+                        width: 36
+                        height: 34
                         source: "qrc:/qt/qml/HyundaiExterCluster/resources/icons/trip_clock.png"
                         fillMode: Image.PreserveAspectFit
                         smooth: true
@@ -169,7 +227,7 @@ Item {
                         anchors.verticalCenter: parent.verticalCenter
                         text: (controller ? controller.tripTime : "0:42")
                         font.pixelSize: 24
-                        font.family: "Hyundai Sans Head Medium"
+                        font.family: goodbyeRoot.fontHeadMedium
                         font.weight: Font.DemiBold
                         color: "#FFFFFF"
                     }
@@ -181,22 +239,22 @@ Item {
                         anchors.bottomMargin: 2
                         text: "h:m"
                         font.pixelSize: 14
-                        font.family: "Hyundai Sans Head Regular"
+                        font.family: goodbyeRoot.fontHeadRegular
                         color: "#FFFFFF"
                     }
                 }
 
-                // Row 3: Fuel Economy (⛽ 14.2 km/L)
+                // Row 3: Fuel Economy (⛽ 18.2 km/L)
                 Item {
                     width: parent.width
-                    height: 32
+                    height: 34
 
                     Image {
                         anchors.left: parent.left
                         anchors.leftMargin: 2
                         anchors.verticalCenter: parent.verticalCenter
-                        width: 30
-                        height: 30
+                        width: 36
+                        height: 34
                         source: "qrc:/qt/qml/HyundaiExterCluster/resources/icons/trip_fuel.png"
                         fillMode: Image.PreserveAspectFit
                         smooth: true
@@ -212,7 +270,7 @@ Item {
                               (controller.tripEconomy > 0.1 ? (100.0 / controller.tripEconomy).toFixed(1) : "0.0") :
                               (controller ? controller.tripEconomy.toFixed(1) : "14.2")
                         font.pixelSize: 24
-                        font.family: "Hyundai Sans Head Medium"
+                        font.family: goodbyeRoot.fontHeadMedium
                         font.weight: Font.DemiBold
                         color: "#FFFFFF"
                     }
@@ -224,7 +282,7 @@ Item {
                         anchors.bottomMargin: 2
                         text: (controller && controller.fuelUnit === "L/100km") ? "L/100km" : "km/L"
                         font.pixelSize: (controller && controller.fuelUnit === "L/100km") ? 11 : 14
-                        font.family: "Hyundai Sans Head Regular"
+                        font.family: goodbyeRoot.fontHeadRegular
                         color: "#FFFFFF"
                     }
                 }
@@ -298,7 +356,7 @@ Item {
                 Text {
                     text: (controller ? controller.ambientTemp : 29)
                     font.pixelSize: 14
-                    font.family: "Hyundai Sans Head Medium"
+                    font.family: goodbyeRoot.fontHeadMedium
                     font.weight: Font.DemiBold
                     color: "#FFFFFF"
                 }
@@ -306,7 +364,7 @@ Item {
                 Text {
                     text: (controller ? controller.tempUnit : "°C")
                     font.pixelSize: 11
-                    font.family: "Hyundai Sans Head Regular"
+                    font.family: goodbyeRoot.fontHeadRegular
                     color: "#FFFFFF"
                     anchors.bottom: parent.bottom
                     anchors.bottomMargin: 1
@@ -322,7 +380,7 @@ Item {
                     id: odoValText
                     text: (controller ? controller.odoKm : 10230)
                     font.pixelSize: 15
-                    font.family: "Hyundai Sans Head Medium"
+                    font.family: goodbyeRoot.fontHeadMedium
                     font.weight: Font.DemiBold
                     color: "#FFFFFF"
                 }
@@ -330,7 +388,7 @@ Item {
                 Text {
                     text: "km"
                     font.pixelSize: 11
-                    font.family: "Hyundai Sans Head Regular"
+                    font.family: goodbyeRoot.fontHeadRegular
                     color: "#FFFFFF"
                     anchors.bottom: odoValText.bottom
                     anchors.bottomMargin: 1

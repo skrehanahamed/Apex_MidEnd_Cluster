@@ -24,7 +24,7 @@ Item {
 
     Timer {
         id: turnBlinkTimer
-        interval: 375
+        interval: 350
         repeat: true
         running: (typeof controller !== "undefined" && controller && (controller.leftIndicator || controller.rightIndicator))
         onRunningChanged: {
@@ -58,8 +58,44 @@ Item {
     }
 
     SoundEffect {
-        id: hyundaiChime
-        source: "qrc:/qt/qml/HyundaiExterCluster/resources/audio/hyundai_chime.wav"
+        id: startupAnimationTone
+        source: "qrc:/qt/qml/HyundaiExterCluster/resources/audio/startup_animation_tone.wav"
+        volume: 0.95
+    }
+
+    SoundEffect {
+        id: welcomeChime
+        source: "qrc:/qt/qml/HyundaiExterCluster/resources/audio/welcome_chime.wav"
+        volume: 0.9
+    }
+
+    SoundEffect {
+        id: goodbyeChime
+        source: "qrc:/qt/qml/HyundaiExterCluster/resources/audio/goodbye_chime.wav"
+        volume: 0.9
+    }
+
+    SoundEffect {
+        id: warningChime
+        source: "qrc:/qt/qml/HyundaiExterCluster/resources/audio/warning_chime.wav"
+        volume: 0.85
+    }
+
+    SoundEffect {
+        id: seatbeltChime
+        source: "qrc:/qt/qml/HyundaiExterCluster/resources/audio/seatbelt_chime.wav"
+        volume: 0.8
+    }
+
+    SoundEffect {
+        id: keyAlertChime
+        source: "qrc:/qt/qml/HyundaiExterCluster/resources/audio/key_alert_chime.wav"
+        volume: 0.85
+    }
+
+    SoundEffect {
+        id: speedAlertChime
+        source: "qrc:/qt/qml/HyundaiExterCluster/resources/audio/speed_alert_chime.wav"
         volume: 0.85
     }
 
@@ -68,14 +104,19 @@ Item {
         interval: 1200
         repeat: true
         running: controller && controller.rearAlarmActive
-        onTriggered: hyundaiChime.play()
+        onTriggered: seatbeltChime.play()
     }
 
     Connections {
         target: controller
-        function onSignalPlayChime() {
-            hyundaiChime.play();
-        }
+        function onSignalStartupAnimationTone() { startupAnimationTone.play(); }
+        function onSignalWelcomeChime() { welcomeChime.play(); }
+        function onSignalGoodbyeChime() { goodbyeChime.play(); }
+        function onSignalWarningChime() { warningChime.play(); }
+        function onSignalSeatbeltChime() { seatbeltChime.play(); }
+        function onSignalKeyAlertChime() { keyAlertChime.play(); }
+        function onSignalSpeedAlertChime() { speedAlertChime.play(); }
+        function onSignalPlayChime() { warningChime.play(); }
     }
 
     // --- Dynamic Startup Full Gauge Sweep (State 2: System Check) ---
@@ -349,6 +390,19 @@ Item {
                 opacity: (controller && controller.lightWarning) ? 1.0 : 0.0
                 Behavior on opacity { NumberAnimation { duration: 200 } }
             }
+
+            // --- Digital Fuel Level Gauge (F -> E) ---
+            FuelGauge {
+                id: fuelGauge
+                anchors.left: parent.left
+                anchors.leftMargin: 140
+                anchors.bottom: parent.bottom
+                anchors.bottomMargin: 14
+                scale: 0.48
+                transformOrigin: Item.BottomLeft
+                isBootCheck: clusterUnit.stateMode === 2
+                level: clusterUnit.stateMode === 2 ? 1.0 : (controller ? (controller.fuelLevel / 12.0) : 0.75)
+            }
         }
 
         // --- RIGHT NACELLE: Tachometer & Telltale Bank ---
@@ -547,6 +601,18 @@ Item {
                         }
                     }
                 }
+            }
+
+            // --- Digital Coolant Temperature Gauge (C -> H) ---
+            TempGauge {
+                id: tempGauge
+                anchors.right: parent.right
+                anchors.rightMargin: 100
+                anchors.bottom: parent.bottom
+                anchors.bottomMargin: 14
+                scale: 0.48
+                transformOrigin: Item.BottomRight
+                level: clusterUnit.stateMode === 2 ? 1.0 : (controller ? (controller.tempLevel / 12.0) : 0.5)
             }
         }
 

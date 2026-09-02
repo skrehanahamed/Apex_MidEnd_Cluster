@@ -28,3 +28,6 @@ Makefile
 *.user.*
 .gemini/
 .agents/
+
+# Raw downloaded audio (not project assets)
+resources/audio/zedge_startup_tone.mp3

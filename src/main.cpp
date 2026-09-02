@@ -26,12 +26,14 @@ int main(int argc, char *argv[])
     int f1 = QFontDatabase::addApplicationFont(":/qt/qml/HyundaiExterCluster/resources/fonts/HyundaiSansHead-Regular.ttf");
     int f2 = QFontDatabase::addApplicationFont(":/qt/qml/HyundaiExterCluster/resources/fonts/HyundaiSansHead-Medium.ttf");
     int f3 = QFontDatabase::addApplicationFont(":/qt/qml/HyundaiExterCluster/resources/fonts/HyundaiSansHead-Bold.ttf");
+    int f4 = QFontDatabase::addApplicationFont(":/qt/qml/HyundaiExterCluster/resources/fonts/NotoSansDevanagari-Regular.ttf");
     QFontDatabase::addApplicationFont(":/qt/qml/HyundaiExterCluster/resources/fonts/Rajdhani-Bold.ttf");
     QFontDatabase::addApplicationFont(":/qt/qml/HyundaiExterCluster/resources/fonts/Orbitron-Bold.ttf");
 
     qDebug() << "Loaded Hyundai Sans Head Regular:" << QFontDatabase::applicationFontFamilies(f1);
     qDebug() << "Loaded Hyundai Sans Head Medium:" << QFontDatabase::applicationFontFamilies(f2);
     qDebug() << "Loaded Hyundai Sans Head Bold:" << QFontDatabase::applicationFontFamilies(f3);
+    qDebug() << "Loaded Noto Sans Devanagari:" << QFontDatabase::applicationFontFamilies(f4);
 
     QQmlApplicationEngine engine;
     ClusterController controller;
