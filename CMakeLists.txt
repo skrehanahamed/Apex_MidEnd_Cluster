@@ -20,7 +20,9 @@ find_package(Qt6 6.5 REQUIRED COMPONENTS Quick QuickControls2 Gui Qml Svg Multim
 
 qt_standard_project_setup()
 qt_policy(SET QTP0001 NEW)
-qt_policy(SET QTP0004 NEW)
+if(Qt6_VERSION VERSION_GREATER_EQUAL "6.7.0")
+    qt_policy(SET QTP0004 NEW)
+endif()
 
 qt_add_executable(HyundaiExterClusterApp
     src/main.cpp
