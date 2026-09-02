@@ -121,28 +121,6 @@ Item {
             }
         }
 
-        // 3.2 Photorealistic Specular Edge Highlight (Roofline/Windshield)
-        Rectangle {
-            id: carSilhouetteGlow
-            anchors.fill: parent
-            color: "transparent"
-            border.color: "#8000E5FF"
-            border.width: 1
-            radius: 4
-            z: 8
-            opacity: {
-                if (vehicleRoot.checkProgress < 0.10) {
-                    return vehicleRoot.checkProgress / 0.10;
-                } else if (vehicleRoot.checkProgress < 0.45) {
-                    return 0.50;
-                } else if (vehicleRoot.checkProgress < 0.80) {
-                    return Math.max(0.0, 0.50 * (1.0 - (vehicleRoot.checkProgress - 0.45) / 0.35));
-                }
-                return 0.0;
-            }
-            visible: opacity > 0.001
-        }
-
         // 3.3 Continuous Metallic Specular Light Sweep
         Item {
             id: sweepLightSource
