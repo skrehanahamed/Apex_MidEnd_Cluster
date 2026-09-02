@@ -205,19 +205,6 @@ ApplicationWindow {
         }
     }
 
-    Timer {
-        id: screenCaptureTimer
-        interval: 4600
-        running: true
-        repeat: false
-        onTriggered: {
-            liveCluster.grabToImage(function(result) {
-                result.saveToFile("/Users/reno/Projects/hyundai exter cluster /assets/cluster_preview.png");
-                result.saveToFile("/Users/reno/.gemini/antigravity-ide/brain/59bb3fd8-0ff6-4c2e-abf2-dc3d5294f33f/cluster_preview.png");
-                console.log("Captured pixel-perfect cluster screenshot to assets/cluster_preview.png");
-            });
-        }
-    }
 
     Component.onCompleted: {
         clusterContainer.forceActiveFocus();
