@@ -1,6 +1,7 @@
 # Next-Gen Automotive Digital Instrument Cluster & Cockpit HMI
 
-<img width="2286" height="816" alt="image" src="https://github.com/user-attachments/assets/c62203a5-bfb2-44a0-aba9-de9c7c5c85c7" />
+<img width="2636" height="1044" alt="image" src="https://github.com/user-attachments/assets/d50b3afd-ec90-4132-927f-19a5e6692699" />
+
 
 <p align="center">
   <img src="https://img.shields.io/badge/Version-2.1.0-blue.svg?style=for-the-badge" />
