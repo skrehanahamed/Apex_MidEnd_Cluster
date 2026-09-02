@@ -1,0 +1,48 @@
+name: Windows Build
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-windows:
+    name: Build (Windows 2022 / Qt 6.5.2 MSVC)
+    runs-on: windows-2022
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Qt 6
+        uses: jurplel/install-qt-action@v3
+        with:
+          version: '6.5.2'
+          arch: win64_msvc2019_64
+          modules: 'qtmultimedia'
+          mirror: 'https://download.qt.io'
+          cache: true
+          cache-key-prefix: 'install-qt-action-6.5.2-win-msvc2019'
+
+      - name: Setup MSVC Developer Environment
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: x64
+
+      - name: Install Ninja
+        run: choco install ninja -y
+
+      - name: Configure CMake
+        shell: cmd
+        run: |
+          cmake -B build -G Ninja ^
+            -DCMAKE_BUILD_TYPE=Release ^
+            -DCMAKE_C_COMPILER=cl ^
+            -DCMAKE_CXX_COMPILER=cl ^
+            -DQT_QML_NO_CACHEGEN=ON
+
+      - name: Build Application
+        shell: cmd
+        run: |
+          cmake --build build --config Release --parallel
