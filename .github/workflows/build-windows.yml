@@ -8,7 +8,7 @@ on:
 
 jobs:
   build-windows:
-    name: Build (Windows 2022 / Qt 6.5.3 MSVC)
+    name: Build (Windows 2022 / Qt 6.5.2 MSVC)
     runs-on: windows-2022
 
     steps:
@@ -18,11 +18,11 @@ jobs:
       - name: Setup Qt 6
         uses: jurplel/install-qt-action@v3
         with:
-          version: '6.5.3'
-          arch: win64_msvc2022_64
+          version: '6.5.2'
+          arch: win64_msvc2019_64
           modules: 'qtmultimedia'
           cache: true
-          cache-key-prefix: 'install-qt-action-6.5.3-win'
+          cache-key-prefix: 'install-qt-action-6.5.2-win-msvc2019'
 
       - name: Configure CMake (MSVC)
         shell: cmd
