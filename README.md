@@ -4,6 +4,9 @@
 
 
 <p align="center">
+  <a href="https://github.com/skrehanahamed/hyundai-exter-cluster/actions/workflows/build.yml">
+    <img src="https://github.com/skrehanahamed/hyundai-exter-cluster/actions/workflows/build.yml/badge.svg" />
+  </a>
   <img src="https://img.shields.io/badge/Version-2.1.0-blue.svg?style=for-the-badge" />
   <img src="https://img.shields.io/badge/Release_Date-September_3,_2026-orange.svg?style=for-the-badge" />
   <img src="https://img.shields.io/badge/Qt-6.6+-41CD52.svg?style=for-the-badge&logo=Qt&logoColor=white" />
