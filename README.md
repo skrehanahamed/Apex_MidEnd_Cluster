@@ -29,7 +29,8 @@ A production-grade, photorealistic Automotive Digital Instrument Cluster HMI for
 
 ### 2. Accurate Live Trip Telemetry (Distance, Time, and Fuel Economy per Page)
 
-<img width="195" height="371" alt="Screenshot 2026-09-03 at 2 16 28 AM" src="https://github.com/user-attachments/assets/08357cb1-e817-4a06-aef1-89f27c7204db" />
+<img width="195" height="371" alt="Screenshot 2026-09-03 at 2 16 28 AM" src="https://github.com/user-attachments/assets/08357cb1-e817-4a06-aef1-89f27c7204db" /><img width="195" height="371" alt="Screenshot 2026-09-03 at 2 16 28 AM" src="https://github.com/user-attachments/assets/290ee345-556c-43a4-bbca-b6027ede8993" />
+
 
 
 - All three trip pages - Drive Info, Since Refuelling, and Accumulated Info - now accumulate distance (km), elapsed driving time (h:m), and average fuel economy (km/L) independently and update in real time as the speed slider changes.
