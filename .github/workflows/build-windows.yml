@@ -8,7 +8,7 @@ on:
 
 jobs:
   build-windows:
-    name: Build (Windows 2022 / Qt 6.5.2 MSVC)
+    name: Build (Windows 2022 / Qt 6.5.2 MSVC + Ninja)
     runs-on: windows-2022
 
     steps:
@@ -24,10 +24,21 @@ jobs:
           cache: true
           cache-key-prefix: 'install-qt-action-6.5.2-win-msvc2019'
 
-      - name: Configure CMake (MSVC)
+      - name: Setup MSVC Developer Environment
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: x64
+
+      - name: Install Ninja
+        run: choco install ninja -y
+
+      - name: Configure CMake with Ninja + MSVC
         shell: cmd
         run: |
-          cmake -B build -G "Visual Studio 17 2022" -A x64 -DCMAKE_BUILD_TYPE=Release
+          cmake -B build -G Ninja ^
+            -DCMAKE_BUILD_TYPE=Release ^
+            -DCMAKE_C_COMPILER=cl ^
+            -DCMAKE_CXX_COMPILER=cl
 
       - name: Build Application
         shell: cmd
