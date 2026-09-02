@@ -593,20 +593,20 @@ Item {
                             color: "#0D1824"; border.color: "#1E3042"
                             Column {
                                 anchors.fill: parent; anchors.margins: 6; spacing: 3
-                                Row {
-                                    width: parent.width
-                                    Text { text: "Distance:"; font.pixelSize: 8; color: "#80A0C0" }
-                                    Text { text: (typeof controller !== "undefined" && controller ? (controller.tripPage === 1 ? controller.refuelKm.toFixed(1) : (controller.tripPage === 2 ? controller.accumKm.toFixed(1) : controller.tripKm.toFixed(1))) : "0.0") + " km"; font.pixelSize: 8; font.bold: true; color: "#00E5FF"; anchors.right: parent.right }
+                                Item {
+                                    width: parent.width; height: 14
+                                    Text { text: "Distance:"; font.pixelSize: 8; color: "#80A0C0"; anchors.left: parent.left; anchors.verticalCenter: parent.verticalCenter }
+                                    Text { text: (typeof controller !== "undefined" && controller ? (controller.tripPage === 1 ? controller.refuelKm.toFixed(1) : (controller.tripPage === 2 ? controller.accumKm.toFixed(1) : controller.tripKm.toFixed(1))) : "0.0") + " km"; font.pixelSize: 8; font.bold: true; color: "#00E5FF"; anchors.right: parent.right; anchors.verticalCenter: parent.verticalCenter }
                                 }
-                                Row {
-                                    width: parent.width
-                                    Text { text: "Elapsed Time:"; font.pixelSize: 8; color: "#80A0C0" }
-                                    Text { text: (typeof controller !== "undefined" && controller ? (controller.tripPage === 1 ? controller.refuelTime : (controller.tripPage === 2 ? controller.accumTime : controller.tripTime)) : "0:00") + " h:m"; font.pixelSize: 8; font.bold: true; color: "#FFFFFF"; anchors.right: parent.right }
+                                Item {
+                                    width: parent.width; height: 14
+                                    Text { text: "Elapsed Time:"; font.pixelSize: 8; color: "#80A0C0"; anchors.left: parent.left; anchors.verticalCenter: parent.verticalCenter }
+                                    Text { text: (typeof controller !== "undefined" && controller ? (controller.tripPage === 1 ? controller.refuelTime : (controller.tripPage === 2 ? controller.accumTime : controller.tripTime)) : "0:00") + " h:m"; font.pixelSize: 8; font.bold: true; color: "#FFFFFF"; anchors.right: parent.right; anchors.verticalCenter: parent.verticalCenter }
                                 }
-                                Row {
-                                    width: parent.width
-                                    Text { text: "Fuel Economy:"; font.pixelSize: 8; color: "#80A0C0" }
-                                    Text { text: (typeof controller !== "undefined" && controller ? (controller.tripPage === 1 ? controller.refuelEconomy.toFixed(1) : (controller.tripPage === 2 ? controller.accumEconomy.toFixed(1) : controller.tripEconomy.toFixed(1))) : "0.0") + " km/L"; font.pixelSize: 8; font.bold: true; color: "#00E676"; anchors.right: parent.right }
+                                Item {
+                                    width: parent.width; height: 14
+                                    Text { text: "Fuel Economy:"; font.pixelSize: 8; color: "#80A0C0"; anchors.left: parent.left; anchors.verticalCenter: parent.verticalCenter }
+                                    Text { text: (typeof controller !== "undefined" && controller ? (controller.tripPage === 1 ? controller.refuelEconomy.toFixed(1) : (controller.tripPage === 2 ? controller.accumEconomy.toFixed(1) : controller.tripEconomy.toFixed(1))) : "0.0") + " km/L"; font.pixelSize: 8; font.bold: true; color: "#00E676"; anchors.right: parent.right; anchors.verticalCenter: parent.verticalCenter }
                                 }
                             }
                         }
