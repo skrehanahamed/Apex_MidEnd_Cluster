@@ -1,0 +1,30 @@
+name: QML Lint
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  qmllint:
+    name: QML Lint (Qt 6.5.3)
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Qt 6
+        uses: jurplel/install-qt-action@v3
+        with:
+          version: '6.5.3'
+          arch: gcc_64
+          modules: 'qtmultimedia'
+          cache: true
+          cache-key-prefix: 'install-qt-action-6.5.3'
+
+      - name: Run qmllint on all QML files
+        run: |
+          find qml -name "*.qml" | xargs $QT_ROOT_DIR/bin/qmllint --bare 2>&1 || true
+          echo "QML lint complete."

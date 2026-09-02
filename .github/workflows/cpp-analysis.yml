@@ -1,0 +1,40 @@
+name: C++ Static Analysis
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  cppcheck:
+    name: cppcheck Static Analysis
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Install cppcheck
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends cppcheck
+
+      - name: Run cppcheck on src/
+        run: |
+          cppcheck \
+            --enable=warning,style,performance,portability \
+            --std=c++17 \
+            --suppress=missingInclude \
+            --suppress=missingIncludeSystem \
+            --error-exitcode=0 \
+            --output-file=cppcheck-report.txt \
+            src/
+          echo "===== cppcheck Report ====="
+          cat cppcheck-report.txt
+
+      - name: Upload cppcheck Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: cppcheck-report
+          path: cppcheck-report.txt

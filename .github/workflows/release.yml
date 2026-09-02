@@ -1,0 +1,56 @@
+name: Auto Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+jobs:
+  release:
+    name: Create GitHub Release
+    runs-on: ubuntu-22.04
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Extract Tag Version
+        id: version
+        run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+
+      - name: Extract Changelog for this Version
+        id: changelog
+        run: |
+          VERSION=${{ steps.version.outputs.VERSION }}
+          echo "Generating release notes for $VERSION"
+          echo "NOTES=Hyundai Exter Digital Instrument Cluster HMI - $VERSION release. See README for full feature list." >> $GITHUB_OUTPUT
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.version.outputs.VERSION }}
+          name: "Hyundai Exter Cluster HMI ${{ steps.version.outputs.VERSION }}"
+          body: |
+            ## Hyundai Exter Digital Instrument Cluster HMI
+
+            **Version**: ${{ steps.version.outputs.VERSION }}
+
+            ### What's Included
+            - Full Qt 6 QML source code
+            - CMake build system (macOS / Linux / Windows)
+            - Custom Hyundai fonts and OEM assets
+            - ECU Simulator Bench with landscape dynamic layout
+
+            ### Build Instructions
+            ```bash
+            cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
+            cmake --build build --parallel
+            ```
+
+            See [README](https://github.com/skrehanahamed/hyundai-exter-cluster#readme) for full setup guide.
+          draft: false
+          prerelease: false
