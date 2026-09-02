@@ -45,7 +45,7 @@ jobs:
         with:
           version: '6.6.3'
           arch: ${{ matrix.qt_arch }}
-          modules: 'qtmultimedia qtsvg'
+          modules: 'qtmultimedia'
           cache: true
 
       - name: Configure CMake
