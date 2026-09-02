@@ -38,7 +38,8 @@ jobs:
           cmake -B build -G Ninja ^
             -DCMAKE_BUILD_TYPE=Release ^
             -DCMAKE_C_COMPILER=cl ^
-            -DCMAKE_CXX_COMPILER=cl
+            -DCMAKE_CXX_COMPILER=cl ^
+            -DQT_QMLCACHEGEN_ARGUMENTS="--bare"
 
       - name: Build Application
         shell: cmd
