@@ -29,6 +29,9 @@ A production-grade, photorealistic Automotive Digital Instrument Cluster HMI for
 
 ### 2. Accurate Live Trip Telemetry (Distance, Time, and Fuel Economy per Page)
 
+<img width="195" height="371" alt="Screenshot 2026-09-03 at 2 16 28 AM" src="https://github.com/user-attachments/assets/08357cb1-e817-4a06-aef1-89f27c7204db" />
+
+
 - All three trip pages - Drive Info, Since Refuelling, and Accumulated Info - now accumulate distance (km), elapsed driving time (h:m), and average fuel economy (km/L) independently and update in real time as the speed slider changes.
 - Root cause of the non-updating trip display identified and fixed: the C++ setters were overwriting the internal floating-point accumulator with a rounded display value each tick, causing sub-0.1 km increments to be silently discarded.
 - Introduced separate raw accumulator variables (m_rawTripKm, m_rawRefuelKm, m_rawAccumKm) that are never touched by the Qt property setters, ensuring precise accumulation across all ticks.
