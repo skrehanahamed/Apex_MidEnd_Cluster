@@ -27,7 +27,7 @@ jobs:
         if: runner.os == 'Linux'
         run: |
           sudo apt-get update
-          sudo apt-get install -y \
+          sudo apt-get install -y --no-install-recommends \
             build-essential \
             cmake \
             ninja-build \
@@ -38,10 +38,7 @@ jobs:
             libfontconfig1-dev \
             libfreetype6-dev \
             libasound2-dev \
-            libpulse-dev \
-            libgstreamer1.0-dev \
-            libgstreamer-plugins-base1.0-dev \
-            libglib2.0-dev
+            libpulse-dev
 
       - name: Setup Qt 6
         uses: jurplel/install-qt-action@v4
