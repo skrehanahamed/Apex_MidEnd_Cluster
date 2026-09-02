@@ -21,6 +21,9 @@ A production-grade, photorealistic Automotive Digital Instrument Cluster HMI for
 
 ### 1. AMT Powertrain Simulation (Speed-Coupled Gear Shifts and Engine RPM)
 
+<img width="2124" height="1036" alt="image" src="https://github.com/user-attachments/assets/45fb6aa0-0415-4eaf-9d84-ed6ae43cfc9d" />
+
+
 - Hyundai Exter 1.2L Kappa 5-Speed Smart Auto AMT logic fully integrated into the C++ simulation engine.
 - Vehicle speed directly drives automatic gear selection: D1 (0-16 km/h), D2 (17-34 km/h), D3 (35-58 km/h), D4 (59-82 km/h), D5 (83+ km/h).
 - Engine RPM curve calculated realistically per gear using gear-ratio fraction interpolation with a brief RPM drop on every upshift.
