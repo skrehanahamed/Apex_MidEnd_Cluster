@@ -298,88 +298,195 @@ A production-grade, photorealistic Automotive Digital Instrument Cluster HMI for
 
 ---
 
-## System Architecture
+## System Architecture (PlantUML Component Architecture)
 
 ```mermaid
-graph TD
-    subgraph "Core C++ Engine (Qt 6 / C++20)"
-        MAIN["main.cpp<br>QGuiApplication & QQmlApplicationEngine"]
-        CTRL["ClusterController (QObject Singleton)<br>CAN / ECU Telemetry, AMT Powertrain,<br>Raw Trip Accumulators, Multi-Tone Chimes,<br>Standby Power State & Door Wake Engine"]
+flowchart TB
+    classDef controller fill:#1E293B,stroke:#38BDF8,stroke-width:2px,color:#F8FAFC;
+    classDef qmlCenter fill:#0F172A,stroke:#00E5FF,stroke-width:1.5px,color:#F8FAFC;
+    classDef qmlGauge fill:#0F172A,stroke:#64748B,stroke-width:1.5px,color:#F8FAFC;
+    classDef ecuBench fill:#0F291E,stroke:#00E676,stroke-width:1.5px,color:#F8FAFC;
+    classDef audioEngine fill:#2A122E,stroke:#E879F9,stroke-width:1.5px,color:#F8FAFC;
+
+    subgraph PKG_CORE [package: Core C++ Architecture]
+        MAIN["&laquo;executable&raquo;<br><b>main.cpp</b><br>QGuiApplication &amp; QQmlEngine"]:::controller
+        CTRL["&laquo;QObject Singleton&raquo;<br><b>ClusterController</b><br>CAN / ECU Telemetry Gateway<br>AMT Shift Engine | Trip Accumulators<br>Standby Power State &amp; Door Wake"]:::controller
     end
 
-    subgraph "Central TFT Display (4.2-inch MFD)"
-        CENTER["CenterTripDisplay.qml<br>Trip Pages, DTE, ODO, Green 'N' Gear, Temp,<br>AIS-145 3-Point Rear Seatbelt Grid"]
-        MEDIA["Sliding Infotainment Banner<br>Full-Width Edge-to-Edge Viewport,<br>Live 4-Bar Audio EQ Visualizer,<br>Apple CarPlay / BT / USB / Android"]
-        TPMS_VIEW["TpmsDisplayView.qml<br>4-Wheel Live PSI Graphic & Glowing Warning Pills"]
-        SETTINGS["UserSettingsView.qml<br>Hierarchical OEM Menus & Regional Hindi Localization"]
-        ECO["InstantEcoGauge.qml<br>3D Extruded Glow Gauge (0-30 km/L)"]
-        STARTUP["StartupAnimationView.qml<br>APEX Brand Reveal & 5-Line Laser Convergence"]
-        CHECK["VehicleCheckView.qml<br>5.0s Diagnostic Bulb Check Sweep & Symphonic Chord"]
-        GOODBYE["GoodbyeView.qml<br>Trip Summary & Descending Shutdown Sequence"]
+    subgraph PKG_CENTRAL_TFT [package: Central 4.2-inch TFT MFD]
+        CENTER["&laquo;QML Viewport&raquo;<br><b>CenterTripDisplay.qml</b><br>Trip Pages | Range DTE | ODO | Temp<br>Green 'N' Gear | Rear Seatbelt Grid"]:::qmlCenter
+        MEDIA["&laquo;Inside-Line Viewport&raquo;<br><b>Sliding Infotainment Banner</b><br>Live 4-Bar Audio Spectrum EQ<br>Apple CarPlay | BT | USB | Android"]:::qmlCenter
+        TPMS["&laquo;QML View&raquo;<br><b>TpmsDisplayView.qml</b><br>3D Chassis Graphic | 4-Wheel PSI"]:::qmlCenter
+        SETTINGS["&laquo;QML View&raquo;<br><b>UserSettingsView.qml</b><br>8 OEM Menus | Hindi Localization"]:::qmlCenter
+        ECO["&laquo;QML View&raquo;<br><b>InstantEcoGauge.qml</b><br>3D Extruded Fuel Economy Gauge"]:::qmlCenter
+        STARTUP["&laquo;QML Sequence&raquo;<br><b>StartupAnimationView.qml</b><br>APEX Laser Brand Reveal"]:::qmlCenter
+        CHECK["&laquo;QML Sequence&raquo;<br><b>VehicleCheckView.qml</b><br>5.0s Diagnostic Bulb Check Sweep"]:::qmlCenter
+        GOODBYE["&laquo;QML Sequence&raquo;<br><b>GoodbyeView.qml</b><br>Trip Summary &amp; Shutdown"]:::qmlCenter
     end
 
-    subgraph "Digital Gauges & Telltales"
-        SPEED["SpeedDisplay.qml<br>7-Segment Speed & Concentric Arc Bars"]
-        RPM["RpmDisplay.qml<br>7-Segment AMT RPM Readout & Torque Curve"]
-        GEAR["Dual Gear Indicators<br>Dedicated Green 'N' (#00E676) & Pure White PRD Gearing"]
-        FUEL["FuelGauge.qml + FuelIcon.qml<br>Custom OEM Fuel Bar & Low Fuel Icon"]
-        TEMP["TempGauge.qml + TempIcon.qml<br>Custom OEM Coolant Temp Bar & Icon"]
-        BEZEL["BlueFrame.qml / ClusterUnit.qml<br>Speed-Driven Concentric Arc Lines,<br>1:1 OEM Telltales & Master Warnings"]
+    subgraph PKG_GAUGES [package: Digital Gauges &amp; Cluster Frame]
+        FRAME["&laquo;QML Bezel&raquo;<br><b>BlueFrame.qml &amp; ClusterUnit.qml</b><br>Speed Arc Lines | 1:1 OEM Telltales"]:::qmlGauge
+        SPEED["&laquo;7-Segment&raquo;<br><b>SpeedDisplay.qml</b><br>0-180 km/h Digital Speed"]:::qmlGauge
+        RPM["&laquo;7-Segment&raquo;<br><b>RpmDisplay.qml</b><br>AMT Engine RPM &amp; Torque Band"]:::qmlGauge
+        GEAR["&laquo;Display Logic&raquo;<br><b>Dual Gear Indicators</b><br>Green 'N' (#00E676) | White PRD"]:::qmlGauge
+        FLUID["&laquo;Custom Gauges&raquo;<br><b>FuelGauge.qml &amp; TempGauge.qml</b><br>12-Segment Fuel &amp; Coolant Bars"]:::qmlGauge
     end
 
-    subgraph "Symphonic Audio & Chimes Suite"
-        AUDIO["ClusterUnit Audio Engine<br>QSoundEffect & Audio Channel Bus"]
-        CHIME_WELCOME["Welcome Melody (2.35s)"]
-        CHIME_CHECK["Diagnostic Self-Test Chord (5.0s)"]
-        CHIME_BYE["Goodbye Departure Melody (3.24s)"]
-        CHIME_WARN["Luxury European Warning Gong"]
-        CHIME_BELT["AIS-145 Seatbelt Beep Reminder"]
+    subgraph PKG_AUDIO [package: Symphonic Audio &amp; Chimes Suite]
+        AUDIO_BUS["&laquo;Audio Channel Bus&raquo;<br><b>QSoundEffect &amp; QMediaPlayer</b>"]:::audioEngine
+        CH1["&laquo;chime&raquo; Welcome Melody (2.35s)"]:::audioEngine
+        CH2["&laquo;chime&raquo; Diagnostic Self-Test Chord (5.0s)"]:::audioEngine
+        CH3["&laquo;chime&raquo; Goodbye Melody (3.24s)"]:::audioEngine
+        CH4["&laquo;chime&raquo; Luxury European Warning Gong"]:::audioEngine
+        CH5["&laquo;chime&raquo; AIS-145 Belt Beep Reminder"]:::audioEngine
     end
 
-    subgraph "High-Density ECU Diagnostic Test Bench"
-        ECU["EcuSimulatorPanel.qml<br>Compact 215px Responsive Instrument Modules<br>Hardware Micro-LED Status Dots (Zero Emojis)"]
-        SYS1["SYS-01: Powertrain & Engine (0-120 km/h Sweeps, Demo)"]
-        SYS2["SYS-02: Transmission & AMT Gearbox (PRND, D1-D5, M1-M5)"]
-        SYS3["SYS-03: Steering D-Pad & Trip HMI (Up, Down, OK, Back, Reset)"]
-        SYS4["SYS-04: Chassis, Braking & TPMS (Brake, PSI, EPS Fault)"]
-        SYS5["SYS-05: Access & Closures (4 Doors, Hood, Trunk, Sunroof)"]
-        SYS6["SYS-06: Occupant Restraints (Driver & 3-Seat Rear Matrix)"]
-        SYS7["SYS-07: Infotainment & Connectivity (CarPlay, BT, Key Fob)"]
+    subgraph PKG_ECU [package: High-Density ECU Diagnostic Bench]
+        ECU_BENCH["&laquo;CANoe Testbench&raquo;<br><b>EcuSimulatorPanel.qml</b><br>Compact 215px High-Density Cards<br>Hardware Micro-LED Status Dots (Zero Emojis)"]:::ecuBench
+        S1["<b>SYS-01:</b> Powertrain &amp; Speed Sweeps"]:::ecuBench
+        S2["<b>SYS-02:</b> Transmission &amp; AMT Gearbox"]:::ecuBench
+        S3["<b>SYS-03:</b> Steering D-Pad &amp; Trip Reset"]:::ecuBench
+        S4["<b>SYS-04:</b> Chassis, TPMS &amp; EPS MIL"]:::ecuBench
+        S5["<b>SYS-05:</b> Doors, Hood, Trunk &amp; Roof"]:::ecuBench
+        S6["<b>SYS-06:</b> AIS-145 Occupant Restraints"]:::ecuBench
+        S7["<b>SYS-07:</b> Infotainment &amp; Key Fob Alert"]:::ecuBench
     end
 
-    MAIN --> CTRL
-    CTRL --> CENTER
-    CTRL --> SPEED
-    CTRL --> RPM
-    CTRL --> GEAR
-    CTRL --> FUEL
-    CTRL --> TEMP
-    CTRL --> BEZEL
-    CTRL --> AUDIO
-    CTRL <--> ECU
+    MAIN -->|instantiates| CTRL
+    CTRL -->|Q_PROPERTY bindings| CENTER
+    CTRL -->|telemetry data| SPEED
+    CTRL -->|telemetry data| RPM
+    CTRL -->|gear state| GEAR
+    CTRL -->|fluid levels| FLUID
+    CTRL -->|telltale states| FRAME
+    CTRL -->|trigger audio events| AUDIO_BUS
+    CTRL <-->|bidirectional CAN bus| ECU_BENCH
 
     CENTER --> MEDIA
-    CENTER --> TPMS_VIEW
+    CENTER --> TPMS
     CENTER --> SETTINGS
     CENTER --> ECO
     CENTER --> STARTUP
     CENTER --> CHECK
     CENTER --> GOODBYE
 
-    AUDIO --> CHIME_WELCOME
-    AUDIO --> CHIME_CHECK
-    AUDIO --> CHIME_BYE
-    AUDIO --> CHIME_WARN
-    AUDIO --> CHIME_BELT
+    AUDIO_BUS --> CH1
+    AUDIO_BUS --> CH2
+    AUDIO_BUS --> CH3
+    AUDIO_BUS --> CH4
+    AUDIO_BUS --> CH5
 
-    ECU --> SYS1
-    ECU --> SYS2
-    ECU --> SYS3
-    ECU --> SYS4
-    ECU --> SYS5
-    ECU --> SYS6
-    ECU --> SYS7
+    ECU_BENCH --> S1
+    ECU_BENCH --> S2
+    ECU_BENCH --> S3
+    ECU_BENCH --> S4
+    ECU_BENCH --> S5
+    ECU_BENCH --> S6
+    ECU_BENCH --> S7
 ```
+
+<details>
+<summary><b>📄 View Native PlantUML Component Specification (.puml)</b></summary>
+
+```plantuml
+@startuml
+!theme plain
+skinparam backgroundColor #0D1117
+skinparam defaultFontColor #E6EDF3
+skinparam defaultFontName "Segoe UI"
+skinparam roundCorner 10
+skinparam packageBackgroundColor #161B22
+skinparam packageBorderColor #30363D
+skinparam componentBackgroundColor #21262D
+skinparam componentBorderColor #58A6FF
+skinparam componentFontColor #FFFFFF
+skinparam interfaceBackgroundColor #00E5FF
+skinparam interfaceBorderColor #00E5FF
+skinparam arrowColor #58A6FF
+skinparam arrowThickness 1.5
+
+title APEX Horizon AMT — Digital Instrument Cluster HMI Architecture
+
+package "Core Engine (C++20 / Qt 6)" {
+    [main.cpp] as MAIN <<executable>>
+    [ClusterController] as CTRL <<QObject Singleton>>
+    MAIN --> CTRL : instantiates
+}
+
+package "Central 4.2-inch TFT MFD" {
+    [CenterTripDisplay.qml] as CENTER <<QML Viewport>>
+    [Sliding Infotainment Banner] as MEDIA <<Sliding Viewport>>
+    [TpmsDisplayView.qml] as TPMS <<QML View>>
+    [UserSettingsView.qml] as SETTINGS <<QML View>>
+    [InstantEcoGauge.qml] as ECO <<QML Gauge>>
+    [StartupAnimationView.qml] as STARTUP <<QML Sequence>>
+    [VehicleCheckView.qml] as CHECK <<QML Sequence>>
+    [GoodbyeView.qml] as GOODBYE <<QML Sequence>>
+
+    CENTER *-- MEDIA
+    CENTER *-- TPMS
+    CENTER *-- SETTINGS
+    CENTER *-- ECO
+    CENTER *-- STARTUP
+    CENTER *-- CHECK
+    CENTER *-- GOODBYE
+}
+
+package "Digital Gauges & Cluster Frame" {
+    [SpeedDisplay.qml] as SPEED <<7-Segment>>
+    [RpmDisplay.qml] as RPM <<7-Segment>>
+    [Dual Gear Indicators] as GEAR <<Green N / White PRD>>
+    [Fuel & Temp Gauges] as FLUIDS <<12-Segment Bars>>
+    [BlueFrame.qml & ClusterUnit.qml] as FRAME <<Bezel & Telltales>>
+}
+
+package "Symphonic Audio & Chimes Suite" {
+    [ClusterUnit Audio Engine] as AUDIO <<Channel Bus>>
+    interface "Welcome Melody (2.35s)" as CH1
+    interface "Diagnostic Self-Test (5.0s)" as CH2
+    interface "Goodbye Melody (3.24s)" as CH3
+    interface "Warning Gong" as CH4
+    interface "AIS-145 Belt Beep" as CH5
+
+    AUDIO ..> CH1
+    AUDIO ..> CH2
+    AUDIO ..> CH3
+    AUDIO ..> CH4
+    AUDIO ..> CH5
+}
+
+package "High-Density ECU Diagnostic Bench" {
+    [EcuSimulatorPanel.qml] as ECU <<CANoe Testbench>>
+    [SYS-01: Powertrain & Speed Sweeps] as S1
+    [SYS-02: Transmission & AMT Gearbox] as S2
+    [SYS-03: Steering D-Pad & Trip HMI] as S3
+    [SYS-04: Chassis, TPMS & EPS MIL] as S4
+    [SYS-05: Access, Doors & Closures] as S5
+    [SYS-06: AIS-145 Restraints Matrix] as S6
+    [SYS-07: Infotainment & Key Fob Alert] as S7
+
+    ECU *-- S1
+    ECU *-- S2
+    ECU *-- S3
+    ECU *-- S4
+    ECU *-- S5
+    ECU *-- S6
+    ECU *-- S7
+}
+
+CTRL --> CENTER : Q_PROPERTY & Signals
+CTRL --> SPEED : Speed Telemetry
+CTRL --> RPM : AMT RPM Curves
+CTRL --> GEAR : Gear Selection (Green N)
+CTRL --> FLUIDS : Fuel & Coolant Levels
+CTRL --> FRAME : 1:1 OEM Telltale States
+CTRL --> AUDIO : Chime Event Triggers
+CTRL <--> ECU : Bidirectional CAN Bus
+
+@enduml
+```
+</details>
+
 
 ---
 
@@ -478,9 +585,9 @@ Apex_MidEnd_Cluster/
 │                                    #   smart key, doors, telltales, light stalk
 └── resources/
     ├── fonts/
-    │   ├── APEXSansHead-Regular.ttf   # APEX Sans Head (patched name table)
-    │   ├── APEXSansHead-Medium.ttf    # APEX Sans Head Medium weight
-    │   ├── APEXSansHead-Bold.ttf      # APEX Sans Head Bold weight
+    │   ├── ClusterSansHead-Regular.ttf   # Cluster Sans Head Regular
+    │   ├── ClusterSansHead-Medium.ttf    # Cluster Sans Head Medium weight
+    │   ├── ClusterSansHead-Bold.ttf      # Cluster Sans Head Bold weight
     │   ├── NotoSansDevanagari-Regular.ttf # Hindi localization typeface
     │   ├── DSEG7Classic-Bold.ttf         # 7-segment display font
     │   ├── DSEG7Classic-Regular.ttf      # 7-segment display font (regular)
@@ -495,7 +602,8 @@ Apex_MidEnd_Cluster/
     │   ├── (Gauge icons)                 # fuel_meter_icon, temp_meter_icon,
     │   │                                 #   low_fuel_warning_3d, fuel_pump
     │   ├── (Car door animation frames)   # car_door_fl/fr/rl/rr + half variants,
-    │   │                                 #   car_doors_all_open, bonnet/trunk glow
+    │   │                                 #   car_doors_all_open, bonnet/trunk glow,
+    │   │                                 #   horizon_3d_car, horizon_3d_door_layer
     │   ├── (TPMS)                        # tpms_car_top, tpms
     │   ├── (Trip computer)               # trip_car, trip_clock, trip_fuel
     │   ├── (Smart Key)                   # smart_key, smart_key_fob,
@@ -504,17 +612,23 @@ Apex_MidEnd_Cluster/
     └── audio/
         ├── tick.wav                      # Turn signal tick (left / right)
         ├── tock.wav                      # Turn signal tock (left / right)
-        ├── welcome_chime.wav             # OEM APEX 3-tone startup chime
-        ├── welcome_chime.wav             # Welcome screen entry tone
-        ├── startup_animation_tone.wav    # Boot animation tone
-        ├── goodbye_chime.wav             # Ignition-off shutdown chime
+        ├── welcome_chime.wav             # Ascending automotive welcome melody
+        ├── startup_animation_tone.wav    # Multi-voice symphonic system check chord
+        ├── goodbye_chime.wav             # Descending farewell departure melody
         ├── key_alert_chime.wav           # Smart key not detected alert
-        ├── seatbelt_chime.wav            # Seatbelt reminder chime
+        ├── seatbelt_chime.wav            # Automotive seatbelt reminder beep
         ├── speed_alert_chime.wav         # Overspeed warning chime
-        └── warning_chime.wav             # Generic telltale warning chime
+        └── warning_chime.wav             # Luxury automotive dual-tone warning gong
 ```
 
 ---
 
 ## License
-This project is created for educational, portfolio, and automotive UI/UX demonstration purposes.
+This project is licensed under the MIT License. Created for automotive HMI software engineering, portfolio, and demonstration purposes.
+
+---
+
+<p align="center">
+  Made with ❤️ by <b>Rehan</b> &amp; <b>AI (Gemini &amp; ChatGPT)</b>
+</p>
+
