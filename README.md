@@ -227,6 +227,53 @@ A production-grade, photorealistic Automotive Digital Instrument Cluster HMI for
 
 ---
 
+## Core Cluster Architecture & Foundational Features
+
+### 1. Dual Digital Dial Gauges (Speedometer & Tachometer)
+- **Speedometer**: Custom-styled 7-segment digital speed readout (`0–180 km/h`) flanked by authentic segmented speed arc lines.
+- **Tachometer (RPM)**: Precision x1000 RPM digital gauge with realistic torque curve & shift points.
+- **AMT Transmission**: Automatic gear indicators (`P`, `R`, `N`, `D`, `1–5`) and manual sequential shift modes (`M1–M5`).
+
+### 2. Central 4.2-inch TFT Multi-Function Display (MFD)
+- **Top Header Status**: Active gear, dynamic fuel range (DTE km), ambient temperature (`32°C`), and total odometer.
+- **Rising Spotlight Tab Bar**: 3 category tabs (`Trip / Car`, `User Settings / Cog`, `TPMS / Info`) with theme-colored spotlight flare emerging from the curved divider line.
+- **Non-Touch Automotive Interaction**: Fully operated via steering wheel switches (`▲ UP`, `▼ DOWN`, `OK`, `↩ BACK`, `INFO`) or keyboard shortcuts.
+
+### 3. Trip Computer & 3D ECO Gauge
+- **3-Page Trip Computer**:
+  - `Drive Info` (Distance km, Elapsed driving time, Average fuel economy km/L)
+  - `Since Refuelling`
+  - `Accumulated Info`
+- **Instant ECO Gauge**: 3D extruded curved gauge with dynamic volumetric blue/green/red glow.
+
+### 4. Comprehensive User Settings System
+- Multi-level hierarchical menu with smooth viewport auto-centering:
+  - **Driver assistance**: Warning methods, Warning volume (`High`, `Medium`, `Low`).
+  - **Cluster**: Theme selection (`Cyan`, `Emerald`, `Crimson`) + interactive toggles (`Wiper/Lights display`, `Icy road warning`, `Welcome sound`).
+  - **Lights**: Illumination 3D convex glass arc gauge with steppers, One-touch turn indicator (`7`, `5`, `3 flashes`, `Off`), Headlight time-out.
+  - **Door**: Auto Lock (`On Speed` / `Off`), Auto Unlock (`On Key Out` / `Off`).
+  - **Convenience**: Rear Occupant Alert, Service Interval (`10,000 km`).
+  - **Unit setting**: Fuel Economy (`km/L`), Temperature (`°C`), Tyre Pressure (`psi`, `kPa`, `bar`).
+  - **Language**: English and Hindi (`हिन्दी`) full localization.
+  - **Reset settings**: Factory reset confirmation dialog.
+
+### 5. TPMS Tyre Pressure Monitoring System
+- **Transparent 3D Top-Down Car Graphic**: High-resolution top-down car silhouette.
+- **"Drive to display" State**: Overlay card shown when starting/stationary until driven for 5 seconds.
+- **4-Corner Live PSI Readout**: Front-Left, Front-Right, Rear-Left, Rear-Right pressure digits + centered `psi` label.
+- **Dynamic Warning Glow**:
+  - Normal (`≥ 32 PSI`): Crisp white numbers.
+  - Low (`26–31 PSI`): Title changes to `"Low pressure"`, affected tyre pulses with an amber glow pill & aura.
+  - Critical (`< 26 PSI`): Pulsing red tyre glow and red digit with cluster TPMS warning telltale.
+
+### 6. Dynamic Multi-Theme Engine
+- **Theme A (Electric Cyan)**: Cobalt blue selection capsule with electric cyan neon accents (`#00E5FF`).
+- **Theme B (Emerald Green)**: Emerald forest gradient with neon green edges (`#00E676`).
+- **Theme C (Crimson Red)**: Crimson ruby gradient with coral red edges (`#FF5252`).
+- *Live color reactivity across all dials, 3D illumination arc, dividers, checkboxes, and radio buttons.*
+
+---
+
 ## Feature Gallery
 
 <p align="center">
