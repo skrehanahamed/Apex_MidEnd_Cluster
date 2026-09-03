@@ -242,7 +242,7 @@ Item {
     Text {
         id: coldText
         text: "C"
-        font.family: "Hyundai Sans Head"
+        font.family: "Cluster Sans Head"
         font.pixelSize: 40
         font.weight: Font.DemiBold
         color: "#ffffff"
@@ -258,7 +258,7 @@ Item {
     Text {
         id: hotText
         text: "H"
-        font.family: "Hyundai Sans Head"
+        font.family: "Cluster Sans Head"
         font.pixelSize: 40
         font.weight: Font.DemiBold
         color: "#ffffff"

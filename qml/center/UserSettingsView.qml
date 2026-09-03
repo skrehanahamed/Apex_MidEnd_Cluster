@@ -59,17 +59,17 @@ Item {
     property string languageSetting: controller ? controller.language : "English"
     readonly property bool isHindi: languageSetting === "हिन्दी" || languageSetting === "Hindi" || (controller && (controller.language === "हिन्दी" || controller.language === "Hindi"))
 
-    FontLoader { id: hyundaiRegular; source: "qrc:/qt/qml/HyundaiExterCluster/resources/fonts/HyundaiSansHead-Regular.ttf" }
-    FontLoader { id: hyundaiMedium; source: "qrc:/qt/qml/HyundaiExterCluster/resources/fonts/HyundaiSansHead-Medium.ttf" }
-    FontLoader { id: hyundaiBold; source: "qrc:/qt/qml/HyundaiExterCluster/resources/fonts/HyundaiSansHead-Bold.ttf" }
-    FontLoader { id: notoDevanagari; source: "qrc:/qt/qml/HyundaiExterCluster/resources/fonts/NotoSansDevanagari-Regular.ttf" }
+    FontLoader { id: clusterRegular; source: "qrc:/qt/qml/ApexCluster/resources/fonts/ClusterSansHead-Regular.ttf" }
+    FontLoader { id: clusterMedium; source: "qrc:/qt/qml/ApexCluster/resources/fonts/ClusterSansHead-Medium.ttf" }
+    FontLoader { id: clusterBold; source: "qrc:/qt/qml/ApexCluster/resources/fonts/ClusterSansHead-Bold.ttf" }
+    FontLoader { id: notoDevanagari; source: "qrc:/qt/qml/ApexCluster/resources/fonts/NotoSansDevanagari-Regular.ttf" }
 
-    readonly property string fontHeadRegular: isHindi ? (notoDevanagari.status === FontLoader.Ready ? notoDevanagari.name : "Noto Sans Devanagari") : (hyundaiRegular.status === FontLoader.Ready ? hyundaiRegular.name : "Hyundai Sans Head")
-    readonly property string fontHeadMedium: isHindi ? (notoDevanagari.status === FontLoader.Ready ? notoDevanagari.name : "Noto Sans Devanagari") : (hyundaiMedium.status === FontLoader.Ready ? hyundaiMedium.name : "Hyundai Sans Head")
-    readonly property string fontHeadBold: isHindi ? (notoDevanagari.status === FontLoader.Ready ? notoDevanagari.name : "Noto Sans Devanagari") : (hyundaiBold.status === FontLoader.Ready ? hyundaiBold.name : "Hyundai Sans Head")
+    readonly property string fontHeadRegular: isHindi ? (notoDevanagari.status === FontLoader.Ready ? notoDevanagari.name : "Noto Sans Devanagari") : (clusterRegular.status === FontLoader.Ready ? clusterRegular.name : "Cluster Sans Head")
+    readonly property string fontHeadMedium: isHindi ? (notoDevanagari.status === FontLoader.Ready ? notoDevanagari.name : "Noto Sans Devanagari") : (clusterMedium.status === FontLoader.Ready ? clusterMedium.name : "Cluster Sans Head")
+    readonly property string fontHeadBold: isHindi ? (notoDevanagari.status === FontLoader.Ready ? notoDevanagari.name : "Noto Sans Devanagari") : (clusterBold.status === FontLoader.Ready ? clusterBold.name : "Cluster Sans Head")
 
     function getDevanagariFont(str) {
-        if (!str) return isHindi ? "Noto Sans Devanagari" : (hyundaiMedium.status === FontLoader.Ready ? hyundaiMedium.name : "Hyundai Sans Head");
+        if (!str) return isHindi ? "Noto Sans Devanagari" : (clusterMedium.status === FontLoader.Ready ? clusterMedium.name : "Cluster Sans Head");
         var s = String(str);
         for (var i = 0; i < s.length; ++i) {
             var code = s.charCodeAt(i);
@@ -77,7 +77,7 @@ Item {
                 return "Noto Sans Devanagari";
             }
         }
-        return isHindi ? "Noto Sans Devanagari" : (hyundaiMedium.status === FontLoader.Ready ? hyundaiMedium.name : "Hyundai Sans Head");
+        return isHindi ? "Noto Sans Devanagari" : (clusterMedium.status === FontLoader.Ready ? clusterMedium.name : "Cluster Sans Head");
     }
 
     function tr(key) {
@@ -487,7 +487,7 @@ Item {
     }
 
     // =================================================================
-    // 1. TOP TITLE HEADER: Exact OEM Hyundai Typography
+    // 1. TOP TITLE HEADER: Exact OEM Typography
     // =================================================================
     Item {
         id: headerBar

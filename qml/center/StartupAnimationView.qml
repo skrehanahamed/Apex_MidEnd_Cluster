@@ -1,21 +1,20 @@
 /**
  * ============================================================================
- * Project:        Automotive Digital Instrument Cluster HMI
+ * Project:        APEX Horizon Digital Instrument Cluster HMI
  * File:           StartupAnimationView.qml
- * Author:         SK Rehan Ahamed
- * Description:    Authentic OEM Hyundai HD Welcome Sequence - Frame-Accurate Blue Matrix Funnel & Laser Convergence
- * Copyright (c) 2026 SK Rehan Ahamed. All rights reserved.
+ * Description:    Pure APEX Logo -> WELCOME -> Ready to Drive Animation (Line-Free)
  * ============================================================================
  */
 
 import QtQuick
+import QtQuick.Effects
 
 Item {
     id: startupAnimRoot
     implicitWidth: 198
     implicitHeight: 366
 
-    // Master 3.8-Second Welcome Animation Timeline (0.0 to 1.0)
+    // Master 3.6-Second Welcome Animation Timeline (0.0 to 1.0)
     property real animProgress: 0.0
 
     NumberAnimation {
@@ -24,185 +23,151 @@ Item {
         property: "animProgress"
         from: 0.0
         to: 1.0
-        duration: 3800
-        easing.type: Easing.InOutQuad
+        duration: 3600
+        easing.type: Easing.InOutCubic
         running: startupAnimRoot.visible
     }
 
-    // Deep Midnight Pure Black Cluster Background
+    // Pure Deep Midnight Black - Zero background shapes or glows
     Rectangle {
         anchors.fill: parent
         color: "#01040A"
     }
 
-    // Canvas: OEM Blue Dot-Matrix Funnel & Laser Convergence (Frame-Accurate Recreation)
-    Canvas {
-        id: welcomeCanvas
-        anchors.fill: parent
-        renderTarget: Canvas.FramebufferObject
+    // Master Fade Envelope
+    readonly property real masterOpacity: {
+        if (animProgress < 0.08) return animProgress / 0.08;
+        if (animProgress > 0.88) return Math.max(0.0, 1.0 - (animProgress - 0.88) / 0.12);
+        return 1.0;
+    }
 
-        onPaint: {
-            var ctx = getContext("2d");
-            ctx.clearRect(0, 0, width, height);
+    // Center Branding Container (Strictly Line-Free)
+    Item {
+        id: brandContainer
+        anchors.centerIn: parent
+        anchors.verticalCenterOffset: -12
+        width: parent.width
+        height: 150
+        opacity: masterOpacity
 
-            var p = startupAnimRoot.animProgress;
-            var w = width;
-            var h = height;
-            var cy = h / 2 + 15.0; // Exactly matches side gauge baseline level
+        // ========================================================
+        // 1. APEX LOGO ONLY
+        // ========================================================
+        Image {
+            id: apexLogoImg
+            anchors.horizontalCenter: parent.horizontalCenter
+            anchors.top: parent.top
+            anchors.topMargin: 10
+            width: 158
+            height: 35
+            source: "qrc:/qt/qml/ApexCluster/assets/apex_logo.png"
+            fillMode: Image.PreserveAspectFit
+            smooth: true
+            mipmap: true
+            scale: 0.88 + 0.12 * Math.min(1.0, animProgress / 0.35)
+            opacity: Math.min(1.0, animProgress / 0.16)
+        }
 
-            // Master envelope
-            var masterAlpha = 1.0;
-            if (p < 0.06) {
-                masterAlpha = p / 0.06;
-            } else if (p > 0.88) {
-                masterAlpha = Math.max(0.0, 1.0 - (p - 0.88) / 0.12);
-            }
+        // Metallic Specular Shimmer Sweep across the APEX Logo
+        Item {
+            id: shimmerSource
+            anchors.fill: apexLogoImg
+            visible: false
 
-            if (masterAlpha <= 0.001) return;
-
-            // =================================================================
-            // 1. VOLUMETRIC AMBIENT AURA
-            // =================================================================
-            var auraAlpha = Math.sin(p * Math.PI) * 0.40 * masterAlpha;
-            var auraGrad = ctx.createRadialGradient(w / 2, cy, 10, w / 2, cy, 140);
-            auraGrad.addColorStop(0.0, "rgba(0, 160, 255, " + auraAlpha + ")");
-            auraGrad.addColorStop(0.5, "rgba(0, 50, 180, " + (auraAlpha * 0.5) + ")");
-            auraGrad.addColorStop(1.0, "rgba(0, 5, 30, 0.0)");
-            ctx.fillStyle = auraGrad;
-            ctx.fillRect(0, cy - 160, w, 320);
-
-            // =================================================================
-            // 2. STAGE 1: OEM BLUE DOT-MATRIX HYPERBOLIC FUNNEL (0.0 to 0.70)
-            // =================================================================
-            if (p < 0.72) {
-                var s1Progress = p / 0.70;
-                var s1Alpha = Math.sin(Math.min(1.0, s1Progress * 1.15) * Math.PI) * masterAlpha;
-
-                // Convergence factor (1.0 = wide funnel, 0.0 = collapsed to line)
-                var conv = Math.pow(Math.max(0.0, 1.0 - s1Progress), 1.6);
-                var waveShift = s1Progress * 80.0; // Matrix travels across
-
-                ctx.save();
-
-                // 2.1 Render Glowing Dot-Matrix Grid inside the Funnel Envelope
-                var dotSpacingX = 8.0;
-                var dotSpacingY = 8.0;
-
-                for (var gx = 0; gx <= w; gx += dotSpacingX) {
-                    var nx = gx / w;
-                    // Hyperbolic funnel upper and lower boundaries at column gx
-                    var halfSpan = (20.0 + 90.0 * Math.pow(nx, 1.5)) * conv;
-                    var yTopBound = cy - halfSpan;
-                    var yBotBound = cy + halfSpan;
-
-                    for (var gy = cy - 110; gy <= cy + 110; gy += dotSpacingY) {
-                        // Check if dot falls inside the hyperbolic funnel
-                        if (gy >= yTopBound && gy <= yBotBound) {
-                            var distFromCenterY = Math.abs(gy - cy) / Math.max(1.0, halfSpan);
-                            var dotAlpha = (1.0 - distFromCenterY * 0.6) * s1Alpha;
-                            
-                            // Dot size based on proximity to center and progress
-                            var dotR = (1.4 + 1.2 * (1.0 - distFromCenterY)) * (0.6 + 0.4 * conv);
-
-                            // Staggered honeycomb offset
-                            var actualX = gx + ((Math.floor(gy / dotSpacingY) % 2 === 0) ? (dotSpacingX / 2) : 0);
-
-                            // Authentic Hyundai Royal Blue to Cyan Dot Color
-                            var r = Math.floor(0 + 100 * (1.0 - distFromCenterY));
-                            var g = Math.floor(100 + 155 * (1.0 - distFromCenterY));
-                            var b = 255;
-
-                            ctx.fillStyle = "rgba(" + r + ", " + g + ", " + b + ", " + (dotAlpha * 0.85) + ")";
-                            ctx.beginPath();
-                            ctx.arc(actualX, gy, dotR, 0, Math.PI * 2);
-                            ctx.fill();
-                        }
-                    }
+            Rectangle {
+                id: shimmerBar
+                width: 32
+                height: parent.height * 2.4
+                anchors.verticalCenter: parent.verticalCenter
+                rotation: 25
+                x: {
+                    var p = Math.max(0.0, Math.min(1.0, (animProgress - 0.18) / 0.45));
+                    return -width - 25 + p * (apexLogoImg.width + width + 50);
                 }
-
-                // 2.2 Glowing Cyan Top & Bottom Funnel Contour Lines
-                ctx.beginPath();
-                for (var x = 0; x <= w; x += 4) {
-                    var nxTop = x / w;
-                    var yT = cy - (20.0 + 90.0 * Math.pow(nxTop, 1.5)) * conv;
-                    if (x === 0) ctx.moveTo(x, yT);
-                    else ctx.lineTo(x, yT);
+                gradient: Gradient {
+                    orientation: Gradient.Horizontal
+                    GradientStop { position: 0.0; color: "transparent" }
+                    GradientStop { position: 0.5; color: "#E0FFFFFF" }
+                    GradientStop { position: 1.0; color: "transparent" }
                 }
-                ctx.strokeStyle = "rgba(0, 229, 255, " + (0.90 * s1Alpha) + ")";
-                ctx.lineWidth = 2.4;
-                ctx.stroke();
-
-                ctx.beginPath();
-                for (var x2 = 0; x2 <= w; x2 += 4) {
-                    var nxBot = x2 / w;
-                    var yB = cy + (20.0 + 90.0 * Math.pow(nxBot, 1.5)) * conv;
-                    if (x2 === 0) ctx.moveTo(x2, yB);
-                    else ctx.lineTo(x2, yB);
-                }
-                ctx.strokeStyle = "rgba(0, 200, 255, " + (0.90 * s1Alpha) + ")";
-                ctx.lineWidth = 2.4;
-                ctx.stroke();
-
-                ctx.restore();
-            }
-
-            // =================================================================
-            // 3. STAGE 2: CRISP HORIZONTAL LASER BEAM BRIDGE (0.45 to 0.95)
-            // =================================================================
-            if (p > 0.42) {
-                var s2Progress = (p - 0.42) / 0.50;
-                var s2Alpha = Math.sin(Math.min(1.0, s2Progress) * Math.PI) * masterAlpha;
-
-                ctx.save();
-
-                // Outer Soft Cyan Halo
-                var haloGrad = ctx.createLinearGradient(0, cy, w, cy);
-                haloGrad.addColorStop(0.0, "rgba(0, 160, 255, 0.0)");
-                haloGrad.addColorStop(0.20, "rgba(0, 200, 255, " + (0.45 * s2Alpha) + ")");
-                haloGrad.addColorStop(0.50, "rgba(180, 240, 255, " + (0.85 * s2Alpha) + ")");
-                haloGrad.addColorStop(0.80, "rgba(0, 200, 255, " + (0.45 * s2Alpha) + ")");
-                haloGrad.addColorStop(1.0, "rgba(0, 160, 255, 0.0)");
-
-                ctx.strokeStyle = haloGrad;
-                ctx.lineWidth = 6.0;
-                ctx.beginPath();
-                ctx.moveTo(0, cy);
-                ctx.lineTo(w, cy);
-                ctx.stroke();
-
-                // Crisp Specular Laser Core
-                var coreGrad = ctx.createLinearGradient(0, cy, w, cy);
-                coreGrad.addColorStop(0.0, "rgba(255, 255, 255, 0.0)");
-                coreGrad.addColorStop(0.35, "rgba(255, 255, 255, " + (0.85 * s2Alpha) + ")");
-                coreGrad.addColorStop(0.50, "rgba(255, 255, 255, " + (1.0 * s2Alpha) + ")");
-                coreGrad.addColorStop(0.65, "rgba(255, 255, 255, " + (0.85 * s2Alpha) + ")");
-                coreGrad.addColorStop(1.0, "rgba(255, 255, 255, 0.0)");
-
-                ctx.strokeStyle = coreGrad;
-                ctx.lineWidth = 1.8;
-                ctx.beginPath();
-                ctx.moveTo(0, cy);
-                ctx.lineTo(w, cy);
-                ctx.stroke();
-
-                // Radiant Center Glint Burst
-                var glintGrad = ctx.createRadialGradient(w / 2, cy, 0, w / 2, cy, 14);
-                glintGrad.addColorStop(0.0, "rgba(255, 255, 255, " + (1.0 * s2Alpha) + ")");
-                glintGrad.addColorStop(0.40, "rgba(160, 240, 255, " + (0.75 * s2Alpha) + ")");
-                glintGrad.addColorStop(1.0, "rgba(0, 140, 255, 0.0)");
-
-                ctx.fillStyle = glintGrad;
-                ctx.beginPath();
-                ctx.arc(w / 2, cy, 14, 0, Math.PI * 2);
-                ctx.fill();
-
-                ctx.restore();
             }
         }
 
-        Connections {
-            target: startupAnimRoot
-            function onAnimProgressChanged() { welcomeCanvas.requestPaint(); }
+        MultiEffect {
+            anchors.fill: apexLogoImg
+            source: shimmerSource
+            maskEnabled: true
+            maskSource: apexLogoImg
+            maskThresholdMin: 0.10
+            maskSpreadAtMin: 0.05
+            opacity: (animProgress >= 0.18 && animProgress <= 0.68) ? 0.95 : 0.0
+            z: 5
+        }
+
+        // ========================================================
+        // 2. "WELCOME" SECTION (NO LINES)
+        // ========================================================
+        Text {
+            id: welcomeText
+            anchors.horizontalCenter: parent.horizontalCenter
+            anchors.top: apexLogoImg.bottom
+            anchors.topMargin: 20
+            text: "WELCOME"
+            font.family: "Rajdhani"
+            font.pixelSize: 18
+            font.weight: Font.Bold
+            // Dynamic expanding letter tracking for futuristic reveal
+            font.letterSpacing: {
+                var p = Math.max(0.0, Math.min(1.0, (animProgress - 0.26) / 0.35));
+                return 3.0 + p * 3.5;
+            }
+            color: "#FFFFFF"
+            opacity: {
+                var p = Math.max(0.0, Math.min(1.0, (animProgress - 0.26) / 0.25));
+                return p;
+            }
+            scale: {
+                var p = Math.max(0.0, Math.min(1.0, (animProgress - 0.26) / 0.35));
+                return 0.88 + 0.12 * p;
+            }
+        }
+
+        // Soft Cyan Atmospheric Accent Glow on WELCOME
+        Text {
+            anchors.centerIn: welcomeText
+            text: welcomeText.text
+            font.family: welcomeText.font.family
+            font.pixelSize: welcomeText.font.pixelSize
+            font.weight: welcomeText.font.weight
+            font.letterSpacing: welcomeText.font.letterSpacing
+            color: "#00E5FF"
+            opacity: welcomeText.opacity * 0.35
+            scale: welcomeText.scale * 1.04
+            z: -1
+        }
+
+        // ========================================================
+        // 3. "Ready to Drive" SECTION (NO LINES)
+        // ========================================================
+        Text {
+            id: readyText
+            anchors.horizontalCenter: parent.horizontalCenter
+            anchors.top: welcomeText.bottom
+            anchors.topMargin: 9
+            text: "Ready to Drive"
+            font.family: "Cluster Sans Head"
+            font.pixelSize: 12
+            font.weight: Font.Medium
+            font.letterSpacing: 1.2
+            color: "#80C8FF"
+            opacity: {
+                var p = Math.max(0.0, Math.min(1.0, (animProgress - 0.42) / 0.25));
+                return p * 0.95;
+            }
+            scale: {
+                var p = Math.max(0.0, Math.min(1.0, (animProgress - 0.42) / 0.25));
+                return 0.92 + 0.08 * p;
+            }
         }
     }
 }

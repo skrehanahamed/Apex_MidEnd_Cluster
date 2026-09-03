@@ -32,7 +32,7 @@ Item {
         }
     }
 
-    // Colors matching OEM Hyundai digital cluster
+    // Colors matching OEM digital cluster
     property color litColor: lowFuelAlert ? "#ff9f1c" : "#ffffff"
     property color unlitColor: "#101826"
     property color unlitBorder: "#1c2a3f"
@@ -255,7 +255,7 @@ Item {
     Text {
         id: fullText
         text: "F"
-        font.family: "Hyundai Sans Head"
+        font.family: "Cluster Sans Head"
         font.pixelSize: 40
         font.weight: Font.DemiBold
         color: root.lowFuelAlert && root.animatedLevel >= 0.9 ? root.litColor : "#ffffff"
@@ -271,7 +271,7 @@ Item {
     Text {
         id: emptyText
         text: "E"
-        font.family: "Hyundai Sans Head"
+        font.family: "Cluster Sans Head"
         font.pixelSize: 40
         font.weight: Font.DemiBold
         color: root.lowFuelAlert ? root.litColor : "#ffffff"

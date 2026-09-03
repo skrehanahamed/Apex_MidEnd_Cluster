@@ -86,7 +86,7 @@ class ClusterController : public QObject
     Q_PROPERTY(bool rearSeatBlinkState READ rearSeatBlinkState NOTIFY rearSeatBlinkStateChanged)
     Q_PROPERTY(QString language READ language WRITE setLanguage NOTIFY languageChanged)
 
-    // Hyundai Manual Cluster Features:
+    // Manual Cluster Features:
     Q_PROPERTY(bool driverAttentionActive READ driverAttentionActive WRITE setDriverAttentionActive NOTIFY driverAttentionActiveChanged)
     Q_PROPERTY(int attentionLevel READ attentionLevel WRITE setAttentionLevel NOTIFY attentionLevelChanged)
     Q_PROPERTY(int serviceDueKm READ serviceDueKm WRITE setServiceDueKm NOTIFY serviceDueKmChanged)
@@ -304,7 +304,7 @@ public slots:
     void setBulbCheckTelltales(bool active);
     void setIsInteractiveMode(bool interactive);
 
-    // New Hyundai Manual Actions:
+    // Manual Actions:
     void setDriverAttentionActive(bool active);
     void setAttentionLevel(int level);
     void triggerDriverAttention();

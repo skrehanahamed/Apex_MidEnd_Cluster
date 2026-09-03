@@ -27,7 +27,7 @@ Item {
     Image {
         id: iconImg
         anchors.fill: parent
-        source: "qrc:/qt/qml/HyundaiExterCluster/resources/icons/fuel_meter_icon.png"
+        source: "qrc:/qt/qml/ApexCluster/resources/icons/fuel_meter_icon.png"
         fillMode: Image.PreserveAspectFit
         mipmap: true
         smooth: true

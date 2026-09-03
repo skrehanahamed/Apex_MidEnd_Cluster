@@ -27,22 +27,22 @@ jobs:
         run: |
           VERSION=${{ steps.version.outputs.VERSION }}
           echo "Generating release notes for $VERSION"
-          echo "NOTES=Hyundai Exter Digital Instrument Cluster HMI - $VERSION release. See README for full feature list." >> $GITHUB_OUTPUT
+          echo "NOTES=APEX Horizon Digital Instrument Cluster HMI - $VERSION release. See README for full feature list." >> $GITHUB_OUTPUT
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ steps.version.outputs.VERSION }}
-          name: "Hyundai Exter Cluster HMI ${{ steps.version.outputs.VERSION }}"
+          name: "APEX Horizon Cluster HMI ${{ steps.version.outputs.VERSION }}"
           body: |
-            ## Hyundai Exter Digital Instrument Cluster HMI
+            ## APEX Horizon Digital Instrument Cluster HMI
 
             **Version**: ${{ steps.version.outputs.VERSION }}
 
             ### What's Included
             - Full Qt 6 QML source code
             - CMake build system (macOS / Linux / Windows)
-            - Custom Hyundai fonts and OEM assets
+            - Custom Cluster typography and OEM assets
             - ECU Simulator Bench with landscape dynamic layout
 
             ### Build Instructions
@@ -51,6 +51,6 @@ jobs:
             cmake --build build --parallel
             ```
 
-            See [README](https://github.com/skrehanahamed/hyundai-exter-cluster#readme) for full setup guide.
+            See [README](README.md) for full setup guide.
           draft: false
           prerelease: false

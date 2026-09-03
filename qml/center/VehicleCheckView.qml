@@ -3,7 +3,7 @@
  * Project:        Automotive Digital Instrument Cluster HMI
  * File:           VehicleCheckView.qml
  * Author:         SK Rehan Ahamed
- * Description:    Authentic OEM Hyundai System Check - Photorealistic Texture Sequence
+ * Description:    Authentic OEM System Check - Photorealistic Texture Sequence
  * Copyright (c) 2026 SK Rehan Ahamed. All rights reserved.
  * ============================================================================
  */
@@ -19,9 +19,9 @@ Item {
     // Master Timeline Progress Property (0.0 to 1.0 over 2000ms reveal)
     property real checkProgress: 0.0
     readonly property bool isHindi: controller && (controller.language === "हिन्दी" || controller.language === "Hindi")
-    FontLoader { id: hyundaiMedium; source: "qrc:/qt/qml/HyundaiExterCluster/resources/fonts/HyundaiSansHead-Medium.ttf" }
-    FontLoader { id: notoDevanagari; source: "qrc:/qt/qml/HyundaiExterCluster/resources/fonts/NotoSansDevanagari-Regular.ttf" }
-    readonly property string fontHeadMedium: isHindi ? (notoDevanagari.status === FontLoader.Ready ? notoDevanagari.name : "Noto Sans Devanagari") : (hyundaiMedium.status === FontLoader.Ready ? hyundaiMedium.name : "Hyundai Sans Head")
+    FontLoader { id: clusterMedium; source: "qrc:/qt/qml/ApexCluster/resources/fonts/ClusterSansHead-Medium.ttf" }
+    FontLoader { id: notoDevanagari; source: "qrc:/qt/qml/ApexCluster/resources/fonts/NotoSansDevanagari-Regular.ttf" }
+    readonly property string fontHeadMedium: isHindi ? (notoDevanagari.status === FontLoader.Ready ? notoDevanagari.name : "Noto Sans Devanagari") : (clusterMedium.status === FontLoader.Ready ? clusterMedium.name : "Cluster Sans Head")
 
     NumberAnimation {
         id: checkTimelineAnim
@@ -67,7 +67,7 @@ Item {
     Image {
         id: studioGroundBg
         anchors.fill: parent
-        source: "qrc:/qt/qml/HyundaiExterCluster/assets/oem_studio_ground.png"
+        source: "qrc:/qt/qml/ApexCluster/assets/oem_studio_ground.png"
         fillMode: Image.PreserveAspectCrop
         smooth: true
         mipmap: true
@@ -85,7 +85,7 @@ Item {
         width: 170
         height: 48
         z: 2
-        source: "qrc:/qt/qml/HyundaiExterCluster/assets/car_ground_shadow.png"
+        source: "qrc:/qt/qml/ApexCluster/assets/car_ground_shadow.png"
         fillMode: Image.PreserveAspectFit
         smooth: true
         mipmap: true
@@ -93,7 +93,7 @@ Item {
     }
 
     // ========================================================
-    // 3. HYUNDAI EXTER 3D VEHICLE REVEAL
+    // 3. APEX HORIZON 3D VEHICLE REVEAL
     // ========================================================
     Item {
         id: carContainer
@@ -105,9 +105,9 @@ Item {
 
         // 3.1 Base 3D Vehicle Render (Fades in out of the horizontal beam)
         Image {
-            id: exterCarImg
+            id: horizonCarImg
             anchors.fill: parent
-            source: "qrc:/qt/qml/HyundaiExterCluster/assets/hyundai_exter_car.png"
+            source: "qrc:/qt/qml/ApexCluster/assets/horizon_car.png"
             fillMode: Image.PreserveAspectFit
             smooth: true
             mipmap: true
@@ -121,7 +121,7 @@ Item {
             }
         }
 
-        // 3.3 Continuous Metallic Specular Light Sweep
+        // Continuous Metallic Specular Light Shine across Car Paint Silhouette
         Item {
             id: sweepLightSource
             anchors.fill: parent
@@ -164,7 +164,7 @@ Item {
             anchors.fill: parent
             source: sweepLightSource
             maskEnabled: true
-            maskSource: exterCarImg
+            maskSource: horizonCarImg
             maskThresholdMin: 0.05
             maskSpreadAtMin: 0.05
             opacity: Math.min(0.90, Math.max(0.0, (vehicleRoot.checkProgress - 0.30) / 0.30 * 0.90))
@@ -173,60 +173,7 @@ Item {
     }
 
     // ========================================================
-    // 4. AUTHENTIC OEM LASER BEAM (Passes across Headlights/Waistline)
-    // ========================================================
-    Item {
-        id: laserBeamContainer
-        anchors.centerIn: parent
-        anchors.verticalCenterOffset: vehicleRoot.baseCarY - 3
-        width: parent.width * 1.15
-        height: 14
-        z: 12
-        opacity: {
-            if (vehicleRoot.checkProgress < 0.08) {
-                return vehicleRoot.checkProgress / 0.08;
-            } else if (vehicleRoot.checkProgress < 0.38) {
-                return 1.0;
-            } else if (vehicleRoot.checkProgress < 0.75) {
-                return Math.max(0.0, 1.0 - (vehicleRoot.checkProgress - 0.38) / 0.37);
-            }
-            return 0.0;
-        }
-        visible: opacity > 0.001
-
-        // Center intense cyan core line
-        Rectangle {
-            anchors.centerIn: parent
-            width: parent.width
-            height: 2
-            gradient: Gradient {
-                orientation: Gradient.Horizontal
-                GradientStop { position: 0.0; color: "transparent" }
-                GradientStop { position: 0.2; color: "#00E5FF" }
-                GradientStop { position: 0.5; color: "#FFFFFF" }
-                GradientStop { position: 0.8; color: "#00E5FF" }
-                GradientStop { position: 1.0; color: "transparent" }
-            }
-        }
-
-        // Soft halo glow
-        Rectangle {
-            anchors.centerIn: parent
-            width: parent.width
-            height: 8
-            gradient: Gradient {
-                orientation: Gradient.Horizontal
-                GradientStop { position: 0.0; color: "transparent" }
-                GradientStop { position: 0.25; color: "#3000E5FF" }
-                GradientStop { position: 0.50; color: "#8000E5FF" }
-                GradientStop { position: 0.75; color: "#3000E5FF" }
-                GradientStop { position: 1.0; color: "transparent" }
-            }
-        }
-    }
-
-    // ========================================================
-    // 5. 3 OCCUPANT SEATBELT ALERT ICONS (Startup bulb check: All 3 solid red)
+    // 4. 3 OCCUPANT SEATBELT ALERT ICONS (Startup bulb check: All 3 solid red)
     // ========================================================
     Row {
         anchors.bottom: parent.bottom
@@ -241,7 +188,7 @@ Item {
             Image {
                 width: 20
                 height: 22
-                source: "qrc:/qt/qml/HyundaiExterCluster/resources/icons/seatbelt.png"
+                source: "qrc:/qt/qml/ApexCluster/resources/icons/seatbelt.png"
                 fillMode: Image.PreserveAspectFit
                 smooth: true
                 mipmap: true

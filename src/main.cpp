@@ -18,21 +18,21 @@
 int main(int argc, char *argv[])
 {
     QGuiApplication app(argc, argv);
-    app.setApplicationName("Hyundai Exter AMT Cluster");
-    app.setOrganizationName("Hyundai HMI Studio");
+    app.setApplicationName("APEX Horizon AMT Cluster");
+    app.setOrganizationName("APEX Motors HMI");
 
     QQuickStyle::setStyle("Basic");
 
-    int f1 = QFontDatabase::addApplicationFont(":/qt/qml/HyundaiExterCluster/resources/fonts/HyundaiSansHead-Regular.ttf");
-    int f2 = QFontDatabase::addApplicationFont(":/qt/qml/HyundaiExterCluster/resources/fonts/HyundaiSansHead-Medium.ttf");
-    int f3 = QFontDatabase::addApplicationFont(":/qt/qml/HyundaiExterCluster/resources/fonts/HyundaiSansHead-Bold.ttf");
-    int f4 = QFontDatabase::addApplicationFont(":/qt/qml/HyundaiExterCluster/resources/fonts/NotoSansDevanagari-Regular.ttf");
-    QFontDatabase::addApplicationFont(":/qt/qml/HyundaiExterCluster/resources/fonts/Rajdhani-Bold.ttf");
-    QFontDatabase::addApplicationFont(":/qt/qml/HyundaiExterCluster/resources/fonts/Orbitron-Bold.ttf");
+    int f1 = QFontDatabase::addApplicationFont(":/qt/qml/ApexCluster/resources/fonts/ClusterSansHead-Regular.ttf");
+    int f2 = QFontDatabase::addApplicationFont(":/qt/qml/ApexCluster/resources/fonts/ClusterSansHead-Medium.ttf");
+    int f3 = QFontDatabase::addApplicationFont(":/qt/qml/ApexCluster/resources/fonts/ClusterSansHead-Bold.ttf");
+    int f4 = QFontDatabase::addApplicationFont(":/qt/qml/ApexCluster/resources/fonts/NotoSansDevanagari-Regular.ttf");
+    QFontDatabase::addApplicationFont(":/qt/qml/ApexCluster/resources/fonts/Rajdhani-Bold.ttf");
+    QFontDatabase::addApplicationFont(":/qt/qml/ApexCluster/resources/fonts/Orbitron-Bold.ttf");
 
-    qDebug() << "Loaded Hyundai Sans Head Regular:" << QFontDatabase::applicationFontFamilies(f1);
-    qDebug() << "Loaded Hyundai Sans Head Medium:" << QFontDatabase::applicationFontFamilies(f2);
-    qDebug() << "Loaded Hyundai Sans Head Bold:" << QFontDatabase::applicationFontFamilies(f3);
+    qDebug() << "Loaded Cluster Sans Head Regular:" << QFontDatabase::applicationFontFamilies(f1);
+    qDebug() << "Loaded Cluster Sans Head Medium:" << QFontDatabase::applicationFontFamilies(f2);
+    qDebug() << "Loaded Cluster Sans Head Bold:" << QFontDatabase::applicationFontFamilies(f3);
     qDebug() << "Loaded Noto Sans Devanagari:" << QFontDatabase::applicationFontFamilies(f4);
 
     QQmlApplicationEngine engine;
@@ -40,7 +40,7 @@ int main(int argc, char *argv[])
 
     engine.rootContext()->setContextProperty("controller", &controller);
 
-    const QUrl url(QStringLiteral("qrc:/qt/qml/HyundaiExterCluster/qml/Main.qml"));
+    const QUrl url(QStringLiteral("qrc:/qt/qml/ApexCluster/qml/Main.qml"));
     QObject::connect(
         &engine,
         &QQmlApplicationEngine::objectCreated,

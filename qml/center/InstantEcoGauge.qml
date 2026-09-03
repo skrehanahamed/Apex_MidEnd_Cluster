@@ -332,7 +332,7 @@ Item {
             anchors.verticalCenter: parent.verticalCenter
             text: "0"
             font.pixelSize: 11
-            font.family: "Hyundai Sans Head"
+            font.family: "Cluster Sans Head"
             font.weight: Font.DemiBold
             color: "#FFFFFF"
         }
@@ -344,7 +344,7 @@ Item {
             anchors.verticalCenter: parent.verticalCenter
             text: "10"
             font.pixelSize: 11
-            font.family: "Hyundai Sans Head"
+            font.family: "Cluster Sans Head"
             font.weight: Font.DemiBold
             color: "#FFFFFF"
         }
@@ -356,7 +356,7 @@ Item {
             anchors.verticalCenter: parent.verticalCenter
             text: "20"
             font.pixelSize: 11
-            font.family: "Hyundai Sans Head"
+            font.family: "Cluster Sans Head"
             font.weight: Font.DemiBold
             color: "#FFFFFF"
         }
@@ -368,7 +368,7 @@ Item {
             anchors.verticalCenter: parent.verticalCenter
             text: "30"
             font.pixelSize: 11
-            font.family: "Hyundai Sans Head"
+            font.family: "Cluster Sans Head"
             font.weight: Font.DemiBold
             color: "#FFFFFF"
         }

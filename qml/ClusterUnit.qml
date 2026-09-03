@@ -47,55 +47,55 @@ Item {
 
     SoundEffect {
         id: tickSound
-        source: "qrc:/qt/qml/HyundaiExterCluster/resources/audio/tick.wav"
+        source: "qrc:/qt/qml/ApexCluster/resources/audio/tick.wav"
         volume: 0.8
     }
 
     SoundEffect {
         id: tockSound
-        source: "qrc:/qt/qml/HyundaiExterCluster/resources/audio/tock.wav"
+        source: "qrc:/qt/qml/ApexCluster/resources/audio/tock.wav"
         volume: 0.7
     }
 
     SoundEffect {
         id: startupAnimationTone
-        source: "qrc:/qt/qml/HyundaiExterCluster/resources/audio/startup_animation_tone.wav"
+        source: "qrc:/qt/qml/ApexCluster/resources/audio/startup_animation_tone.wav"
         volume: 0.95
     }
 
     SoundEffect {
         id: welcomeChime
-        source: "qrc:/qt/qml/HyundaiExterCluster/resources/audio/welcome_chime.wav"
+        source: "qrc:/qt/qml/ApexCluster/resources/audio/welcome_chime.wav"
         volume: 0.9
     }
 
     SoundEffect {
         id: goodbyeChime
-        source: "qrc:/qt/qml/HyundaiExterCluster/resources/audio/goodbye_chime.wav"
+        source: "qrc:/qt/qml/ApexCluster/resources/audio/goodbye_chime.wav"
         volume: 0.9
     }
 
     SoundEffect {
         id: warningChime
-        source: "qrc:/qt/qml/HyundaiExterCluster/resources/audio/warning_chime.wav"
+        source: "qrc:/qt/qml/ApexCluster/resources/audio/warning_chime.wav"
         volume: 0.85
     }
 
     SoundEffect {
         id: seatbeltChime
-        source: "qrc:/qt/qml/HyundaiExterCluster/resources/audio/seatbelt_chime.wav"
+        source: "qrc:/qt/qml/ApexCluster/resources/audio/seatbelt_chime.wav"
         volume: 0.8
     }
 
     SoundEffect {
         id: keyAlertChime
-        source: "qrc:/qt/qml/HyundaiExterCluster/resources/audio/key_alert_chime.wav"
+        source: "qrc:/qt/qml/ApexCluster/resources/audio/key_alert_chime.wav"
         volume: 0.85
     }
 
     SoundEffect {
         id: speedAlertChime
-        source: "qrc:/qt/qml/HyundaiExterCluster/resources/audio/speed_alert_chime.wav"
+        source: "qrc:/qt/qml/ApexCluster/resources/audio/speed_alert_chime.wav"
         volume: 0.85
     }
 
@@ -234,7 +234,7 @@ Item {
                 anchors.verticalCenterOffset: -40
                 width: 28
                 height: 26
-                source: "qrc:/qt/qml/HyundaiExterCluster/resources/icons/master_warning.png"
+                source: "qrc:/qt/qml/ApexCluster/resources/icons/master_warning.png"
                 fillMode: Image.PreserveAspectFit
                 smooth: true
                 mipmap: true
@@ -255,7 +255,7 @@ Item {
                     id: lowBeamIcon
                     width: 28
                     height: 22
-                    source: "qrc:/qt/qml/HyundaiExterCluster/resources/icons/low_beam.png"
+                    source: "qrc:/qt/qml/ApexCluster/resources/icons/low_beam.png"
                     fillMode: Image.PreserveAspectFit
                     smooth: true
                     mipmap: true
@@ -268,7 +268,7 @@ Item {
                     id: highBeamIcon
                     width: 28
                     height: 22
-                    source: "qrc:/qt/qml/HyundaiExterCluster/resources/icons/high_beam.png"
+                    source: "qrc:/qt/qml/ApexCluster/resources/icons/high_beam.png"
                     fillMode: Image.PreserveAspectFit
                     smooth: true
                     mipmap: true
@@ -281,7 +281,7 @@ Item {
                     id: leftTurnIcon
                     width: 26
                     height: 20
-                    source: "qrc:/qt/qml/HyundaiExterCluster/resources/icons/turn_left.png"
+                    source: "qrc:/qt/qml/ApexCluster/resources/icons/turn_left.png"
                     fillMode: Image.PreserveAspectFit
                     smooth: true
                     mipmap: true
@@ -299,7 +299,7 @@ Item {
                 anchors.topMargin: 2
                 width: 32
                 height: 26
-                source: "qrc:/qt/qml/HyundaiExterCluster/resources/icons/brake.png"
+                source: "qrc:/qt/qml/ApexCluster/resources/icons/brake.png"
                 fillMode: Image.PreserveAspectFit
                 smooth: true
                 mipmap: true
@@ -316,7 +316,7 @@ Item {
                 anchors.topMargin: 36
                 width: 32
                 height: 26
-                source: "qrc:/qt/qml/HyundaiExterCluster/resources/icons/abs.png"
+                source: "qrc:/qt/qml/ApexCluster/resources/icons/abs.png"
                 fillMode: Image.PreserveAspectFit
                 smooth: true
                 mipmap: true
@@ -333,7 +333,7 @@ Item {
                 anchors.topMargin: 72
                 width: 28
                 height: 32
-                source: "qrc:/qt/qml/HyundaiExterCluster/resources/icons/seatbelt.png"
+                source: "qrc:/qt/qml/ApexCluster/resources/icons/seatbelt.png"
                 fillMode: Image.PreserveAspectFit
                 smooth: true
                 mipmap: true
@@ -349,7 +349,7 @@ Item {
                 anchors.topMargin: 4
                 width: 34
                 height: 20
-                source: "qrc:/qt/qml/HyundaiExterCluster/resources/icons/smart_key.png"
+                source: "qrc:/qt/qml/ApexCluster/resources/icons/smart_key.png"
                 fillMode: Image.PreserveAspectFit
                 smooth: true
                 mipmap: true
@@ -366,7 +366,7 @@ Item {
                 anchors.bottomMargin: 0
                 width: 28
                 height: 28
-                source: "qrc:/qt/qml/HyundaiExterCluster/resources/icons/tpms.png"
+                source: "qrc:/qt/qml/ApexCluster/resources/icons/tpms.png"
                 fillMode: Image.PreserveAspectFit
                 smooth: true
                 mipmap: true
@@ -383,7 +383,7 @@ Item {
                 anchors.rightMargin: 60
                 width: 28
                 height: 26
-                source: "qrc:/qt/qml/HyundaiExterCluster/resources/icons/light_warning.png"
+                source: "qrc:/qt/qml/ApexCluster/resources/icons/light_warning.png"
                 fillMode: Image.PreserveAspectFit
                 smooth: true
                 mipmap: true
@@ -437,7 +437,7 @@ Item {
                     id: rightTurnIcon
                     width: 26
                     height: 20
-                    source: "qrc:/qt/qml/HyundaiExterCluster/resources/icons/turn_right.png"
+                    source: "qrc:/qt/qml/ApexCluster/resources/icons/turn_right.png"
                     fillMode: Image.PreserveAspectFit
                     smooth: true
                     mipmap: true
@@ -449,7 +449,7 @@ Item {
                     id: positionLampIcon
                     width: 30
                     height: 22
-                    source: "qrc:/qt/qml/HyundaiExterCluster/resources/icons/position_lamp.png"
+                    source: "qrc:/qt/qml/ApexCluster/resources/icons/position_lamp.png"
                     fillMode: Image.PreserveAspectFit
                     smooth: true
                     mipmap: true
@@ -467,7 +467,7 @@ Item {
                 anchors.topMargin: 2
                 width: 32
                 height: 26
-                source: "qrc:/qt/qml/HyundaiExterCluster/resources/icons/steering.png"
+                source: "qrc:/qt/qml/ApexCluster/resources/icons/steering.png"
                 fillMode: Image.PreserveAspectFit
                 smooth: true
                 mipmap: true
@@ -484,7 +484,7 @@ Item {
                 anchors.topMargin: 38
                 width: 34
                 height: 24
-                source: "qrc:/qt/qml/HyundaiExterCluster/resources/icons/battery.png"
+                source: "qrc:/qt/qml/ApexCluster/resources/icons/battery.png"
                 fillMode: Image.PreserveAspectFit
                 smooth: true
                 mipmap: true
@@ -501,7 +501,7 @@ Item {
                 anchors.topMargin: 74
                 width: 28
                 height: 28
-                source: "qrc:/qt/qml/HyundaiExterCluster/resources/icons/airbag.png"
+                source: "qrc:/qt/qml/ApexCluster/resources/icons/airbag.png"
                 fillMode: Image.PreserveAspectFit
                 smooth: true
                 mipmap: true
@@ -517,7 +517,7 @@ Item {
                 anchors.topMargin: 4
                 width: 38
                 height: 20
-                source: "qrc:/qt/qml/HyundaiExterCluster/resources/icons/oil.png"
+                source: "qrc:/qt/qml/ApexCluster/resources/icons/oil.png"
                 fillMode: Image.PreserveAspectFit
                 smooth: true
                 mipmap: true
@@ -538,7 +538,7 @@ Item {
                     id: escIcon
                     width: 26
                     height: 24
-                    source: "qrc:/qt/qml/HyundaiExterCluster/resources/icons/esc.png"
+                    source: "qrc:/qt/qml/ApexCluster/resources/icons/esc.png"
                     fillMode: Image.PreserveAspectFit
                     smooth: true
                     mipmap: true
@@ -551,7 +551,7 @@ Item {
                     id: escOffIcon
                     width: 28
                     height: 24
-                    source: "qrc:/qt/qml/HyundaiExterCluster/resources/icons/esc_off.png"
+                    source: "qrc:/qt/qml/ApexCluster/resources/icons/esc_off.png"
                     fillMode: Image.PreserveAspectFit
                     smooth: true
                     mipmap: true
@@ -564,7 +564,7 @@ Item {
                     id: checkEngineIcon
                     width: 30
                     height: 22
-                    source: "qrc:/qt/qml/HyundaiExterCluster/resources/icons/engine_mil.png"
+                    source: "qrc:/qt/qml/ApexCluster/resources/icons/engine_mil.png"
                     fillMode: Image.PreserveAspectFit
                     smooth: true
                     mipmap: true
@@ -593,7 +593,7 @@ Item {
                             anchors.centerIn: parent
                             text: "AUTO\nSTOP"
                             font.pixelSize: 7
-                            font.family: "Hyundai Sans Head"
+                            font.family: "Cluster Sans Head"
                             font.weight: Font.Bold
                             color: "#00E676"
                             horizontalAlignment: Text.AlignHCenter
@@ -706,7 +706,7 @@ Item {
                         id: s2OdoNum
                         text: (controller ? controller.odoKm : 29710)
                         font.pixelSize: 15
-                        font.family: "Hyundai Sans Head"
+                        font.family: "Cluster Sans Head"
                         font.weight: Font.Medium
                         color: "#CCD8E8"
                     }
@@ -714,7 +714,7 @@ Item {
                     Text {
                         text: "km"
                         font.pixelSize: 11
-                        font.family: "Hyundai Sans Head"
+                        font.family: "Cluster Sans Head"
                         color: "#CCD8E8"
                         anchors.bottom: s2OdoNum.bottom
                         anchors.bottomMargin: 1

@@ -7,7 +7,7 @@
 # ============================================================================
 
 cmake_minimum_required(VERSION 3.16)
-project(HyundaiExterCluster LANGUAGES CXX)
+project(ApexCluster LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -24,14 +24,14 @@ if(Qt6_VERSION VERSION_GREATER_EQUAL "6.7.0")
     qt_policy(SET QTP0004 NEW)
 endif()
 
-qt_add_executable(HyundaiExterClusterApp
+qt_add_executable(ApexClusterApp
     src/main.cpp
     src/ClusterController.h
     src/ClusterController.cpp
 )
 
-qt_add_qml_module(HyundaiExterClusterApp
-    URI HyundaiExterCluster
+qt_add_qml_module(ApexClusterApp
+    URI ApexCluster
     VERSION 1.0
     RESOURCE_PREFIX "/qt/qml"
     QML_FILES
@@ -54,9 +54,9 @@ qt_add_qml_module(HyundaiExterClusterApp
         qml/center/TpmsDisplayView.qml
         qml/simulator/EcuSimulatorPanel.qml
     RESOURCES
-        resources/fonts/HyundaiSansHead-Regular.ttf
-        resources/fonts/HyundaiSansHead-Medium.ttf
-        resources/fonts/HyundaiSansHead-Bold.ttf
+        resources/fonts/ClusterSansHead-Regular.ttf
+        resources/fonts/ClusterSansHead-Medium.ttf
+        resources/fonts/ClusterSansHead-Bold.ttf
         resources/fonts/NotoSansDevanagari-Regular.ttf
         resources/fonts/Orbitron-Bold.ttf
         resources/fonts/Rajdhani-Bold.ttf
@@ -68,7 +68,7 @@ qt_add_qml_module(HyundaiExterClusterApp
         resources/icons/abs.png
         resources/icons/seatbelt.png
         resources/icons/smart_key.png
-        resources/icons/hyundai_smart_key_fob.png
+        resources/icons/smart_key_fob.png
         resources/icons/engine_start_button_oem.png
         resources/icons/engine_start_button_fob.png
         resources/icons/pedal_press_indicator.png
@@ -127,7 +127,6 @@ qt_add_qml_module(HyundaiExterClusterApp
         resources/icons/media_note.png
         resources/audio/tick.wav
         resources/audio/tock.wav
-        resources/audio/hyundai_chime.wav
         resources/audio/startup_animation_tone.wav
         resources/audio/welcome_chime.wav
         resources/audio/goodbye_chime.wav
@@ -145,12 +144,17 @@ qt_add_qml_module(HyundaiExterClusterApp
         assets/rpm_line3.svg
         assets/rpm_line4.svg
         assets/rpm_line5.svg
-        assets/hyundai_exter_car.png
+        assets/horizon_car.png
         assets/oem_studio_ground.png
         assets/car_ground_shadow.png
+        assets/apex_logo.png
+        assets/apex_wordmark.png
+        resources/icons/horizon_3d_car.png
+        resources/icons/horizon_3d_door_layer.png
+        resources/icons/horizon_3d_driver_door_open.png
 )
 
-target_link_libraries(HyundaiExterClusterApp PRIVATE
+target_link_libraries(ApexClusterApp PRIVATE
     Qt6::Quick
     Qt6::QuickControls2
     Qt6::Gui
@@ -159,6 +163,6 @@ target_link_libraries(HyundaiExterClusterApp PRIVATE
     Qt6::Multimedia
 )
 
-target_include_directories(HyundaiExterClusterApp PRIVATE
+target_include_directories(ApexClusterApp PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/src
 )

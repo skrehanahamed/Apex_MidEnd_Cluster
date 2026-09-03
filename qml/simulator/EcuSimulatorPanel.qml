@@ -3,7 +3,7 @@
  * Project:        Automotive Digital Instrument Cluster HMI
  * File:           EcuSimulatorPanel.qml
  * Author:         SK Rehan Ahamed
- * Description:    Dynamic Landscape ECU Telemetry Test Bench & Diagnostics
+ * Description:    High-Density Dynamic ECU Telemetry Diagnostic Test Bench
  * Copyright (c) 2026 SK Rehan Ahamed. All rights reserved.
  * ============================================================================
  */
@@ -14,7 +14,7 @@ import QtQuick.Controls
 Item {
     id: ecuRoot
     property bool isOpen: true
-    property int activeTab: 0 // 0 = Grid Overview, 1 = Powertrain, 2 = Steering & Trip, 3 = TPMS & Body, 4 = Lights & Telltales, 5 = Media & Alerts
+    property int activeTab: 0 // 0=All, 1=Powertrain, 2=Steering/Trip, 3=TPMS/Body, 4=Lighting, 5=Safety, 6=Infotainment
 
     signal btnUpPressed()
     signal btnDownPressed()
@@ -37,38 +37,43 @@ Item {
     function changeRpm(r) {
         if (typeof controller !== "undefined" && controller) controller.setRpm(r);
     }
-    function toggleDemo() {
-        if (typeof controller !== "undefined" && controller) controller.driveDemo();
-    }
 
     // Main Card Background
     Rectangle {
         id: bgCard
         anchors.fill: parent
-        radius: 8
-        color: "#080F18"
-        border.color: (typeof controller !== "undefined" && controller && controller.themeColor === "green") ? "#3000E676" : ((typeof controller !== "undefined" && controller && controller.themeColor === "red") ? "#30FF5252" : "#3000E5FF")
-        border.width: 1.2
+        color: "#070D16"
+        border.color: (typeof controller !== "undefined" && controller && controller.themeColor === "green") ? "#2500E676" : ((typeof controller !== "undefined" && controller && controller.themeColor === "red") ? "#25FF5252" : "#2500E5FF")
+        border.width: 1
         clip: true
 
-        // Top Accent Strip
+        // Top Accent Laser Line
         Rectangle {
             anchors.top: parent.top
             anchors.left: parent.left
             anchors.right: parent.right
-            height: 2.5
-            color: (typeof controller !== "undefined" && controller && controller.themeColor === "green") ? "#00E676" : ((typeof controller !== "undefined" && controller && controller.themeColor === "red") ? "#FF5252" : "#00E5FF")
+            height: 2
+            gradient: Gradient {
+                orientation: Gradient.Horizontal
+                GradientStop { position: 0.0; color: "transparent" }
+                GradientStop { position: 0.2; color: (typeof controller !== "undefined" && controller && controller.themeColor === "green") ? "#00E676" : ((typeof controller !== "undefined" && controller && controller.themeColor === "red") ? "#FF5252" : "#00E5FF") }
+                GradientStop { position: 0.8; color: (typeof controller !== "undefined" && controller && controller.themeColor === "green") ? "#00E676" : ((typeof controller !== "undefined" && controller && controller.themeColor === "red") ? "#FF5252" : "#00E5FF") }
+                GradientStop { position: 1.0; color: "transparent" }
+            }
         }
 
         // =============================================================
         // 1. TOP MASTER TOOLBAR (Theme, Ignition, Master Shortcuts)
         // =============================================================
-        Item {
+        Rectangle {
             id: masterHeader
             anchors.top: parent.top
             anchors.left: parent.left
             anchors.right: parent.right
-            height: 40
+            height: 36
+            color: "#0A1320"
+            border.color: "#162232"
+            border.width: 1
 
             Row {
                 anchors.left: parent.left
@@ -76,59 +81,83 @@ Item {
                 anchors.verticalCenter: parent.verticalCenter
                 spacing: 6
 
-                // Status Dot
+                // Live Pulse Status LED
                 Rectangle {
-                    width: 8; height: 8; radius: 4
+                    width: 7; height: 7; radius: 3.5
                     anchors.verticalCenter: parent.verticalCenter
-                    color: (typeof controller !== "undefined" && controller && controller.themeColor === "green") ? "#00E676" : ((typeof controller !== "undefined" && controller && controller.themeColor === "red") ? "#FF5252" : "#00E5FF")
+                    color: (typeof controller !== "undefined" && controller && controller.clusterState !== 5 && controller.clusterState !== 4) ? "#00E676" : "#FF3D57"
+                    SequentialAnimation on opacity {
+                        loops: Animation.Infinite
+                        NumberAnimation { to: 0.35; duration: 700; easing.type: Easing.InOutSine }
+                        NumberAnimation { to: 1.0; duration: 700; easing.type: Easing.InOutSine }
+                    }
                 }
 
                 Text {
-                    text: "ECU BENCH:"
-                    font.pixelSize: 10
+                    text: "ECU TESTBENCH"
+                    font.pixelSize: 9
                     font.bold: true
-                    color: "#80A0C0"
+                    font.letterSpacing: 1.0
+                    color: "#7E9AB8"
                     anchors.verticalCenter: parent.verticalCenter
                 }
 
-                // Theme Switcher Buttons
-                Repeater {
-                    model: [
-                        { name: "Blue", col: "blue", dot: "#00E5FF", border: "#00E5FF" },
-                        { name: "Green", col: "green", dot: "#00E676", border: "#00E676" },
-                        { name: "Red", col: "red", dot: "#FF5252", border: "#FF5252" }
-                    ]
-                    Rectangle {
-                        width: 52; height: 22; radius: 3
-                        anchors.verticalCenter: parent.verticalCenter
-                        color: (typeof controller !== "undefined" && controller && controller.themeColor === modelData.col) ? "#35" + modelData.dot.substring(1) : "#142030"
-                        border.color: (typeof controller !== "undefined" && controller && controller.themeColor === modelData.col) ? modelData.border : "#283848"
-                        border.width: 1
+                // Theme Presets
+                Row {
+                    anchors.verticalCenter: parent.verticalCenter
+                    spacing: 3
 
-                        Row {
-                            anchors.centerIn: parent
-                            spacing: 3
-                            Rectangle { width: 5; height: 5; radius: 2.5; color: modelData.dot }
-                            Text { text: modelData.name; font.pixelSize: 9; font.bold: true; color: "#FFFFFF" }
+                    Repeater {
+                        model: [
+                            { name: "CYAN", col: "blue", hex: "#00E5FF" },
+                            { name: "EMERALD", col: "green", hex: "#00E676" },
+                            { name: "CRIMSON", col: "red", hex: "#FF5252" }
+                        ]
+                        Rectangle {
+                            width: 50; height: 20; radius: 3
+                            property bool isActive: typeof controller !== "undefined" && controller && controller.themeColor === modelData.col
+                            color: isActive ? "#28" + modelData.hex.substring(1) : "#101A26"
+                            border.color: isActive ? modelData.hex : "#203042"
+                            border.width: isActive ? 1.2 : 1
+                            scale: thmMouse.pressed ? 0.96 : 1.0
+                            Behavior on scale { NumberAnimation { duration: 80 } }
+
+                            Row {
+                                anchors.centerIn: parent
+                                spacing: 4
+                                Rectangle { width: 4; height: 4; radius: 2; color: modelData.hex }
+                                Text { text: modelData.name; font.pixelSize: 8; font.bold: true; color: parent.parent.isActive ? "#FFFFFF" : "#7E9AB8" }
+                            }
+                            MouseArea {
+                                id: thmMouse
+                                anchors.fill: parent; cursorShape: Qt.PointingHandCursor
+                                onClicked: ecuRoot.changeTheme(modelData.col)
+                            }
                         }
-                        MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: ecuRoot.changeTheme(modelData.col) }
                     }
                 }
 
-                // Quick Ignition Toggle
+                // Ignition Main Toggle
                 Rectangle {
-                    width: 82; height: 22; radius: 3
+                    width: 78; height: 20; radius: 3
                     anchors.verticalCenter: parent.verticalCenter
                     property bool isIgnOn: (typeof controller !== "undefined" && controller && controller.clusterState !== 5 && controller.clusterState !== 4)
-                    color: isIgnOn ? "#3000E676" : "#40FF1744"
+                    color: isIgnOn ? "#2800E676" : "#28FF1744"
                     border.color: isIgnOn ? "#00E676" : "#FF1744"
+                    scale: ignMouse.pressed ? 0.96 : 1.0
+                    Behavior on scale { NumberAnimation { duration: 80 } }
 
-                    Text {
+                    Row {
                         anchors.centerIn: parent
-                        text: parent.isIgnOn ? "🟢 IGN: ON" : "🔴 IGN: OFF"
-                        font.pixelSize: 9; font.bold: true; color: "#FFFFFF"
+                        spacing: 4
+                        Rectangle { width: 5; height: 5; radius: 2.5; color: parent.parent.isIgnOn ? "#00E676" : "#FF1744" }
+                        Text {
+                            text: parent.parent.isIgnOn ? "PWR: ON" : "PWR: OFF"
+                            font.pixelSize: 8; font.bold: true; color: "#FFFFFF"
+                        }
                     }
                     MouseArea {
+                        id: ignMouse
                         anchors.fill: parent; cursorShape: Qt.PointingHandCursor
                         onClicked: {
                             if (typeof controller !== "undefined" && controller) {
@@ -140,47 +169,50 @@ Item {
                 }
             }
 
-            // Right side: Quick Master Fault Controls
+            // Quick Shortcut Actions
             Row {
                 anchors.right: parent.right
                 anchors.rightMargin: 10
                 anchors.verticalCenter: parent.verticalCenter
-                spacing: 5
+                spacing: 4
 
                 Rectangle {
-                    width: 58; height: 22; radius: 3
-                    color: "#183024"; border.color: "#00E676"
-                    Text { anchors.centerIn: parent; text: "ALL ON"; font.pixelSize: 8; font.bold: true; color: "#00E676" }
-                    MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: if (typeof controller !== "undefined" && controller) controller.setAllTelltales(true) }
+                    width: 54; height: 20; radius: 3
+                    color: "#12241A"; border.color: "#00E676"
+                    scale: allOnMouse.pressed ? 0.96 : 1.0
+                    Text { anchors.centerIn: parent; text: "ALL TELL"; font.pixelSize: 8; font.bold: true; color: "#00E676" }
+                    MouseArea { id: allOnMouse; anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: if (typeof controller !== "undefined" && controller) controller.setAllTelltales(true) }
                 }
 
                 Rectangle {
-                    width: 58; height: 22; radius: 3
-                    color: "#281820"; border.color: "#FF5252"
-                    Text { anchors.centerIn: parent; text: "ALL OFF"; font.pixelSize: 8; font.bold: true; color: "#FF5252" }
-                    MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: if (typeof controller !== "undefined" && controller) controller.setAllTelltales(false) }
+                    width: 54; height: 20; radius: 3
+                    color: "#24141A"; border.color: "#FF5252"
+                    scale: allOffMouse.pressed ? 0.96 : 1.0
+                    Text { anchors.centerIn: parent; text: "CLEAR ALL"; font.pixelSize: 8; font.bold: true; color: "#FF5252" }
+                    MouseArea { id: allOffMouse; anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: if (typeof controller !== "undefined" && controller) controller.setAllTelltales(false) }
                 }
 
                 Rectangle {
-                    width: 68; height: 22; radius: 3
-                    color: "#182838"; border.color: "#00E5FF"
-                    Text { anchors.centerIn: parent; text: "RESTART"; font.pixelSize: 8; font.bold: true; color: "#00E5FF" }
-                    MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: if (typeof controller !== "undefined" && controller) controller.triggerStartupSequence() }
+                    width: 62; height: 20; radius: 3
+                    color: "#101E2E"; border.color: "#00E5FF"
+                    scale: restartMouse.pressed ? 0.96 : 1.0
+                    Text { anchors.centerIn: parent; text: "BOOT RESET"; font.pixelSize: 8; font.bold: true; color: "#00E5FF" }
+                    MouseArea { id: restartMouse; anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: if (typeof controller !== "undefined" && controller) controller.triggerStartupSequence() }
                 }
             }
         }
 
         // =============================================================
-        // 2. DYNAMIC LANDSCAPE MODULE CATEGORY TABS
+        // 2. SUBSYSTEM CATEGORY TABS (Compact Space-Saving Filter)
         // =============================================================
         Rectangle {
             id: tabBar
             anchors.top: masterHeader.bottom
             anchors.left: parent.left
             anchors.right: parent.right
-            height: 32
-            color: "#0B1522"
-            border.color: "#18283A"
+            height: 28
+            color: "#08101A"
+            border.color: "#142030"
             border.width: 1
 
             ListView {
@@ -189,38 +221,58 @@ Item {
                 anchors.leftMargin: 8
                 anchors.rightMargin: 8
                 orientation: ListView.Horizontal
-                spacing: 4
+                spacing: 3
                 boundsBehavior: Flickable.StopAtBounds
 
                 model: [
-                    { id: 0, label: "🔲 Overview Grid" },
-                    { id: 1, label: "🚗 Powertrain & AMT" },
-                    { id: 2, label: "🎛️ Steering & Trip" },
-                    { id: 3, label: "🛞 TPMS & Body" },
-                    { id: 4, label: "🚨 Lights & Warnings" },
-                    { id: 5, label: "🎵 Media & Alerts" }
+                    { id: 0, tag: "ALL", name: "Overview" },
+                    { id: 1, tag: "SYS-01", name: "Powertrain" },
+                    { id: 2, tag: "SYS-02", name: "Transmission" },
+                    { id: 3, tag: "SYS-03", name: "Steering/Trip" },
+                    { id: 4, tag: "SYS-04", name: "Chassis/TPMS" },
+                    { id: 5, tag: "SYS-05", name: "Doors/Body" },
+                    { id: 6, tag: "SYS-06", name: "Safety/Belts" },
+                    { id: 7, tag: "SYS-07", name: "Infotainment" }
                 ]
 
                 delegate: Rectangle {
-                    height: 24
-                    width: tabText.implicitWidth + 20
+                    height: 20
+                    width: tabLabelRow.implicitWidth + 14
                     anchors.verticalCenter: parent.verticalCenter
-                    radius: 4
-                    color: ecuRoot.activeTab === modelData.id ? "#3000E5FF" : "#121E2C"
-                    border.color: ecuRoot.activeTab === modelData.id ? "#00E5FF" : "#243448"
-                    border.width: ecuRoot.activeTab === modelData.id ? 1.2 : 1
+                    radius: 3
+                    property bool isSelected: ecuRoot.activeTab === modelData.id
+                    color: isSelected ? "#3000E5FF" : (tabM.containsMouse ? "#142232" : "#0D1622")
+                    border.color: isSelected ? "#00E5FF" : "#1E2E40"
+                    border.width: isSelected ? 1.2 : 1
+                    scale: tabM.pressed ? 0.96 : 1.0
 
-                    Text {
-                        id: tabText
+                    Row {
+                        id: tabLabelRow
                         anchors.centerIn: parent
-                        text: modelData.label
-                        font.pixelSize: 9
-                        font.bold: true
-                        color: ecuRoot.activeTab === modelData.id ? "#00E5FF" : "#8FA8C0"
+                        spacing: 4
+                        Rectangle {
+                            width: 3; height: 3; radius: 1.5
+                            color: parent.parent.isSelected ? "#00E5FF" : "#5A7288"
+                            anchors.verticalCenter: parent.verticalCenter
+                        }
+                        Text {
+                            text: modelData.tag
+                            font.pixelSize: 8
+                            font.bold: true
+                            color: parent.parent.isSelected ? "#00E5FF" : "#5A7288"
+                        }
+                        Text {
+                            text: modelData.name
+                            font.pixelSize: 8
+                            font.bold: parent.parent.isSelected
+                            color: parent.parent.isSelected ? "#FFFFFF" : "#8AA2B8"
+                        }
                     }
 
                     MouseArea {
+                        id: tabM
                         anchors.fill: parent
+                        hoverEnabled: true
                         cursorShape: Qt.PointingHandCursor
                         onClicked: ecuRoot.activeTab = modelData.id
                     }
@@ -229,7 +281,7 @@ Item {
         }
 
         // =============================================================
-        // 3. DYNAMIC LANDSCAPE SCROLL CONTENT AREA
+        // 3. COMPACT DYNAMIC MODULES SCROLL AREA
         // =============================================================
         ScrollView {
             id: mainScroll
@@ -237,70 +289,59 @@ Item {
             anchors.left: parent.left
             anchors.right: parent.right
             anchors.bottom: parent.bottom
-            anchors.margins: 8
+            anchors.margins: 6
             clip: true
 
-            // Grid or Single Module Container
             Flow {
                 id: modulesFlow
-                width: mainScroll.width - 12
-                spacing: 8
+                width: mainScroll.width - 10
+                spacing: 6
 
-                // Dynamic Column Width Calculation for Landscape Responsive Grid
-                readonly property int gridCols: width > 1020 ? 3 : (width > 680 ? 2 : 1)
-                readonly property real cardWidth: ecuRoot.activeTab === 0 ? ((width - (gridCols - 1) * spacing) / gridCols) : width
+                readonly property int gridCols: width > 980 ? 3 : (width > 640 ? 2 : 1)
+                readonly property real cardWidth: (width - (gridCols - 1) * spacing) / gridCols
 
                 // -----------------------------------------------------
-                // CARD 1: POWERTRAIN & VEHICLE DYNAMICS
+                // CARD 1: POWERTRAIN & IGNITION (SYS-01)
                 // -----------------------------------------------------
                 Rectangle {
                     visible: ecuRoot.activeTab === 0 || ecuRoot.activeTab === 1
-                    width: modulesFlow.cardWidth
-                    implicitHeight: card1Col.implicitHeight + 16
-                    radius: 6
-                    color: "#101B28"
-                    border.color: "#203448"
-                    border.width: 1
+                    width: modulesFlow.cardWidth; height: 215; radius: 5
+                    color: "#0C1624"; border.color: "#1A2C40"; border.width: 1
 
                     Column {
-                        id: card1Col
-                        anchors.fill: parent
-                        anchors.margins: 8
-                        spacing: 8
+                        anchors.fill: parent; anchors.margins: 7; spacing: 5
 
-                        // Section Title
+                        // Header
                         Row {
-                            spacing: 5
-                            Text { text: "🚗"; font.pixelSize: 11 }
-                            Text { text: "POWERTRAIN & AMT DYNAMICS"; font.pixelSize: 10; font.bold: true; color: "#00E5FF" }
+                            width: parent.width; spacing: 4
+                            Rectangle { width: 3; height: 10; radius: 1.5; color: "#00E5FF"; anchors.verticalCenter: parent.verticalCenter }
+                            Text { text: "SYS-01: POWERTRAIN & ENGINE"; font.pixelSize: 8; font.bold: true; color: "#00E5FF" }
                         }
 
-                        // Cluster State Selector
-                        Row {
-                            width: parent.width
-                            spacing: 3
+                        // State Buttons (5 States)
+                        Grid {
+                            columns: 5; width: parent.width; spacing: 2
                             Repeater {
                                 model: [
-                                    { name: "1: Startup", state: 1 },
-                                    { name: "2: Check", state: 2 },
-                                    { name: "3: Drive", state: 3 },
-                                    { name: "4: Off", state: 5 }
+                                    { name: "INIT", state: 0 },
+                                    { name: "LOGO", state: 1 },
+                                    { name: "CHECK", state: 2 },
+                                    { name: "DRIVE", state: 3 },
+                                    { name: "OFF", state: 5 }
                                 ]
                                 Rectangle {
-                                    width: (parent.width - 9) / 4
-                                    height: 24
-                                    radius: 3
-                                    color: (typeof controller !== "undefined" && controller && controller.clusterState === modelData.state) ? "#4000C8FF" : "#142232"
-                                    border.color: (typeof controller !== "undefined" && controller && controller.clusterState === modelData.state) ? "#00E5FF" : "#283C50"
-
-                                    Text { anchors.centerIn: parent; text: modelData.name; font.pixelSize: 8; font.bold: true; color: "#FFFFFF" }
+                                    width: (parent.width - 8) / 5; height: 20; radius: 2.5
+                                    property bool isCur: typeof controller !== "undefined" && controller && controller.clusterState === modelData.state
+                                    color: isCur ? "#3500E5FF" : "#121E2C"
+                                    border.color: isCur ? "#00E5FF" : "#223448"
+                                    Text { anchors.centerIn: parent; text: modelData.name; font.pixelSize: 8; font.bold: true; color: parent.isCur ? "#FFFFFF" : "#7E9AB8" }
                                     MouseArea {
                                         anchors.fill: parent; cursorShape: Qt.PointingHandCursor
                                         onClicked: {
-                                            if (modelData.state === 5) {
-                                                if (typeof controller !== "undefined" && controller) controller.triggerShutdown();
-                                            } else {
-                                                ecuRoot.changeState(modelData.state);
+                                            if (typeof controller !== "undefined" && controller) {
+                                                if (modelData.state === 5) controller.triggerShutdown();
+                                                else if (modelData.state === 1) controller.triggerStartupSequence();
+                                                else controller.setClusterState(modelData.state);
                                             }
                                         }
                                     }
@@ -308,171 +349,208 @@ Item {
                             }
                         }
 
-                        // Auto Simulation Control Card
-                        Rectangle {
-                            id: demoCard
-                            width: parent.width
-                            height: demoActive ? 76 : 38
-                            radius: 6
-                            clip: true
-                            property bool demoActive: typeof controller !== "undefined" && controller && controller.isDemoDriving
-
-                            Behavior on height { NumberAnimation { duration: 180; easing.type: Easing.OutCubic } }
-
-                            gradient: Gradient {
-                                GradientStop { position: 0.0; color: demoCard.demoActive ? "#2800E676" : "#201a2a40" }
-                                GradientStop { position: 1.0; color: demoCard.demoActive ? "#1200b050" : "#10101828" }
-                            }
-                            border.color: demoCard.demoActive ? "#00E676" : "#3000E5FF"
-
+                        // Speed Control Slider
+                        Column {
+                            width: parent.width; spacing: 2
                             Item {
-                                id: topRowDemo
-                                width: parent.width; height: 38
-                                anchors.top: parent.top
-
-                                Rectangle {
-                                    id: statusLedDemo
-                                    anchors.left: parent.left; anchors.leftMargin: 8
-                                    anchors.verticalCenter: parent.verticalCenter
-                                    width: 7; height: 7; radius: 3.5
-                                    color: demoCard.demoActive ? "#00E676" : "#445060"
-                                }
-
-                                Text {
-                                    anchors.left: statusLedDemo.right; anchors.leftMargin: 6
-                                    anchors.verticalCenter: parent.verticalCenter
-                                    text: demoCard.demoActive ? "AUTO-DRIVE RUNNING" : "AUTO SIMULATION"
-                                    font.pixelSize: 9; font.bold: true
-                                    color: demoCard.demoActive ? "#00E676" : "#80A0C0"
-                                }
-
-                                Rectangle {
-                                    anchors.right: parent.right; anchors.rightMargin: 6
-                                    anchors.verticalCenter: parent.verticalCenter
-                                    width: 58; height: 22; radius: 4
-                                    color: demoCard.demoActive ? "#40FF3B3B" : "#3000E5FF"
-                                    border.color: demoCard.demoActive ? "#FF5252" : "#00E5FF"
-
-                                    Text { anchors.centerIn: parent; text: demoCard.demoActive ? "⏹ STOP" : "▶ START"; font.pixelSize: 9; font.bold: true; color: demoCard.demoActive ? "#FF5252" : "#00E5FF" }
-                                    MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: ecuRoot.toggleDemo() }
-                                }
+                                width: parent.width; height: 12
+                                Text { anchors.left: parent.left; text: "SPEED:"; font.pixelSize: 8; font.bold: true; color: "#7E9AB8" }
+                                Text { anchors.right: parent.right; text: (typeof controller !== "undefined" && controller ? controller.speed : 0) + " km/h"; font.pixelSize: 8; font.bold: true; color: "#00E5FF" }
                             }
+                            Slider {
+                                width: parent.width; height: 16
+                                from: 0; to: 180; stepSize: 1
+                                value: typeof controller !== "undefined" && controller ? controller.speed : 0
+                                onMoved: if (typeof controller !== "undefined" && controller) controller.setSpeed(Math.round(value))
+                            }
+                        }
 
-                            Column {
-                                visible: demoCard.demoActive
-                                anchors.left: parent.left; anchors.right: parent.right
-                                anchors.leftMargin: 8; anchors.rightMargin: 8
-                                anchors.top: topRowDemo.bottom
-                                spacing: 3
+                        // RPM Control Slider
+                        Column {
+                            width: parent.width; spacing: 2
+                            Item {
+                                width: parent.width; height: 12
+                                Text { anchors.left: parent.left; text: "ENGINE RPM:"; font.pixelSize: 8; font.bold: true; color: "#7E9AB8" }
+                                Text { anchors.right: parent.right; text: (typeof controller !== "undefined" && controller ? controller.rpm.toFixed(1) : "0.0") + "k"; font.pixelSize: 8; font.bold: true; color: "#00E5FF" }
+                            }
+                            Slider {
+                                width: parent.width; height: 16
+                                from: 0.0; to: 6.5; stepSize: 0.1
+                                value: typeof controller !== "undefined" && controller ? controller.rpm : 0.0
+                                onMoved: if (typeof controller !== "undefined" && controller) controller.setRpm(value)
+                            }
+                        }
 
-                                Text {
-                                    width: parent.width
-                                    text: (typeof controller !== "undefined" && controller && controller.demoScenario) ? controller.demoScenario : "—"
-                                    font.pixelSize: 8; color: "#C0E8FF"; elide: Text.ElideRight
-                                }
-
-                                Item {
-                                    width: parent.width; height: 8
-                                    Rectangle { anchors.fill: parent; radius: 2; color: "#18303C" }
-                                    Rectangle {
-                                        anchors.left: parent.left; anchors.top: parent.top; anchors.bottom: parent.bottom; radius: 2
-                                        property real phase: typeof controller !== "undefined" && controller ? (controller.speed <= 5 ? 0 : controller.speed <= 60 ? 1 : 2) : 0
-                                        color: phase === 0 ? "#FF8A00" : phase === 1 ? "#00B0FF" : "#00E676"
-                                        width: parent.width * Math.min(1.0, (typeof controller !== "undefined" && controller ? controller.speed : 0) / 120.0)
+                        // Quick Speed Presets
+                        Row {
+                            width: parent.width; spacing: 3
+                            Repeater {
+                                model: [
+                                    { name: "0", spd: 0, rpm: 0.8 },
+                                    { name: "40", spd: 40, rpm: 2.1 },
+                                    { name: "80", spd: 80, rpm: 2.8 },
+                                    { name: "120", spd: 120, rpm: 3.6 }
+                                ]
+                                Rectangle {
+                                    width: (parent.width - 9) / 4; height: 18; radius: 2
+                                    color: "#121E2C"; border.color: "#223448"
+                                    Text { anchors.centerIn: parent; text: modelData.name + " km/h"; font.pixelSize: 7; font.bold: true; color: "#8AA2B8" }
+                                    MouseArea {
+                                        anchors.fill: parent; cursorShape: Qt.PointingHandCursor
+                                        onClicked: {
+                                            if (typeof controller !== "undefined" && controller) {
+                                                controller.setSpeed(modelData.spd);
+                                                controller.setRpm(modelData.rpm);
+                                            }
+                                        }
                                     }
                                 }
                             }
                         }
 
-                        // Speed Readout & Slider
+                        // Autonomous Drive Demo Toggle
+                        Rectangle {
+                            width: parent.width; height: 20; radius: 2.5
+                            property bool isDemo: typeof controller !== "undefined" && controller && controller.isDemoDriving
+                            color: isDemo ? "#3000E676" : "#121E2C"
+                            border.color: isDemo ? "#00E676" : "#223448"
+                            Row {
+                                anchors.centerIn: parent; spacing: 4
+                                Rectangle { width: 5; height: 5; radius: 2.5; color: parent.parent.isDemo ? "#00E676" : "#5A7288" }
+                                Text { text: parent.parent.isDemo ? "DEMO ACTIVE: " + (controller ? controller.demoScenario : "") : "RUN AUTO DRIVE DEMO"; font.pixelSize: 8; font.bold: true; color: "#FFFFFF" }
+                            }
+                            MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: ecuRoot.toggleDemo() }
+                        }
+                    }
+                }
+
+                // -----------------------------------------------------
+                // CARD 2: TRANSMISSION & AMT GEARBOX (SYS-02)
+                // -----------------------------------------------------
+                Rectangle {
+                    visible: ecuRoot.activeTab === 0 || ecuRoot.activeTab === 2
+                    width: modulesFlow.cardWidth; height: 215; radius: 5
+                    color: "#0C1624"; border.color: "#1A2C40"; border.width: 1
+
+                    Column {
+                        anchors.fill: parent; anchors.margins: 7; spacing: 5
+
                         Item {
-                            width: parent.width; height: 16
-                            Text {
-                                anchors.left: parent.left; anchors.verticalCenter: parent.verticalCenter
-                                text: "SPEED: " + (typeof controller !== "undefined" && controller ? controller.speed : 0) + " km/h"
-                                font.pixelSize: 9; font.bold: true; color: "#00E5FF"
+                            width: parent.width; height: 14
+                            Row {
+                                anchors.left: parent.left; spacing: 4
+                                Rectangle { width: 3; height: 10; radius: 1.5; color: "#00E5FF"; anchors.verticalCenter: parent.verticalCenter }
+                                Text { text: "SYS-02: AMT GEAR SELECTOR"; font.pixelSize: 8; font.bold: true; color: "#00E5FF" }
                             }
                             Text {
-                                anchors.right: parent.right; anchors.verticalCenter: parent.verticalCenter
-                                text: "AMT RPM: " + (typeof controller !== "undefined" && controller ? controller.rpm.toFixed(1) : "0.0") + "k (" + (typeof controller !== "undefined" && controller ? controller.gear : "N") + ")"
-                                font.pixelSize: 8; font.bold: true; color: "#00E676"
+                                text: "[" + (typeof controller !== "undefined" && controller ? controller.gear : "N") + "]"
+                                font.pixelSize: 8; font.bold: true
+                                color: (typeof controller !== "undefined" && controller && controller.gear === "N") ? "#00E676" : "#FFFFFF"
+                                anchors.right: parent.right
                             }
                         }
 
-                        Slider {
-                            width: parent.width; height: 24
-                            from: 0; to: 180; stepSize: 1
-                            value: typeof controller !== "undefined" && controller ? controller.speed : 0
-                            onMoved: if (typeof controller !== "undefined" && controller) controller.setSpeed(Math.round(value))
-                        }
-
-                        // Gear Selector
-                        Text { text: "AMT GEAR SELECTOR"; font.pixelSize: 8; font.bold: true; color: "#80A0C0" }
+                        // Primary PRND Selector
                         Grid {
-                            columns: 5; width: parent.width; spacing: 3
+                            columns: 4; width: parent.width; spacing: 3
                             Repeater {
-                                model: ["P", "R", "N", "D", "1", "2", "3", "4", "5", "M1", "M2", "M3", "M4", "M5"]
+                                model: ["P", "R", "N", "D"]
                                 Rectangle {
-                                    width: (parent.width - 12) / 5; height: 22; radius: 3
-                                    color: (typeof controller !== "undefined" && controller && controller.gear === modelData) ? "#5000C8FF" : "#142232"
-                                    border.color: (typeof controller !== "undefined" && controller && controller.gear === modelData) ? "#00E5FF" : "#283C50"
-                                    Text { anchors.centerIn: parent; text: modelData; font.pixelSize: 8; font.bold: true; color: "#FFFFFF" }
+                                    width: (parent.width - 9) / 4; height: 24; radius: 3
+                                    property bool isCur: typeof controller !== "undefined" && controller && controller.gear === modelData
+                                    color: isCur ? (modelData === "N" ? "#3500E676" : "#3500E5FF") : "#121E2C"
+                                    border.color: isCur ? (modelData === "N" ? "#00E676" : "#00E5FF") : "#223448"
+                                    border.width: isCur ? 1.5 : 1
+                                    Text {
+                                        anchors.centerIn: parent; text: modelData
+                                        font.pixelSize: 9; font.bold: true
+                                        color: parent.isCur ? (modelData === "N" ? "#00E676" : "#00E5FF") : "#8AA2B8"
+                                    }
                                     MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: ecuRoot.changeGear(modelData) }
                                 }
                             }
                         }
 
-                        // Fuel & Coolant Temp Sliders
-                        Item {
-                            width: parent.width; height: 14
-                            Text { text: "FUEL LEVEL: " + (typeof controller !== "undefined" && controller ? controller.fuelLevel : 9) + "/12 bars"; font.pixelSize: 8; font.bold: true; color: "#00E5FF"; anchors.left: parent.left }
-                            Text { text: "RANGE: " + (typeof controller !== "undefined" && controller ? (controller.fuelLevel <= 0 ? "---" : controller.dteKm + " km") : "---"); font.pixelSize: 8; font.bold: true; color: "#CCD8E8"; anchors.right: parent.right }
-                        }
-                        Slider {
-                            width: parent.width; height: 22
-                            from: 0; to: 12; stepSize: 1
-                            value: typeof controller !== "undefined" && controller ? controller.fuelLevel : 9
-                            onMoved: if (typeof controller !== "undefined" && controller) controller.setFuelLevel(Math.round(value))
-                        }
-
-                        Item {
-                            width: parent.width; height: 14
-                            Text { text: "COOLANT TEMP: " + (typeof controller !== "undefined" && controller ? controller.tempLevel : 6) + "/12 bars"; font.pixelSize: 8; font.bold: true; color: "#00E5FF"; anchors.left: parent.left }
-                        }
-                        Slider {
-                            width: parent.width; height: 22
-                            from: 0; to: 12; stepSize: 1
-                            value: typeof controller !== "undefined" && controller ? controller.tempLevel : 6
-                            onMoved: if (typeof controller !== "undefined" && controller) controller.setTempLevel(Math.round(value))
+                        // Drive Ratio (D1..D5)
+                        Row {
+                            width: parent.width; spacing: 2
+                            Repeater {
+                                model: ["D1", "D2", "D3", "D4", "D5"]
+                                Rectangle {
+                                    width: (parent.width - 8) / 5; height: 20; radius: 2.5
+                                    property bool isCur: typeof controller !== "undefined" && controller && controller.gear === modelData
+                                    color: isCur ? "#3500E5FF" : "#101824"
+                                    border.color: isCur ? "#00E5FF" : "#203042"
+                                    Text { anchors.centerIn: parent; text: modelData; font.pixelSize: 8; font.bold: true; color: parent.isCur ? "#FFFFFF" : "#7A92A8" }
+                                    MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: ecuRoot.changeGear(modelData) }
+                                }
+                            }
                         }
 
-                        // Cruise Control Controls
-                        Text { text: "CRUISE CONTROL (STEERING)"; font.pixelSize: 8; font.bold: true; color: "#80A0C0" }
+                        // Manual Tiptronic (M1..M5)
+                        Row {
+                            width: parent.width; spacing: 2
+                            Repeater {
+                                model: ["M1", "M2", "M3", "M4", "M5"]
+                                Rectangle {
+                                    width: (parent.width - 8) / 5; height: 20; radius: 2.5
+                                    property bool isCur: typeof controller !== "undefined" && controller && controller.gear === modelData
+                                    color: isCur ? "#35FFA000" : "#101824"
+                                    border.color: isCur ? "#FFA000" : "#203042"
+                                    Text { anchors.centerIn: parent; text: modelData; font.pixelSize: 8; font.bold: true; color: parent.isCur ? "#FFA000" : "#7A92A8" }
+                                    MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: ecuRoot.changeGear(modelData) }
+                                }
+                            }
+                        }
+
+                        // Fluid Levels (Fuel & Coolant)
                         Row {
                             width: parent.width; spacing: 4
+                            Column {
+                                width: (parent.width - 4) / 2; spacing: 1
+                                Text { text: "FUEL: " + (typeof controller !== "undefined" && controller ? controller.fuelLevel : 9) + "/12"; font.pixelSize: 7; font.bold: true; color: "#7E9AB8" }
+                                Slider {
+                                    width: parent.width; height: 16
+                                    from: 0; to: 12; stepSize: 1
+                                    value: typeof controller !== "undefined" && controller ? controller.fuelLevel : 9
+                                    onMoved: if (typeof controller !== "undefined" && controller) controller.setFuelLevel(Math.round(value))
+                                }
+                            }
+                            Column {
+                                width: (parent.width - 4) / 2; spacing: 1
+                                Text { text: "TEMP: " + (typeof controller !== "undefined" && controller ? controller.tempLevel : 6) + "/12"; font.pixelSize: 7; font.bold: true; color: "#7E9AB8" }
+                                Slider {
+                                    width: parent.width; height: 16
+                                    from: 0; to: 12; stepSize: 1
+                                    value: typeof controller !== "undefined" && controller ? controller.tempLevel : 6
+                                    onMoved: if (typeof controller !== "undefined" && controller) controller.setTempLevel(Math.round(value))
+                                }
+                            }
+                        }
+
+                        // Cruise Control Bar
+                        Row {
+                            width: parent.width; spacing: 3
                             Rectangle {
-                                width: (parent.width - 12) / 4; height: 24; radius: 3
-                                color: (typeof controller !== "undefined" && controller && controller.cruiseEnabled) ? "#3000E676" : "#142030"
-                                border.color: (typeof controller !== "undefined" && controller && controller.cruiseEnabled) ? "#00E676" : "#283848"
-                                Text { anchors.centerIn: parent; text: "CRUISE [C]"; font.pixelSize: 8; font.bold: true; color: "#FFFFFF" }
+                                width: (parent.width - 9) / 4; height: 18; radius: 2
+                                property bool isCrOn: typeof controller !== "undefined" && controller && controller.cruiseEnabled
+                                color: isCrOn ? "#2800E676" : "#121E2C"; border.color: isCrOn ? "#00E676" : "#223448"
+                                Text { anchors.centerIn: parent; text: "CRUISE"; font.pixelSize: 7; font.bold: true; color: parent.isCrOn ? "#00E676" : "#7E9AB8" }
                                 MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: if (typeof controller !== "undefined" && controller) controller.toggleCruise() }
                             }
                             Rectangle {
-                                width: (parent.width - 12) / 4; height: 24; radius: 3
-                                color: "#142030"; border.color: "#283848"
-                                Text { anchors.centerIn: parent; text: "SET / −"; font.pixelSize: 8; font.bold: true; color: "#00E5FF" }
+                                width: (parent.width - 9) / 4; height: 18; radius: 2; color: "#121E2C"; border.color: "#223448"
+                                Text { anchors.centerIn: parent; text: "SET -"; font.pixelSize: 7; font.bold: true; color: "#CCD8E8" }
                                 MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: if (typeof controller !== "undefined" && controller) controller.cruiseSetMinus() }
                             }
                             Rectangle {
-                                width: (parent.width - 12) / 4; height: 24; radius: 3
-                                color: "#142030"; border.color: "#283848"
-                                Text { anchors.centerIn: parent; text: "RES / +"; font.pixelSize: 8; font.bold: true; color: "#00E5FF" }
+                                width: (parent.width - 9) / 4; height: 18; radius: 2; color: "#121E2C"; border.color: "#223448"
+                                Text { anchors.centerIn: parent; text: "RES +"; font.pixelSize: 7; font.bold: true; color: "#CCD8E8" }
                                 MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: if (typeof controller !== "undefined" && controller) controller.cruiseResPlus() }
                             }
                             Rectangle {
-                                width: (parent.width - 12) / 4; height: 24; radius: 3
-                                color: "#142030"; border.color: "#283848"
-                                Text { anchors.centerIn: parent; text: "CANCEL"; font.pixelSize: 8; font.bold: true; color: "#FF5252" }
+                                width: (parent.width - 9) / 4; height: 18; radius: 2; color: "#121E2C"; border.color: "#223448"
+                                Text { anchors.centerIn: parent; text: "CANCEL"; font.pixelSize: 7; font.bold: true; color: "#FF5252" }
                                 MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: if (typeof controller !== "undefined" && controller) controller.cruiseCancel() }
                             }
                         }
@@ -480,416 +558,447 @@ Item {
                 }
 
                 // -----------------------------------------------------
-                // CARD 2: STEERING SWITCHES & TRIP COMPUTER
+                // CARD 3: STEERING WHEEL HMI & TRIP (SYS-03)
                 // -----------------------------------------------------
                 Rectangle {
-                    visible: ecuRoot.activeTab === 0 || ecuRoot.activeTab === 2
-                    width: modulesFlow.cardWidth
-                    implicitHeight: card2Col.implicitHeight + 16
-                    radius: 6
-                    color: "#101B28"
-                    border.color: "#203448"
-                    border.width: 1
+                    visible: ecuRoot.activeTab === 0 || ecuRoot.activeTab === 3
+                    width: modulesFlow.cardWidth; height: 215; radius: 5
+                    color: "#0C1624"; border.color: "#1A2C40"; border.width: 1
 
                     Column {
-                        id: card2Col
-                        anchors.fill: parent
-                        anchors.margins: 8
-                        spacing: 8
+                        anchors.fill: parent; anchors.margins: 7; spacing: 5
 
-                        // Section Title
                         Row {
-                            spacing: 5
-                            Text { text: "🎛️"; font.pixelSize: 11 }
-                            Text { text: "STEERING D-PAD & TRIP PAGES"; font.pixelSize: 10; font.bold: true; color: "#00E5FF" }
+                            width: parent.width; spacing: 4
+                            Rectangle { width: 3; height: 10; radius: 1.5; color: "#00E5FF"; anchors.verticalCenter: parent.verticalCenter }
+                            Text { text: "SYS-03: STEERING D-PAD & TRIP"; font.pixelSize: 8; font.bold: true; color: "#00E5FF" }
                         }
 
-                        // D-Pad Grid
+                        // Steering Wheel Physical D-Pad Buttons
                         Grid {
-                            columns: 3; width: parent.width; spacing: 4
+                            columns: 3; width: parent.width; spacing: 3
                             Rectangle {
-                                width: (parent.width - 8) / 3; height: 28; radius: 3
-                                color: (typeof controller !== "undefined" && controller && controller.showMenuTabs) ? "#4000E5FF" : "#142030"
-                                border.color: (typeof controller !== "undefined" && controller && controller.showMenuTabs) ? "#00E5FF" : "#283848"
-                                Text { anchors.centerIn: parent; text: "📄 INFO [I]"; font.pixelSize: 8; font.bold: true; color: "#FFFFFF" }
-                                MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: ecuRoot.btnInfoPressed() }
-                            }
-                            Rectangle {
-                                width: (parent.width - 8) / 3; height: 28; radius: 3
-                                color: "#182838"; border.color: "#305070"
-                                Text { anchors.centerIn: parent; text: "▲ UP [↑]"; font.pixelSize: 8; font.bold: true; color: "#00E5FF" }
+                                width: (parent.width - 6) / 3; height: 22; radius: 3; color: "#142232"; border.color: "#283C50"
+                                Text { anchors.centerIn: parent; text: "UP [▲]"; font.pixelSize: 8; font.bold: true; color: "#CCD8E8" }
                                 MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: ecuRoot.btnUpPressed() }
                             }
                             Rectangle {
-                                width: (parent.width - 8) / 3; height: 28; radius: 3
-                                color: "#182838"; border.color: "#305070"
-                                Text { anchors.centerIn: parent; text: "↩ BACK [Esc]"; font.pixelSize: 8; font.bold: true; color: "#FFA726" }
-                                MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: ecuRoot.btnBackPressed() }
+                                width: (parent.width - 6) / 3; height: 22; radius: 3; color: "#142838"; border.color: "#00E5FF"
+                                Text { anchors.centerIn: parent; text: "OK / ENTER"; font.pixelSize: 8; font.bold: true; color: "#00E5FF" }
+                                MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: ecuRoot.btnOkPressed() }
                             }
-                            Item { width: (parent.width - 8) / 3; height: 28 }
                             Rectangle {
-                                width: (parent.width - 8) / 3; height: 28; radius: 3
-                                color: "#182838"; border.color: "#305070"
-                                Text { anchors.centerIn: parent; text: "▼ DOWN [↓]"; font.pixelSize: 8; font.bold: true; color: "#00E5FF" }
+                                width: (parent.width - 6) / 3; height: 22; radius: 3; color: "#142232"; border.color: "#283C50"
+                                Text { anchors.centerIn: parent; text: "DOWN [▼]"; font.pixelSize: 8; font.bold: true; color: "#CCD8E8" }
                                 MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: ecuRoot.btnDownPressed() }
-                            }
-                            Rectangle {
-                                width: (parent.width - 8) / 3; height: 28; radius: 3
-                                color: "#0A3858"; border.color: "#00E5FF"
-                                Text { anchors.centerIn: parent; text: "OK [Hold: Reset]"; font.pixelSize: 8; font.bold: true; color: "#FFFFFF" }
-                                MouseArea {
-                                    anchors.fill: parent; cursorShape: Qt.PointingHandCursor
-                                    onClicked: ecuRoot.btnOkPressed()
-                                }
                             }
                         }
 
-                        // Trip Computer Page Selector
-                        Text { text: "ACTIVE TRIP PAGE"; font.pixelSize: 8; font.bold: true; color: "#80A0C0" }
                         Row {
-                            width: parent.width; spacing: 4
+                            width: parent.width; spacing: 3
+                            Rectangle {
+                                width: (parent.width - 3) / 2; height: 20; radius: 3; color: "#121E2C"; border.color: "#223448"
+                                Text { anchors.centerIn: parent; text: "BACK / RETURN"; font.pixelSize: 8; font.bold: true; color: "#CCD8E8" }
+                                MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: ecuRoot.btnBackPressed() }
+                            }
+                            Rectangle {
+                                width: (parent.width - 3) / 2; height: 20; radius: 3; color: "#121E2C"; border.color: "#223448"
+                                Text { anchors.centerIn: parent; text: "MENU TAB"; font.pixelSize: 8; font.bold: true; color: "#00E5FF" }
+                                MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: ecuRoot.btnInfoPressed() }
+                            }
+                        }
+
+                        // Trip Sub-Pages (Drive Info, Since Refueling, Accumulated, Auto Stop)
+                        Text { text: "TRIP COMPUTER SUB-PAGES:"; font.pixelSize: 8; font.bold: true; color: "#7E9AB8" }
+                        Grid {
+                            columns: 2; width: parent.width; spacing: 2
                             Repeater {
                                 model: [
-                                    { name: "Drive info", page: 0 },
-                                    { name: "Since refuel", page: 1 },
-                                    { name: "Accumulated", page: 2 }
+                                    { name: "DRIVE INFO", page: 0 },
+                                    { name: "SINCE REFUEL", page: 1 },
+                                    { name: "ACCUMULATED", page: 2 },
+                                    { name: "AUTO STOP (ISG)", page: 3 }
                                 ]
                                 Rectangle {
-                                    width: (parent.width - 8) / 3; height: 26; radius: 3
-                                    color: (typeof controller !== "undefined" && controller && controller.tripPage === modelData.page) ? "#4000E5FF" : "#142030"
-                                    border.color: (typeof controller !== "undefined" && controller && controller.tripPage === modelData.page) ? "#00E5FF" : "#283848"
-                                    Text { anchors.centerIn: parent; text: modelData.name; font.pixelSize: 8; font.bold: true; color: "#FFFFFF" }
+                                    width: (parent.width - 2) / 2; height: 18; radius: 2.5
+                                    property bool isCur: typeof controller !== "undefined" && controller && controller.tripPage === modelData.page
+                                    color: isCur ? "#3500E5FF" : "#101824"
+                                    border.color: isCur ? "#00E5FF" : "#203042"
+                                    Text { anchors.centerIn: parent; text: modelData.name; font.pixelSize: 7; font.bold: true; color: parent.isCur ? "#FFFFFF" : "#7E9AB8" }
                                     MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: if (typeof controller !== "undefined" && controller) controller.setTripPage(modelData.page) }
                                 }
                             }
                         }
 
-                        // Reset Active Trip Button
+                        // Trip Reset
                         Rectangle {
-                            width: parent.width; height: 26; radius: 3
-                            color: (typeof controller !== "undefined" && controller && controller.tripPage === 0) ? "#101824" : "#2000E5FF"
-                            border.color: (typeof controller !== "undefined" && controller && controller.tripPage === 0) ? "#304050" : "#00E5FF"
-                            opacity: (typeof controller !== "undefined" && controller && controller.tripPage === 0) ? 0.45 : 1.0
-
-                            Text {
-                                anchors.centerIn: parent
-                                text: (typeof controller !== "undefined" && controller && controller.tripPage === 0) ?
-                                      "🔒 Drive info resets automatically" :
-                                      ((typeof controller !== "undefined" && controller && controller.tripPage === 1) ?
-                                       "🔄 RESET: Since refuelling (Hold OK)" : "🔄 RESET: Accumulated info (Hold OK)")
-                                font.pixelSize: 8; font.bold: true
-                                color: (typeof controller !== "undefined" && controller && controller.tripPage === 0) ? "#80A0B0" : "#00E5FF"
-                            }
-                            MouseArea {
-                                anchors.fill: parent
-                                cursorShape: (typeof controller !== "undefined" && controller && controller.tripPage !== 0) ? Qt.PointingHandCursor : Qt.ArrowCursor
-                                onClicked: if (typeof controller !== "undefined" && controller && controller.tripPage !== 0) controller.resetActiveTripPage()
-                            }
-                        }
-
-                        // Live Telemetry Readout Box
-                        Rectangle {
-                            width: parent.width; height: 60; radius: 4
-                            color: "#0D1824"; border.color: "#1E3042"
-                            Column {
-                                anchors.fill: parent; anchors.margins: 6; spacing: 3
-                                Item {
-                                    width: parent.width; height: 14
-                                    Text { text: "Distance:"; font.pixelSize: 8; color: "#80A0C0"; anchors.left: parent.left; anchors.verticalCenter: parent.verticalCenter }
-                                    Text { text: (typeof controller !== "undefined" && controller ? (controller.tripPage === 1 ? controller.refuelKm.toFixed(1) : (controller.tripPage === 2 ? controller.accumKm.toFixed(1) : controller.tripKm.toFixed(1))) : "0.0") + " km"; font.pixelSize: 8; font.bold: true; color: "#00E5FF"; anchors.right: parent.right; anchors.verticalCenter: parent.verticalCenter }
-                                }
-                                Item {
-                                    width: parent.width; height: 14
-                                    Text { text: "Elapsed Time:"; font.pixelSize: 8; color: "#80A0C0"; anchors.left: parent.left; anchors.verticalCenter: parent.verticalCenter }
-                                    Text { text: (typeof controller !== "undefined" && controller ? (controller.tripPage === 1 ? controller.refuelTime : (controller.tripPage === 2 ? controller.accumTime : controller.tripTime)) : "0:00") + " h:m"; font.pixelSize: 8; font.bold: true; color: "#FFFFFF"; anchors.right: parent.right; anchors.verticalCenter: parent.verticalCenter }
-                                }
-                                Item {
-                                    width: parent.width; height: 14
-                                    Text { text: "Fuel Economy:"; font.pixelSize: 8; color: "#80A0C0"; anchors.left: parent.left; anchors.verticalCenter: parent.verticalCenter }
-                                    Text { text: (typeof controller !== "undefined" && controller ? (controller.tripPage === 1 ? controller.refuelEconomy.toFixed(1) : (controller.tripPage === 2 ? controller.accumEconomy.toFixed(1) : controller.tripEconomy.toFixed(1))) : "0.0") + " km/L"; font.pixelSize: 8; font.bold: true; color: "#00E676"; anchors.right: parent.right; anchors.verticalCenter: parent.verticalCenter }
-                                }
-                            }
+                            width: parent.width; height: 18; radius: 2.5; color: "#1A1A24"; border.color: "#405060"
+                            Text { anchors.centerIn: parent; text: "HOLD OK (RESET TRIP)"; font.pixelSize: 8; font.bold: true; color: "#CCD8E8" }
+                            MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: if (typeof controller !== "undefined" && controller) controller.resetCurrentTrip() }
                         }
                     }
                 }
 
                 // -----------------------------------------------------
-                // CARD 3: TPMS 4-WHEEL & DOORS / BODY CONTROLS
+                // CARD 4: CHASSIS, BRAKING & TPMS (SYS-04)
                 // -----------------------------------------------------
                 Rectangle {
-                    visible: ecuRoot.activeTab === 0 || ecuRoot.activeTab === 3
-                    width: modulesFlow.cardWidth
-                    implicitHeight: card3Col.implicitHeight + 16
-                    radius: 6
-                    color: "#101B28"
-                    border.color: "#203448"
-                    border.width: 1
+                    visible: ecuRoot.activeTab === 0 || ecuRoot.activeTab === 4
+                    width: modulesFlow.cardWidth; height: 215; radius: 5
+                    color: "#0C1624"; border.color: "#1A2C40"; border.width: 1
 
                     Column {
-                        id: card3Col
-                        anchors.fill: parent
-                        anchors.margins: 8
-                        spacing: 8
+                        anchors.fill: parent; anchors.margins: 7; spacing: 5
 
-                        // Section Title
                         Row {
-                            spacing: 5
-                            Text { text: "🛞"; font.pixelSize: 11 }
-                            Text { text: "TPMS & BODY / DOORS STATION"; font.pixelSize: 10; font.bold: true; color: "#00E5FF" }
+                            width: parent.width; spacing: 4
+                            Rectangle { width: 3; height: 10; radius: 1.5; color: "#00E5FF"; anchors.verticalCenter: parent.verticalCenter }
+                            Text { text: "SYS-04: CHASSIS & TPMS"; font.pixelSize: 8; font.bold: true; color: "#00E5FF" }
                         }
 
-                        // Presets & Calibration
-                        Row {
-                            width: parent.width; spacing: 3
-                            Rectangle {
-                                width: (parent.width - 6) * 0.38; height: 22; radius: 3
-                                color: (typeof controller !== "undefined" && controller && controller.tpmsCalibrated) ? "#3000E5FF" : "#142030"
-                                border.color: (typeof controller !== "undefined" && controller && controller.tpmsCalibrated) ? "#00E5FF" : "#283848"
-                                Text { anchors.centerIn: parent; text: (typeof controller !== "undefined" && controller && controller.tpmsCalibrated) ? "🟢 CALIBRATED" : "⚪ DRIVE DISPLAY"; font.pixelSize: 7; font.bold: true; color: "#FFFFFF" }
-                                MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: if (typeof controller !== "undefined" && controller) controller.setTpmsCalibrated(!controller.tpmsCalibrated) }
+                        // Parking Brake Toggle
+                        Rectangle {
+                            width: parent.width; height: 22; radius: 3
+                            property bool isBrake: typeof controller !== "undefined" && controller && controller.parkBrakeActive
+                            color: isBrake ? "#30FF1744" : "#121E2C"
+                            border.color: isBrake ? "#FF1744" : "#223448"
+                            Row {
+                                anchors.centerIn: parent; spacing: 4
+                                Rectangle { width: 5; height: 5; radius: 2.5; color: parent.parent.isBrake ? "#FF1744" : "#5A7288" }
+                                Text { text: parent.parent.isBrake ? "PARK BRAKE: ENGAGED" : "PARK BRAKE: RELEASED"; font.pixelSize: 8; font.bold: true; color: "#FFFFFF" }
                             }
-                            Rectangle {
-                                width: (parent.width - 6) * 0.31; height: 22; radius: 3
-                                color: "#18281E"; border.color: "#00E676"
-                                Text { anchors.centerIn: parent; text: "✅ 35 PSI OK"; font.pixelSize: 7; font.bold: true; color: "#00E676" }
-                                MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: if (typeof controller !== "undefined" && controller) controller.setAllTiresOK() }
-                            }
-                            Rectangle {
-                                width: (parent.width - 6) * 0.31; height: 22; radius: 3
-                                color: "#281E18"; border.color: "#FF9100"
-                                Text { anchors.centerIn: parent; text: "⚠️ 24 PSI LOW"; font.pixelSize: 7; font.bold: true; color: "#FF9100" }
-                                MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: if (typeof controller !== "undefined" && controller) controller.setAllTiresLow() }
-                            }
+                            MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: if (typeof controller !== "undefined" && controller) controller.setParkBrakeActive(!controller.parkBrakeActive) }
                         }
 
-                        // 2x2 Wheel Grid
+                        // Individual Tyre Pressure Readouts
                         Grid {
-                            columns: 2; width: parent.width; spacing: 4
+                            columns: 2; width: parent.width; spacing: 3
                             Repeater {
                                 model: [
-                                    { id: "FL", label: "FL", getVal: function() { return controller ? controller.flPsi : 35 }, setVal: function(v) { if (controller) { controller.setFlPsi(v); controller.setTpmsCalibrated(true); } } },
-                                    { id: "FR", label: "FR", getVal: function() { return controller ? controller.frPsi : 35 }, setVal: function(v) { if (controller) { controller.setFrPsi(v); controller.setTpmsCalibrated(true); } } },
-                                    { id: "RL", label: "RL", getVal: function() { return controller ? controller.rlPsi : 35 }, setVal: function(v) { if (controller) { controller.setRlPsi(v); controller.setTpmsCalibrated(true); } } },
-                                    { id: "RR", label: "RR", getVal: function() { return controller ? controller.rrPsi : 31 }, setVal: function(v) { if (controller) { controller.setRrPsi(v); controller.setTpmsCalibrated(true); } } }
+                                    { id: 0, name: "FL TYRE", p: (typeof controller !== "undefined" && controller ? Math.round(controller.flPsi) : 35) },
+                                    { id: 1, name: "FR TYRE", p: (typeof controller !== "undefined" && controller ? Math.round(controller.frPsi) : 35) },
+                                    { id: 2, name: "RL TYRE", p: (typeof controller !== "undefined" && controller ? Math.round(controller.rlPsi) : 35) },
+                                    { id: 3, name: "RR TYRE", p: (typeof controller !== "undefined" && controller ? Math.round(controller.rrPsi) : 35) }
                                 ]
                                 Rectangle {
-                                    width: (parent.width - 4) / 2; height: 38; radius: 4
-                                    property real val: modelData.getVal()
-                                    property color stCol: val < 26.0 ? "#FF5252" : (val < 32.0 ? "#FFD54F" : "#00E676")
-                                    color: "#142030"; border.color: stCol; border.width: 1
-
+                                    width: (parent.width - 3) / 2; height: 24; radius: 2.5
+                                    property bool isLow: modelData.p < 28
+                                    color: isLow ? "#30FF1744" : "#101824"
+                                    border.color: isLow ? "#FF1744" : "#203042"
                                     Row {
-                                        anchors.fill: parent; anchors.margins: 3; spacing: 3
-                                        Text { text: modelData.label; font.pixelSize: 8; font.bold: true; color: "#CCD8E8"; anchors.verticalCenter: parent.verticalCenter }
-                                        Text { text: Math.round(parent.parent.val) + " psi"; font.pixelSize: 8; font.bold: true; color: parent.parent.stCol; anchors.verticalCenter: parent.verticalCenter }
-                                        Item { width: 4 }
-                                        Rectangle {
-                                            width: 18; height: 18; radius: 2; color: "#223348"; anchors.verticalCenter: parent.verticalCenter
-                                            Text { anchors.centerIn: parent; text: "−"; font.pixelSize: 10; color: "#FFF" }
-                                            MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: modelData.setVal(Math.max(15, parent.parent.parent.val - 1)) }
-                                        }
-                                        Rectangle {
-                                            width: 18; height: 18; radius: 2; color: "#223348"; anchors.verticalCenter: parent.verticalCenter
-                                            Text { anchors.centerIn: parent; text: "+"; font.pixelSize: 10; color: "#FFF" }
-                                            MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: modelData.setVal(Math.min(50, parent.parent.parent.val + 1)) }
+                                        anchors.centerIn: parent; spacing: 5
+                                        Text { text: modelData.name; font.pixelSize: 7; font.bold: true; color: "#7E9AB8" }
+                                        Text { text: modelData.p + " psi"; font.pixelSize: 8; font.bold: true; color: parent.parent.isLow ? "#FF5252" : "#00E676" }
+                                    }
+                                    MouseArea {
+                                        anchors.fill: parent; cursorShape: Qt.PointingHandCursor
+                                        onClicked: {
+                                            if (typeof controller !== "undefined" && controller) {
+                                                if (modelData.id === 0) (modelData.p <= 24 ? controller.setAllTiresOK() : controller.deflateFL());
+                                                else if (modelData.id === 1) (modelData.p <= 24 ? controller.setAllTiresOK() : controller.deflateFR());
+                                                else if (modelData.id === 2) (modelData.p <= 24 ? controller.setAllTiresOK() : controller.deflateRL());
+                                                else if (modelData.id === 3) (modelData.p <= 24 ? controller.setAllTiresOK() : controller.deflateRR());
+                                            }
                                         }
                                     }
                                 }
                             }
                         }
 
-                        // Doors & Openings Controls
-                        Text { text: "DOORS & BODY OPENINGS"; font.pixelSize: 8; font.bold: true; color: "#80A0C0" }
-                        Grid {
-                            columns: 2; width: parent.width; spacing: 3
-                            Rectangle {
-                                width: (parent.width - 3) / 2; height: 22; radius: 3
-                                color: (typeof controller !== "undefined" && controller && controller.doorFrontRight) ? "#40FF5252" : "#142030"
-                                border.color: (typeof controller !== "undefined" && controller && controller.doorFrontRight) ? "#FF5252" : "#283848"
-                                Text { anchors.centerIn: parent; text: "🚪 DRIVER (FR)"; font.pixelSize: 7; font.bold: true; color: "#FFF" }
-                                MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: if (typeof controller !== "undefined" && controller) controller.toggleDoorFR() }
-                            }
-                            Rectangle {
-                                width: (parent.width - 3) / 2; height: 22; radius: 3
-                                color: (typeof controller !== "undefined" && controller && controller.doorFrontLeft) ? "#40FF5252" : "#142030"
-                                border.color: (typeof controller !== "undefined" && controller && controller.doorFrontLeft) ? "#FF5252" : "#283848"
-                                Text { anchors.centerIn: parent; text: "🚪 PASSENGER (FL)"; font.pixelSize: 7; font.bold: true; color: "#FFF" }
-                                MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: if (typeof controller !== "undefined" && controller) controller.toggleDoorFL() }
-                            }
-                            Rectangle {
-                                width: (parent.width - 3) / 2; height: 22; radius: 3
-                                color: (typeof controller !== "undefined" && controller && controller.doorRearRight) ? "#40FF5252" : "#142030"
-                                border.color: (typeof controller !== "undefined" && controller && controller.doorRearRight) ? "#FF5252" : "#283848"
-                                Text { anchors.centerIn: parent; text: "🚪 REAR RIGHT (RR)"; font.pixelSize: 7; font.bold: true; color: "#FFF" }
-                                MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: if (typeof controller !== "undefined" && controller) controller.toggleDoorRR() }
-                            }
-                            Rectangle {
-                                width: (parent.width - 3) / 2; height: 22; radius: 3
-                                color: (typeof controller !== "undefined" && controller && controller.doorRearLeft) ? "#40FF5252" : "#142030"
-                                border.color: (typeof controller !== "undefined" && controller && controller.doorRearLeft) ? "#FF5252" : "#283848"
-                                Text { anchors.centerIn: parent; text: "🚪 REAR LEFT (RL)"; font.pixelSize: 7; font.bold: true; color: "#FFF" }
-                                MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: if (typeof controller !== "undefined" && controller) controller.toggleDoorRL() }
-                            }
-                            Rectangle {
-                                width: (parent.width - 3) / 2; height: 22; radius: 3
-                                color: (typeof controller !== "undefined" && controller && controller.bonnetOpen) ? "#40FF2020" : "#142030"
-                                border.color: (typeof controller !== "undefined" && controller && controller.bonnetOpen) ? "#FF2020" : "#283848"
-                                Text { anchors.centerIn: parent; text: "🚘 BONNET (HOOD)"; font.pixelSize: 7; font.bold: true; color: "#FF5252" }
-                                MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: if (typeof controller !== "undefined" && controller) controller.toggleBonnet() }
-                            }
-                            Rectangle {
-                                width: (parent.width - 3) / 2; height: 22; radius: 3
-                                color: (typeof controller !== "undefined" && controller && controller.trunkOpen) ? "#40FF2020" : "#142030"
-                                border.color: (typeof controller !== "undefined" && controller && controller.trunkOpen) ? "#FF2020" : "#283848"
-                                Text { anchors.centerIn: parent; text: "🧳 TRUNK (BOOT)"; font.pixelSize: 7; font.bold: true; color: "#FF5252" }
-                                MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: if (typeof controller !== "undefined" && controller) controller.toggleTrunk() }
-                            }
-                        }
-                    }
-                }
-
-                // -----------------------------------------------------
-                // CARD 4: LIGHTS & WARNING TELLTALES
-                // -----------------------------------------------------
-                Rectangle {
-                    visible: ecuRoot.activeTab === 0 || ecuRoot.activeTab === 4
-                    width: modulesFlow.cardWidth
-                    implicitHeight: card4Col.implicitHeight + 16
-                    radius: 6
-                    color: "#101B28"
-                    border.color: "#203448"
-                    border.width: 1
-
-                    Column {
-                        id: card4Col
-                        anchors.fill: parent
-                        anchors.margins: 8
-                        spacing: 8
-
-                        // Section Title
-                        Row {
-                            spacing: 5
-                            Text { text: "🚨"; font.pixelSize: 11 }
-                            Text { text: "LIGHT STALK & TELLTALES"; font.pixelSize: 10; font.bold: true; color: "#00E5FF" }
-                        }
-
-                        // Light Stalk Mode
-                        Text { text: "OEM LIGHT STALK (POPUP BANNER)"; font.pixelSize: 8; font.bold: true; color: "#80A0C0" }
+                        // TPMS Bulk Actions
                         Row {
                             width: parent.width; spacing: 3
-                            Repeater {
-                                model: [
-                                    { name: "OFF", mode: 0 },
-                                    { name: "AUTO", mode: 1 },
-                                    { name: "POSITION", mode: 2 },
-                                    { name: "HEADLIGHT", mode: 3 }
-                                ]
-                                Rectangle {
-                                    width: (parent.width - 9) / 4; height: 22; radius: 3
-                                    color: (typeof controller !== "undefined" && controller && controller.lightMode === modelData.mode) ? "#4000E5FF" : "#142030"
-                                    border.color: (typeof controller !== "undefined" && controller && controller.lightMode === modelData.mode) ? "#00E5FF" : "#283848"
-                                    Text { anchors.centerIn: parent; text: modelData.name; font.pixelSize: 7; font.bold: true; color: "#FFFFFF" }
-                                    MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: if (typeof controller !== "undefined" && controller) controller.setLightMode(modelData.mode) }
+                            Rectangle {
+                                width: (parent.width - 3) / 2; height: 20; radius: 2.5; color: "#14241A"; border.color: "#00E676"
+                                Text { anchors.centerIn: parent; text: "SET ALL 35 PSI (OK)"; font.pixelSize: 7; font.bold: true; color: "#00E676" }
+                                MouseArea {
+                                    anchors.fill: parent; cursorShape: Qt.PointingHandCursor
+                                    onClicked: if (typeof controller !== "undefined" && controller) controller.setAllTiresOK()
+                                }
+                            }
+                            Rectangle {
+                                width: (parent.width - 3) / 2; height: 20; radius: 2.5; color: "#24141A"; border.color: "#FF5252"
+                                Text { anchors.centerIn: parent; text: "PUNCTURE FL (16)"; font.pixelSize: 7; font.bold: true; color: "#FF5252" }
+                                MouseArea {
+                                    anchors.fill: parent; cursorShape: Qt.PointingHandCursor
+                                    onClicked: if (typeof controller !== "undefined" && controller) controller.punctureFL()
                                 }
                             }
                         }
 
-                        // Direct Lights Overrides
-                        Grid {
-                            columns: 3; width: parent.width; spacing: 3
-                            Rectangle {
-                                width: (parent.width - 6) / 3; height: 22; radius: 3
-                                color: (typeof controller !== "undefined" && controller && controller.leftIndicator) ? "#4000E676" : "#142030"
-                                border.color: (typeof controller !== "undefined" && controller && controller.leftIndicator) ? "#00E676" : "#283848"
-                                Text { anchors.centerIn: parent; text: "⬅ Turn Left"; font.pixelSize: 8; font.bold: true; color: "#FFFFFF" }
-                                MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: if (typeof controller !== "undefined" && controller) controller.setLeftIndicator(!controller.leftIndicator) }
+                        // Power Steering (EPS) Status
+                        Rectangle {
+                            width: parent.width; height: 20; radius: 2.5
+                            property bool epsActive: typeof controller !== "undefined" && controller && controller.steeringActive
+                            color: epsActive ? "#18261C" : "#30FF1744"
+                            border.color: epsActive ? "#00E676" : "#FF1744"
+                            Row {
+                                anchors.centerIn: parent; spacing: 4
+                                Rectangle { width: 4; height: 4; radius: 2; color: parent.parent.epsActive ? "#00E676" : "#FF1744" }
+                                Text { text: "POWER STEERING (EPS): " + (parent.parent.epsActive ? "NORMAL" : "FAULT (MIL)"); font.pixelSize: 7; font.bold: true; color: parent.parent.epsActive ? "#CCD8E8" : "#FF8080" }
                             }
-                            Rectangle {
-                                width: (parent.width - 6) / 3; height: 22; radius: 3
-                                color: (typeof controller !== "undefined" && controller && controller.rightIndicator) ? "#4000E676" : "#142030"
-                                border.color: (typeof controller !== "undefined" && controller && controller.rightIndicator) ? "#00E676" : "#283848"
-                                Text { anchors.centerIn: parent; text: "Turn Right ➡"; font.pixelSize: 8; font.bold: true; color: "#FFFFFF" }
-                                MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: if (typeof controller !== "undefined" && controller) controller.setRightIndicator(!controller.rightIndicator) }
-                            }
-                            Rectangle {
-                                width: (parent.width - 6) / 3; height: 22; radius: 3
-                                color: (typeof controller !== "undefined" && controller && controller.highBeam) ? "#4000B0FF" : "#142030"
-                                border.color: (typeof controller !== "undefined" && controller && controller.highBeam) ? "#00B0FF" : "#283848"
-                                Text { anchors.centerIn: parent; text: "High Beam"; font.pixelSize: 8; font.bold: true; color: "#FFFFFF" }
-                                MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: if (typeof controller !== "undefined" && controller) controller.setHighBeam(!controller.highBeam) }
-                            }
-                        }
-
-                        // Warning Telltales Grid
-                        Text { text: "FAULT TELLTALE INJECTORS"; font.pixelSize: 8; font.bold: true; color: "#FF5252" }
-                        Grid {
-                            columns: 3; width: parent.width; spacing: 3
-                            Repeater {
-                                model: [
-                                    { name: "Brake", get: function() { return controller ? controller.parkBrakeActive : false }, toggle: function() { if (controller) controller.setParkBrakeActive(!controller.parkBrakeActive) } },
-                                    { name: "ABS", get: function() { return controller ? controller.absActive : false }, toggle: function() { if (controller) controller.setAbsActive(!controller.absActive) } },
-                                    { name: "Seatbelt", get: function() { return controller ? controller.seatbeltActive : false }, toggle: function() { if (controller) controller.setSeatbeltActive(!controller.seatbeltActive) } },
-                                    { name: "Battery", get: function() { return controller ? controller.batteryActive : false }, toggle: function() { if (controller) controller.setBatteryActive(!controller.batteryActive) } },
-                                    { name: "Airbag", get: function() { return controller ? controller.airbagActive : false }, toggle: function() { if (controller) controller.setAirbagActive(!controller.airbagActive) } },
-                                    { name: "Oil", get: function() { return controller ? controller.oilActive : false }, toggle: function() { if (controller) controller.setOilActive(!controller.oilActive) } },
-                                    { name: "Steering", get: function() { return controller ? controller.steeringActive : false }, toggle: function() { if (controller) controller.setSteeringActive(!controller.steeringActive) } },
-                                    { name: "Check Engine", get: function() { return controller ? controller.checkEngineActive : false }, toggle: function() { if (controller) controller.setCheckEngineActive(!controller.checkEngineActive) } },
-                                    { name: "ESC", get: function() { return controller ? controller.escActive : false }, toggle: function() { if (controller) controller.setEscActive(!controller.escActive) } }
-                                ]
-                                Rectangle {
-                                    width: (parent.width - 6) / 3; height: 22; radius: 3
-                                    property bool active: modelData.get()
-                                    color: active ? "#40FF3D57" : "#142030"
-                                    border.color: active ? "#FF3D57" : "#283848"
-                                    Text { anchors.centerIn: parent; text: modelData.name; font.pixelSize: 8; font.bold: true; color: "#FFFFFF" }
-                                    MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: modelData.toggle() }
-                                }
-                            }
+                            MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: if (typeof controller !== "undefined" && controller) controller.setSteeringActive(!controller.steeringActive) }
                         }
                     }
                 }
 
                 // -----------------------------------------------------
-                // CARD 5: INFOTAINMENT & SMART ALERTS
+                // CARD 5: ACCESS & BODY CLOSURES (SYS-05)
                 // -----------------------------------------------------
                 Rectangle {
                     visible: ecuRoot.activeTab === 0 || ecuRoot.activeTab === 5
-                    width: modulesFlow.cardWidth
-                    implicitHeight: card5Col.implicitHeight + 16
-                    radius: 6
-                    color: "#101B28"
-                    border.color: "#203448"
-                    border.width: 1
+                    width: modulesFlow.cardWidth; height: 215; radius: 5
+                    color: "#0C1624"; border.color: "#1A2C40"; border.width: 1
 
                     Column {
-                        id: card5Col
-                        anchors.fill: parent
-                        anchors.margins: 8
-                        spacing: 8
+                        anchors.fill: parent; anchors.margins: 7; spacing: 5
 
-                        // Section Title
                         Row {
-                            spacing: 5
-                            Text { text: "🎵"; font.pixelSize: 11 }
-                            Text { text: "INFOTAINMENT & SMART ALERTS"; font.pixelSize: 10; font.bold: true; color: "#00E5FF" }
+                            width: parent.width; spacing: 4
+                            Rectangle { width: 3; height: 10; radius: 1.5; color: "#00E5FF"; anchors.verticalCenter: parent.verticalCenter }
+                            Text { text: "SYS-05: ACCESS & CLOSURES"; font.pixelSize: 8; font.bold: true; color: "#00E5FF" }
                         }
 
-                        // Media Sources
-                        Row {
-                            width: parent.width; spacing: 3
+                        // 4 Passenger Doors Matrix
+                        Grid {
+                            columns: 2; width: parent.width; spacing: 3
                             Repeater {
                                 model: [
-                                    { id: "USB", label: "💾 USB" },
-                                    { id: "Bluetooth", label: "ᛒ BT" },
-                                    { id: "Apple CarPlay", label: "📱 CarPlay" },
-                                    { id: "Android Auto", label: "🤖 Android" },
-                                    { id: "FM Radio", label: "📻 FM" }
+                                    { id: "FL", name: "FRONT LEFT", open: (typeof controller !== "undefined" && controller && controller.doorFLOpen) },
+                                    { id: "FR", name: "FRONT RIGHT", open: (typeof controller !== "undefined" && controller && controller.doorFROpen) },
+                                    { id: "RL", name: "REAR LEFT", open: (typeof controller !== "undefined" && controller && controller.doorRLOpen) },
+                                    { id: "RR", name: "REAR RIGHT", open: (typeof controller !== "undefined" && controller && controller.doorRROpen) }
                                 ]
                                 Rectangle {
-                                    width: (parent.width - 12) / 5; height: 22; radius: 3
-                                    color: (typeof controller !== "undefined" && controller && controller.mediaSource === modelData.id) ? "#4000E5FF" : "#142030"
-                                    border.color: (typeof controller !== "undefined" && controller && controller.mediaSource === modelData.id) ? "#00E5FF" : "#283848"
-                                    Text { anchors.centerIn: parent; text: modelData.label; font.pixelSize: 7; font.bold: true; color: "#FFFFFF" }
+                                    width: (parent.width - 3) / 2; height: 24; radius: 3
+                                    color: modelData.open ? "#35FF1744" : "#101824"
+                                    border.color: modelData.open ? "#FF1744" : "#203042"
+                                    border.width: modelData.open ? 1.5 : 1
+                                    Row {
+                                        anchors.centerIn: parent; spacing: 4
+                                        Rectangle { width: 4; height: 4; radius: 2; color: modelData.open ? "#FF1744" : "#00E676" }
+                                        Text { text: modelData.id + ": " + (modelData.open ? "AJAR" : "CLOSED"); font.pixelSize: 8; font.bold: true; color: modelData.open ? "#FF8080" : "#8AA2B8" }
+                                    }
+                                    MouseArea {
+                                        anchors.fill: parent; cursorShape: Qt.PointingHandCursor
+                                        onClicked: {
+                                            if (typeof controller !== "undefined" && controller) {
+                                                if (modelData.id === "FL") controller.setDoorFLOpen(!controller.doorFLOpen);
+                                                else if (modelData.id === "FR") controller.setDoorFROpen(!controller.doorFROpen);
+                                                else if (modelData.id === "RL") controller.setDoorRLOpen(!controller.doorRLOpen);
+                                                else if (modelData.id === "RR") controller.setDoorRROpen(!controller.doorRROpen);
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        // Hood, Trunk & Sunroof
+                        Grid {
+                            columns: 3; width: parent.width; spacing: 3
+                            Rectangle {
+                                width: (parent.width - 6) / 3; height: 22; radius: 2.5
+                                property bool open: typeof controller !== "undefined" && controller && controller.bonnetOpen
+                                color: open ? "#35FF1744" : "#101824"; border.color: open ? "#FF1744" : "#203042"
+                                Text { anchors.centerIn: parent; text: "HOOD: " + (parent.open ? "OPEN" : "SHUT"); font.pixelSize: 7; font.bold: true; color: parent.open ? "#FF8080" : "#8AA2B8" }
+                                MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: if (typeof controller !== "undefined" && controller) controller.setBonnetOpen(!controller.bonnetOpen) }
+                            }
+                            Rectangle {
+                                width: (parent.width - 6) / 3; height: 22; radius: 2.5
+                                property bool open: typeof controller !== "undefined" && controller && controller.trunkOpen
+                                color: open ? "#35FF1744" : "#101824"; border.color: open ? "#FF1744" : "#203042"
+                                Text { anchors.centerIn: parent; text: "TRUNK: " + (parent.open ? "OPEN" : "SHUT"); font.pixelSize: 7; font.bold: true; color: parent.open ? "#FF8080" : "#8AA2B8" }
+                                MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: if (typeof controller !== "undefined" && controller) controller.setTrunkOpen(!controller.trunkOpen) }
+                            }
+                            Rectangle {
+                                width: (parent.width - 6) / 3; height: 22; radius: 2.5
+                                property bool open: typeof controller !== "undefined" && controller && controller.sunroofAlertActive
+                                color: open ? "#35FFA000" : "#101824"; border.color: open ? "#FFA000" : "#203042"
+                                Text { anchors.centerIn: parent; text: "SUNROOF"; font.pixelSize: 7; font.bold: true; color: parent.open ? "#FFA000" : "#8AA2B8" }
+                                MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: if (typeof controller !== "undefined" && controller) controller.setSunroofAlertActive(!controller.sunroofAlertActive) }
+                            }
+                        }
+
+                        // Presets: Close All / Open All
+                        Row {
+                            width: parent.width; spacing: 3
+                            Rectangle {
+                                width: (parent.width - 3) / 2; height: 20; radius: 2.5; color: "#14241A"; border.color: "#00E676"
+                                Text { anchors.centerIn: parent; text: "SECURE ALL DOORS"; font.pixelSize: 7; font.bold: true; color: "#00E676" }
+                                MouseArea {
+                                    anchors.fill: parent; cursorShape: Qt.PointingHandCursor
+                                    onClicked: {
+                                        if (typeof controller !== "undefined" && controller) {
+                                            controller.setDoorFLOpen(false); controller.setDoorFROpen(false);
+                                            controller.setDoorRLOpen(false); controller.setDoorRROpen(false);
+                                            controller.setBonnetOpen(false); controller.setTrunkOpen(false);
+                                        }
+                                    }
+                                }
+                            }
+                            Rectangle {
+                                width: (parent.width - 3) / 2; height: 20; radius: 2.5; color: "#24141A"; border.color: "#FF5252"
+                                Text { anchors.centerIn: parent; text: "AJAR 4 DOORS"; font.pixelSize: 8; font.bold: true; color: "#FF5252" }
+                                MouseArea {
+                                    anchors.fill: parent; cursorShape: Qt.PointingHandCursor
+                                    onClicked: {
+                                        if (typeof controller !== "undefined" && controller) {
+                                            controller.setDoorFLOpen(true); controller.setDoorFROpen(true);
+                                            controller.setDoorRLOpen(true); controller.setDoorRROpen(true);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // -----------------------------------------------------
+                // CARD 6: SAFETY RESTRAINTS & BELTS (SYS-06)
+                // -----------------------------------------------------
+                Rectangle {
+                    visible: ecuRoot.activeTab === 0 || ecuRoot.activeTab === 6
+                    width: modulesFlow.cardWidth; height: 215; radius: 5
+                    color: "#0C1624"; border.color: "#1A2C40"; border.width: 1
+
+                    Column {
+                        anchors.fill: parent; anchors.margins: 7; spacing: 5
+
+                        Item {
+                            width: parent.width; height: 14
+                            Row {
+                                anchors.left: parent.left; spacing: 4
+                                Rectangle { width: 3; height: 10; radius: 1.5; color: "#00E5FF"; anchors.verticalCenter: parent.verticalCenter }
+                                Text { text: "SYS-06: OCCUPANT RESTRAINTS"; font.pixelSize: 8; font.bold: true; color: "#00E5FF" }
+                            }
+                            Text {
+                                text: (typeof controller !== "undefined" && controller && controller.rearAlarmActive) ? "ALARM ACTIVE" : "SECURE"
+                                font.pixelSize: 8; font.bold: true
+                                color: (typeof controller !== "undefined" && controller && controller.rearAlarmActive) ? "#FF1744" : "#00E676"
+                                anchors.right: parent.right
+                            }
+                        }
+
+                        // Driver Front Belt
+                        Rectangle {
+                            width: parent.width; height: 22; radius: 3
+                            property bool buckled: typeof controller !== "undefined" && controller && controller.seatbeltActive
+                            color: buckled ? "#3000E676" : "#30FF1744"
+                            border.color: buckled ? "#00E676" : "#FF1744"
+                            Row {
+                                anchors.centerIn: parent; spacing: 5
+                                Rectangle { width: 5; height: 5; radius: 2.5; color: parent.parent.buckled ? "#00E676" : "#FF1744" }
+                                Text { text: "DRIVER SEATBELT: " + (parent.parent.buckled ? "LATCHED" : "UNBUCKLED"); font.pixelSize: 8; font.bold: true; color: "#FFFFFF" }
+                            }
+                            MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: if (typeof controller !== "undefined" && controller) controller.setSeatbeltActive(!controller.seatbeltActive) }
+                        }
+
+                        // 3-Seat Rear Matrix (RL, RC, RR)
+                        Text { text: "REAR 3-POINT OCCUPANT SENSORS:"; font.pixelSize: 8; font.bold: true; color: "#7E9AB8" }
+                        Grid {
+                            columns: 3; width: parent.width; spacing: 3
+                            Repeater {
+                                model: [
+                                    { id: "RL", name: "LEFT", b: (typeof controller !== "undefined" && controller && controller.rearLeftBuckled) },
+                                    { id: "RC", name: "CENTER", b: (typeof controller !== "undefined" && controller && controller.rearCenterBuckled) },
+                                    { id: "RR", name: "RIGHT", b: (typeof controller !== "undefined" && controller && controller.rearRightBuckled) }
+                                ]
+                                Rectangle {
+                                    width: (parent.width - 6) / 3; height: 26; radius: 3
+                                    color: modelData.b ? "#2000E676" : "#35FF1744"
+                                    border.color: modelData.b ? "#00E676" : "#FF1744"
+                                    border.width: modelData.b ? 1 : 1.5
+                                    Column {
+                                        anchors.centerIn: parent; spacing: 1
+                                        Text { text: modelData.id + " " + modelData.name; font.pixelSize: 6; font.bold: true; color: "#7E9AB8"; anchors.horizontalCenter: parent.horizontalCenter }
+                                        Text { text: modelData.b ? "LATCHED" : "UNLATCHED"; font.pixelSize: 7; font.bold: true; color: modelData.b ? "#00E676" : "#FF8080"; anchors.horizontalCenter: parent.horizontalCenter }
+                                    }
+                                    MouseArea {
+                                        anchors.fill: parent; cursorShape: Qt.PointingHandCursor
+                                        onClicked: {
+                                            if (typeof controller !== "undefined" && controller) {
+                                                if (modelData.id === "RL") controller.setRearLeftBuckled(!controller.rearLeftBuckled);
+                                                else if (modelData.id === "RC") controller.setRearCenterBuckled(!controller.rearCenterBuckled);
+                                                else if (modelData.id === "RR") controller.setRearRightBuckled(!controller.rearRightBuckled);
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        // Presets: Buckle All / Unbuckle All
+                        Row {
+                            width: parent.width; spacing: 3
+                            Rectangle {
+                                width: (parent.width - 3) / 2; height: 20; radius: 2.5; color: "#14241A"; border.color: "#00E676"
+                                Text { anchors.centerIn: parent; text: "BUCKLE ALL (QUIET)"; font.pixelSize: 8; font.bold: true; color: "#00E676" }
+                                MouseArea {
+                                    anchors.fill: parent; cursorShape: Qt.PointingHandCursor
+                                    onClicked: {
+                                        if (typeof controller !== "undefined" && controller) {
+                                            controller.setSeatbeltActive(true);
+                                            controller.setRearLeftBuckled(true);
+                                            controller.setRearCenterBuckled(true);
+                                            controller.setRearRightBuckled(true);
+                                            controller.stopRearAlarm();
+                                        }
+                                    }
+                                }
+                            }
+                            Rectangle {
+                                width: (parent.width - 3) / 2; height: 20; radius: 2.5; color: "#24141A"; border.color: "#FF5252"
+                                Text { anchors.centerIn: parent; text: "UNLATCH ALL"; font.pixelSize: 8; font.bold: true; color: "#FF5252" }
+                                MouseArea {
+                                    anchors.fill: parent; cursorShape: Qt.PointingHandCursor
+                                    onClicked: {
+                                        if (typeof controller !== "undefined" && controller) {
+                                            controller.setRearLeftBuckled(false);
+                                            controller.setRearCenterBuckled(false);
+                                            controller.setRearRightBuckled(false);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // -----------------------------------------------------
+                // CARD 7: INFOTAINMENT & CONNECTIVITY (SYS-07)
+                // -----------------------------------------------------
+                Rectangle {
+                    visible: ecuRoot.activeTab === 0 || ecuRoot.activeTab === 7
+                    width: modulesFlow.cardWidth; height: 215; radius: 5
+                    color: "#0C1624"; border.color: "#1A2C40"; border.width: 1
+
+                    Column {
+                        anchors.fill: parent; anchors.margins: 7; spacing: 5
+
+                        Row {
+                            width: parent.width; spacing: 4
+                            Rectangle { width: 3; height: 10; radius: 1.5; color: "#00E5FF"; anchors.verticalCenter: parent.verticalCenter }
+                            Text { text: "SYS-07: INFOTAINMENT & MEDIA"; font.pixelSize: 8; font.bold: true; color: "#00E5FF" }
+                        }
+
+                        // Media Sources Switcher
+                        Grid {
+                            columns: 5; width: parent.width; spacing: 2
+                            Repeater {
+                                model: [
+                                    { id: "Apple CarPlay", label: "CARPLAY" },
+                                    { id: "Bluetooth", label: "BT AUDIO" },
+                                    { id: "USB", label: "USB" },
+                                    { id: "Android Auto", label: "ANDROID" },
+                                    { id: "FM Radio", label: "FM" }
+                                ]
+                                Rectangle {
+                                    width: (parent.width - 8) / 5; height: 22; radius: 2.5
+                                    property bool isCur: typeof controller !== "undefined" && controller && controller.mediaSource === modelData.id
+                                    color: isCur ? (modelData.id === "Apple CarPlay" ? "#300BD319" : "#3000E5FF") : "#101824"
+                                    border.color: isCur ? (modelData.id === "Apple CarPlay" ? "#0BD319" : "#00E5FF") : "#203042"
+                                    Text { anchors.centerIn: parent; text: modelData.label; font.pixelSize: 6; font.bold: true; color: parent.isCur ? "#FFFFFF" : "#7E9AB8" }
                                     MouseArea {
                                         anchors.fill: parent; cursorShape: Qt.PointingHandCursor
                                         onClicked: {
@@ -903,78 +1012,57 @@ Item {
                             }
                         }
 
-                        // Transport Playback Controls
+                        // Media Playback Transport
                         Row {
                             width: parent.width; spacing: 3
                             Rectangle {
-                                width: (parent.width - 9) / 4; height: 22; radius: 3; color: "#182638"; border.color: "#304860"
-                                Text { anchors.centerIn: parent; text: "⏮ Prev"; font.pixelSize: 8; font.bold: true; color: "#CCD8E8" }
+                                width: (parent.width - 9) / 4; height: 22; radius: 2.5; color: "#121E2C"; border.color: "#223448"
+                                Text { anchors.centerIn: parent; text: "|< PREV"; font.pixelSize: 8; font.bold: true; color: "#CCD8E8" }
                                 MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: if (typeof controller !== "undefined" && controller) controller.prevMediaTrack() }
                             }
                             Rectangle {
-                                width: (parent.width - 9) / 4; height: 22; radius: 3
-                                color: (typeof controller !== "undefined" && controller && controller.isMediaPlaying) ? "#3000E676" : "#281820"
-                                border.color: (typeof controller !== "undefined" && controller && controller.isMediaPlaying) ? "#00E676" : "#FF5252"
-                                Text { anchors.centerIn: parent; text: (typeof controller !== "undefined" && controller && controller.isMediaPlaying) ? "⏸ Pause" : "▶ Play"; font.pixelSize: 8; font.bold: true; color: "#FFF" }
+                                width: (parent.width - 9) / 4; height: 22; radius: 2.5
+                                property bool isPlay: typeof controller !== "undefined" && controller && controller.isMediaPlaying
+                                color: isPlay ? "#2800E676" : "#24141A"
+                                border.color: isPlay ? "#00E676" : "#FF5252"
+                                Text { anchors.centerIn: parent; text: parent.isPlay ? "|| PAUSE" : "> PLAY"; font.pixelSize: 8; font.bold: true; color: "#FFFFFF" }
                                 MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: if (typeof controller !== "undefined" && controller) controller.toggleMediaPlayback() }
                             }
                             Rectangle {
-                                width: (parent.width - 9) / 4; height: 22; radius: 3; color: "#182638"; border.color: "#304860"
-                                Text { anchors.centerIn: parent; text: "⏭ Next"; font.pixelSize: 8; font.bold: true; color: "#CCD8E8" }
+                                width: (parent.width - 9) / 4; height: 22; radius: 2.5; color: "#121E2C"; border.color: "#223448"
+                                Text { anchors.centerIn: parent; text: "NEXT >|"; font.pixelSize: 8; font.bold: true; color: "#CCD8E8" }
                                 MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: if (typeof controller !== "undefined" && controller) controller.nextMediaTrack() }
                             }
                             Rectangle {
-                                width: (parent.width - 9) / 4; height: 22; radius: 3
-                                color: (typeof controller !== "undefined" && controller && controller.showMediaPopup) ? "#40FF9100" : "#223042"
-                                border.color: (typeof controller !== "undefined" && controller && controller.showMediaPopup) ? "#FF9100" : "#406080"
-                                Text { anchors.centerIn: parent; text: "🔔 Popup"; font.pixelSize: 8; font.bold: true; color: "#FFD54F" }
+                                width: (parent.width - 9) / 4; height: 22; radius: 2.5
+                                property bool showPop: typeof controller !== "undefined" && controller && controller.showMediaPopup
+                                color: showPop ? "#30FFA000" : "#121E2C"; border.color: showPop ? "#FFA000" : "#223448"
+                                Text { anchors.centerIn: parent; text: "BANNER"; font.pixelSize: 8; font.bold: true; color: parent.showPop ? "#FFA000" : "#7E9AB8" }
                                 MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: if (typeof controller !== "undefined" && controller) controller.triggerMediaPopup() }
                             }
                         }
 
-                        // Smart Key & Pedal Prompts
-                        Text { text: "SMART KEY & PEDAL ALERTS"; font.pixelSize: 8; font.bold: true; color: "#80A0C0" }
-                        Grid {
-                            columns: 2; width: parent.width; spacing: 3
+                        // Smart Key & Driver Attention
+                        Text { text: "TELEMATICS & KEY FOB:"; font.pixelSize: 8; font.bold: true; color: "#7E9AB8" }
+                        Row {
+                            width: parent.width; spacing: 3
                             Rectangle {
-                                width: (parent.width - 3) / 2; height: 22; radius: 3
-                                color: (typeof controller !== "undefined" && controller && controller.smartKeyPrompt === 1) ? "#40FFA000" : "#142030"
-                                border.color: (typeof controller !== "undefined" && controller && controller.smartKeyPrompt === 1) ? "#FFA000" : "#283848"
-                                Text { anchors.centerIn: parent; text: "🔑 Key Not In Car"; font.pixelSize: 7; font.bold: true; color: "#FFD54F" }
+                                width: (parent.width - 3) / 2; height: 22; radius: 2.5
+                                property bool keyAlert: typeof controller !== "undefined" && controller && controller.smartKeyPrompt === 1
+                                color: keyAlert ? "#35FFA000" : "#101824"; border.color: keyAlert ? "#FFA000" : "#203042"
+                                Text { anchors.centerIn: parent; text: parent.keyAlert ? "KEY NOT IN VEHICLE" : "KEY DETECTED"; font.pixelSize: 7; font.bold: true; color: parent.keyAlert ? "#FFA000" : "#00E676" }
                                 MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: if (typeof controller !== "undefined" && controller) controller.showSmartKeyAlert(controller.smartKeyPrompt === 1 ? 0 : 1) }
                             }
                             Rectangle {
-                                width: (parent.width - 3) / 2; height: 22; radius: 3
-                                color: (typeof controller !== "undefined" && controller && controller.startPedalPrompt === 3) ? "#4000E5FF" : "#142030"
-                                border.color: (typeof controller !== "undefined" && controller && controller.startPedalPrompt === 3) ? "#00E5FF" : "#283848"
-                                Text { anchors.centerIn: parent; text: "🛑 Press Brake"; font.pixelSize: 7; font.bold: true; color: "#00E5FF" }
-                                MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: if (typeof controller !== "undefined" && controller) controller.showStartPedalAlert(controller.startPedalPrompt === 3 ? 0 : 3) }
-                            }
-                            Rectangle {
-                                width: (parent.width - 3) / 2; height: 22; radius: 3
-                                color: (typeof controller !== "undefined" && controller && controller.reduceSpeedAlert) ? "#40FF9E1B" : "#142030"
-                                border.color: "#FF9E1B"
-                                Text { anchors.centerIn: parent; text: "⚠️ Speed Alert"; font.pixelSize: 7; font.bold: true; color: "#FF9E1B" }
-                                MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: if (typeof controller !== "undefined" && controller) controller.triggerReduceSpeedAlert() }
-                            }
-                            Rectangle {
-                                width: (parent.width - 3) / 2; height: 22; radius: 3
-                                color: "#281820"; border.color: "#FF5252"
-                                Text { anchors.centerIn: parent; text: "❌ Clear Alerts"; font.pixelSize: 7; font.bold: true; color: "#FF5252" }
-                                MouseArea {
-                                    anchors.fill: parent; cursorShape: Qt.PointingHandCursor
-                                    onClicked: {
-                                        if (typeof controller !== "undefined" && controller) {
-                                            controller.showSmartKeyAlert(0);
-                                            controller.showStartPedalAlert(0);
-                                        }
-                                    }
-                                }
+                                width: (parent.width - 3) / 2; height: 22; radius: 2.5
+                                property bool attAlert: typeof controller !== "undefined" && controller && controller.driverAttentionActive
+                                color: attAlert ? "#35FFA000" : "#101824"; border.color: attAlert ? "#FFA000" : "#203042"
+                                Text { anchors.centerIn: parent; text: parent.attAlert ? "DRIVER ATTENTION REST" : "DRIVER ALERT: OK"; font.pixelSize: 7; font.bold: true; color: parent.attAlert ? "#FFA000" : "#00E676" }
+                                MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: if (typeof controller !== "undefined" && controller) controller.setDriverAttentionActive(!controller.driverAttentionActive) }
                             }
                         }
                     }
                 }
-
             }
         }
     }

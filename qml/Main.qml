@@ -19,16 +19,16 @@ ApplicationWindow {
     height: 480
     minimumWidth: 1000
     minimumHeight: 380
-    title: "Hyundai Exter AMT — Digital Instrument Cluster"
+    title: "APEX Horizon AMT — Digital Instrument Cluster"
     color: "#000000"
 
     property bool developerMode: false
 
     // Automotive Digital Fonts
-    FontLoader { id: orbitronFont; source: "qrc:/qt/qml/HyundaiExterCluster/resources/fonts/Orbitron-Bold.ttf" }
-    FontLoader { id: rajdhaniFont; source: "qrc:/qt/qml/HyundaiExterCluster/resources/fonts/Rajdhani-Bold.ttf" }
-    FontLoader { id: dseg7Font; source: "qrc:/qt/qml/HyundaiExterCluster/resources/fonts/DSEG7Classic-Bold.ttf" }
-    FontLoader { id: dseg7RegularFont; source: "qrc:/qt/qml/HyundaiExterCluster/resources/fonts/DSEG7Classic-Regular.ttf" }
+    FontLoader { id: orbitronFont; source: "qrc:/qt/qml/ApexCluster/resources/fonts/Orbitron-Bold.ttf" }
+    FontLoader { id: rajdhaniFont; source: "qrc:/qt/qml/ApexCluster/resources/fonts/Rajdhani-Bold.ttf" }
+    FontLoader { id: dseg7Font; source: "qrc:/qt/qml/ApexCluster/resources/fonts/DSEG7Classic-Bold.ttf" }
+    FontLoader { id: dseg7RegularFont; source: "qrc:/qt/qml/ApexCluster/resources/fonts/DSEG7Classic-Regular.ttf" }
 
     Item {
         id: clusterContainer
@@ -155,7 +155,7 @@ ApplicationWindow {
     // =================================================================
     Window {
         id: ecuSimulatorWindow
-        title: "⚙️ Hyundai Exter — ECU Simulator Bench"
+        title: "⚙️ APEX Horizon — ECU Simulator Bench"
         visible: true
         width: 1060
         height: 480

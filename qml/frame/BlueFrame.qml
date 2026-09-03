@@ -92,7 +92,7 @@ Item {
                 anchors.horizontalCenterOffset: root.line1Offset
                 width: parent.width
                 height: parent.height
-                source: "qrc:/qt/qml/HyundaiExterCluster/assets/speed_line1.svg"
+                source: "qrc:/qt/qml/ApexCluster/assets/speed_line1.svg"
                 sourceSize.width: 570
                 sourceSize.height: 471
                 fillMode: Image.PreserveAspectFit
@@ -109,7 +109,7 @@ Item {
                 anchors.horizontalCenterOffset: root.line2Offset
                 width: parent.width
                 height: parent.height
-                source: "qrc:/qt/qml/HyundaiExterCluster/assets/speed_line2.svg"
+                source: "qrc:/qt/qml/ApexCluster/assets/speed_line2.svg"
                 sourceSize.width: 570
                 sourceSize.height: 471
                 fillMode: Image.PreserveAspectFit
@@ -126,7 +126,7 @@ Item {
                 anchors.horizontalCenterOffset: root.line3Offset
                 width: parent.width
                 height: parent.height
-                source: "qrc:/qt/qml/HyundaiExterCluster/assets/speed_line3.svg"
+                source: "qrc:/qt/qml/ApexCluster/assets/speed_line3.svg"
                 sourceSize.width: 570
                 sourceSize.height: 471
                 fillMode: Image.PreserveAspectFit
@@ -143,7 +143,7 @@ Item {
                 anchors.horizontalCenterOffset: root.line4Offset
                 width: parent.width
                 height: parent.height
-                source: "qrc:/qt/qml/HyundaiExterCluster/assets/speed_line4.svg"
+                source: "qrc:/qt/qml/ApexCluster/assets/speed_line4.svg"
                 sourceSize.width: 570
                 sourceSize.height: 471
                 fillMode: Image.PreserveAspectFit
@@ -160,7 +160,7 @@ Item {
                 anchors.horizontalCenterOffset: root.line5Offset
                 width: parent.width
                 height: parent.height
-                source: "qrc:/qt/qml/HyundaiExterCluster/assets/speed_line5.svg"
+                source: "qrc:/qt/qml/ApexCluster/assets/speed_line5.svg"
                 sourceSize.width: 570
                 sourceSize.height: 471
                 fillMode: Image.PreserveAspectFit
@@ -194,7 +194,7 @@ Item {
                 anchors.horizontalCenterOffset: -root.line1Offset
                 width: parent.width
                 height: parent.height
-                source: "qrc:/qt/qml/HyundaiExterCluster/assets/rpm_line1.svg"
+                source: "qrc:/qt/qml/ApexCluster/assets/rpm_line1.svg"
                 sourceSize.width: 568
                 sourceSize.height: 471
                 fillMode: Image.PreserveAspectFit
@@ -211,7 +211,7 @@ Item {
                 anchors.horizontalCenterOffset: -root.line2Offset
                 width: parent.width
                 height: parent.height
-                source: "qrc:/qt/qml/HyundaiExterCluster/assets/rpm_line2.svg"
+                source: "qrc:/qt/qml/ApexCluster/assets/rpm_line2.svg"
                 sourceSize.width: 568
                 sourceSize.height: 471
                 fillMode: Image.PreserveAspectFit
@@ -228,7 +228,7 @@ Item {
                 anchors.horizontalCenterOffset: -root.line3Offset
                 width: parent.width
                 height: parent.height
-                source: "qrc:/qt/qml/HyundaiExterCluster/assets/rpm_line3.svg"
+                source: "qrc:/qt/qml/ApexCluster/assets/rpm_line3.svg"
                 sourceSize.width: 568
                 sourceSize.height: 471
                 fillMode: Image.PreserveAspectFit
@@ -245,7 +245,7 @@ Item {
                 anchors.horizontalCenterOffset: -root.line4Offset
                 width: parent.width
                 height: parent.height
-                source: "qrc:/qt/qml/HyundaiExterCluster/assets/rpm_line4.svg"
+                source: "qrc:/qt/qml/ApexCluster/assets/rpm_line4.svg"
                 sourceSize.width: 568
                 sourceSize.height: 471
                 fillMode: Image.PreserveAspectFit
@@ -262,7 +262,7 @@ Item {
                 anchors.horizontalCenterOffset: -root.line5Offset
                 width: parent.width
                 height: parent.height
-                source: "qrc:/qt/qml/HyundaiExterCluster/assets/rpm_line5.svg"
+                source: "qrc:/qt/qml/ApexCluster/assets/rpm_line5.svg"
                 sourceSize.width: 568
                 sourceSize.height: 471
                 fillMode: Image.PreserveAspectFit

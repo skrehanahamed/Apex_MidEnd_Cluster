@@ -113,16 +113,16 @@ Item {
     implicitHeight: 366
 
     // =================================================================
-    // 🔤 HYUNDAI SANS HEAD & DEVANAGARI FONT LOADERS
+    // 🔤 CLUSTER SANS HEAD & DEVANAGARI FONT LOADERS
     // =================================================================
-    FontLoader { id: hyundaiRegular; source: "qrc:/qt/qml/HyundaiExterCluster/resources/fonts/HyundaiSansHead-Regular.ttf" }
-    FontLoader { id: hyundaiMedium; source: "qrc:/qt/qml/HyundaiExterCluster/resources/fonts/HyundaiSansHead-Medium.ttf" }
-    FontLoader { id: hyundaiBold; source: "qrc:/qt/qml/HyundaiExterCluster/resources/fonts/HyundaiSansHead-Bold.ttf" }
-    FontLoader { id: notoDevanagari; source: "qrc:/qt/qml/HyundaiExterCluster/resources/fonts/NotoSansDevanagari-Regular.ttf" }
+    FontLoader { id: clusterRegular; source: "qrc:/qt/qml/ApexCluster/resources/fonts/ClusterSansHead-Regular.ttf" }
+    FontLoader { id: clusterMedium; source: "qrc:/qt/qml/ApexCluster/resources/fonts/ClusterSansHead-Medium.ttf" }
+    FontLoader { id: clusterBold; source: "qrc:/qt/qml/ApexCluster/resources/fonts/ClusterSansHead-Bold.ttf" }
+    FontLoader { id: notoDevanagari; source: "qrc:/qt/qml/ApexCluster/resources/fonts/NotoSansDevanagari-Regular.ttf" }
 
-    readonly property string fontHeadRegular: isHindi ? (notoDevanagari.status === FontLoader.Ready ? notoDevanagari.name : "Noto Sans Devanagari") : (hyundaiRegular.status === FontLoader.Ready ? hyundaiRegular.name : "Hyundai Sans Head")
-    readonly property string fontHeadMedium: isHindi ? (notoDevanagari.status === FontLoader.Ready ? notoDevanagari.name : "Noto Sans Devanagari") : (hyundaiMedium.status === FontLoader.Ready ? hyundaiMedium.name : "Hyundai Sans Head")
-    readonly property string fontHeadBold: isHindi ? (notoDevanagari.status === FontLoader.Ready ? notoDevanagari.name : "Noto Sans Devanagari") : (hyundaiBold.status === FontLoader.Ready ? hyundaiBold.name : "Hyundai Sans Head")
+    readonly property string fontHeadRegular: isHindi ? (notoDevanagari.status === FontLoader.Ready ? notoDevanagari.name : "Noto Sans Devanagari") : (clusterRegular.status === FontLoader.Ready ? clusterRegular.name : "Cluster Sans Head")
+    readonly property string fontHeadMedium: isHindi ? (notoDevanagari.status === FontLoader.Ready ? notoDevanagari.name : "Noto Sans Devanagari") : (clusterMedium.status === FontLoader.Ready ? clusterMedium.name : "Cluster Sans Head")
+    readonly property string fontHeadBold: isHindi ? (notoDevanagari.status === FontLoader.Ready ? notoDevanagari.name : "Noto Sans Devanagari") : (clusterBold.status === FontLoader.Ready ? clusterBold.name : "Cluster Sans Head")
 
     // =================================================================
     // 🎛️ DUAL ACCENT LINE FAST ENTRANCE ANIMATION (Snappy 350ms)
@@ -229,7 +229,7 @@ Item {
                     font.pixelSize: 24
                     font.family: centerRoot.fontHeadBold
                     font.weight: Font.Bold
-                    color: "#FFFFFF"
+                    color: centerRoot.gearValue === "N" ? "#00E676" : "#FFFFFF"
                 }
 
                 // D1..D5, S1..S5, M1..M5
@@ -275,7 +275,7 @@ Item {
                         width: 22
                         height: 22
                         anchors.verticalCenter: parent.verticalCenter
-                        source: "qrc:/qt/qml/HyundaiExterCluster/resources/icons/fuel_pump.png"
+                        source: "qrc:/qt/qml/ApexCluster/resources/icons/fuel_pump.png"
                         fillMode: Image.PreserveAspectFit
                         smooth: true
                         mipmap: true
@@ -310,8 +310,8 @@ Item {
                         height: 15
                         anchors.verticalCenter: parent.verticalCenter
                         source: (controller && controller.cruiseActive) ?
-                                "qrc:/qt/qml/HyundaiExterCluster/resources/icons/cruise_green.png" :
-                                "qrc:/qt/qml/HyundaiExterCluster/resources/icons/cruise_white.png"
+                                "qrc:/qt/qml/ApexCluster/resources/icons/cruise_green.png" :
+                                "qrc:/qt/qml/ApexCluster/resources/icons/cruise_white.png"
                         fillMode: Image.PreserveAspectFit
                         smooth: true
                         mipmap: true
@@ -380,7 +380,7 @@ Item {
                     font.pixelSize: 22
                     font.family: centerRoot.fontHeadMedium
                     font.weight: Font.DemiBold
-                    color: "#FFFFFF"
+                    color: centerRoot.gearValue === "N" ? "#00E676" : "#FFFFFF"
                 }
 
                 // D1 to D5 / M1 to M5: Large Letter (22px) + Subscript Down Digit (12px)
@@ -432,7 +432,7 @@ Item {
                         anchors.centerIn: parent
                         width: 22
                         height: 14.5
-                        source: "qrc:/qt/qml/HyundaiExterCluster/resources/icons/menu_tab_car.png"
+                        source: "qrc:/qt/qml/ApexCluster/resources/icons/menu_tab_car.png"
                         fillMode: Image.PreserveAspectFit
                         smooth: true
                         mipmap: true
@@ -451,7 +451,7 @@ Item {
                         anchors.centerIn: parent
                         width: 15
                         height: 15
-                        source: "qrc:/qt/qml/HyundaiExterCluster/resources/icons/menu_tab_settings.png"
+                        source: "qrc:/qt/qml/ApexCluster/resources/icons/menu_tab_settings.png"
                         fillMode: Image.PreserveAspectFit
                         smooth: true
                         mipmap: true
@@ -470,7 +470,7 @@ Item {
                         anchors.centerIn: parent
                         width: 15
                         height: 15
-                        source: "qrc:/qt/qml/HyundaiExterCluster/resources/icons/menu_tab_info.png"
+                        source: "qrc:/qt/qml/ApexCluster/resources/icons/menu_tab_info.png"
                         fillMode: Image.PreserveAspectFit
                         smooth: true
                         mipmap: true
@@ -543,7 +543,7 @@ Item {
                         width: 32
                         height: 32
                         anchors.verticalCenter: parent.verticalCenter
-                        source: "qrc:/qt/qml/HyundaiExterCluster/resources/icons/fuel_pump.png"
+                        source: "qrc:/qt/qml/ApexCluster/resources/icons/fuel_pump.png"
                         fillMode: Image.PreserveAspectFit
                         smooth: true
                         mipmap: true
@@ -690,28 +690,28 @@ Item {
     // 2. MIDDLE CARD: USER SETTINGS VIEW (When menuTab === 1)
     // =================================================================
     // =================================================================
-    // 🎵 MEDIA POPUP BANNER (Emerges from inside top line + Marquee Text)
+    // 🎵 MEDIA POPUP BANNER (Full-width, slides out from inside upper line)
     // =================================================================
     Item {
         id: mediaClippingViewport
         anchors.top: topDteSection.bottom
-        anchors.horizontalCenter: parent.horizontalCenter
-        width: parent.width * 0.96
-        height: 80
+        anchors.left: parent.left
+        anchors.right: parent.right
+        height: 64
         clip: true
         z: 45
 
         Item {
             id: mediaPopupBanner
-            anchors.horizontalCenter: parent.horizontalCenter
-            width: parent.width * 0.98
-            height: 62
+            anchors.left: parent.left
+            anchors.right: parent.right
+            height: 58
 
             readonly property bool isMediaActive: controller && controller.showMediaPopup && !centerRoot.isIgnitionOff
             property real currentY: -height
             y: currentY
             opacity: isMediaActive ? 1.0 : 0.0
-            visible: opacity > 0.01
+            visible: opacity > 0.01 || slideExitAnim.running
 
             Behavior on opacity {
                 NumberAnimation { duration: 250; easing.type: Easing.InOutQuad }
@@ -723,8 +723,8 @@ Item {
                     target: mediaPopupBanner
                     property: "currentY"
                     from: -mediaPopupBanner.height
-                    to: 4
-                    duration: 520
+                    to: 0
+                    duration: 420
                     easing.type: Easing.OutCubic
                 }
             }
@@ -735,8 +735,8 @@ Item {
                     target: mediaPopupBanner
                     property: "currentY"
                     to: -mediaPopupBanner.height
-                    duration: 320
-                    easing.type: Easing.InQuad
+                    duration: 350
+                    easing.type: Easing.InOutCubic
                 }
             }
 
@@ -773,19 +773,33 @@ Item {
                 }
             }
 
+            // Full-Width Sleek Banner Background
             Rectangle {
                 anchors.fill: parent
-                radius: 5
-                color: "#182230"
-                border.color: "#2C3E55"
-                border.width: 1
+                color: "#121A26"
 
-                // Subtle dark inner gradient
+                // Rich dark metallic glass gradient
                 gradient: Gradient {
                     orientation: Gradient.Vertical
-                    GradientStop { position: 0.0; color: "#243248" }
-                    GradientStop { position: 0.5; color: "#182230" }
-                    GradientStop { position: 1.0; color: "#101620" }
+                    GradientStop { position: 0.0; color: "#1E2C3E" }
+                    GradientStop { position: 0.6; color: "#141E2C" }
+                    GradientStop { position: 1.0; color: "#0B111A" }
+                }
+
+                // Bottom Border Accent Line
+                Rectangle {
+                    anchors.bottom: parent.bottom
+                    anchors.left: parent.left
+                    anchors.right: parent.right
+                    height: 1.5
+                    gradient: Gradient {
+                        orientation: Gradient.Horizontal
+                        GradientStop { position: 0.0; color: "transparent" }
+                        GradientStop { position: 0.2; color: "#3A5270" }
+                        GradientStop { position: 0.5; color: "#00E5FF" }
+                        GradientStop { position: 0.8; color: "#3A5270" }
+                        GradientStop { position: 1.0; color: "transparent" }
+                    }
                 }
 
                 Column {
@@ -793,61 +807,99 @@ Item {
                     anchors.margins: 4
                     spacing: 2
 
-                    // Row 1 (Top): Source Icon + Source Name
-                    Row {
-                        anchors.horizontalCenter: parent.horizontalCenter
-                        height: 24
-                        spacing: 7
+                    // Row 1 (Top): Media Source Info & Equalizer Indicator
+                    Item {
+                        width: parent.width
+                        height: 22
 
-                        Image {
-                            width: 16
-                            height: 16
+                        // Left: Source Icon & Name
+                        Row {
+                            anchors.left: parent.left
+                            anchors.leftMargin: 12
                             anchors.verticalCenter: parent.verticalCenter
-                            source: {
-                                var src = controller ? controller.mediaSource : "USB";
-                                if (src === "USB") return "qrc:/qt/qml/HyundaiExterCluster/resources/icons/media_usb.png";
-                                if (src === "Bluetooth") return "qrc:/qt/qml/HyundaiExterCluster/resources/icons/media_bluetooth.png";
-                                if (src === "Apple CarPlay") return "qrc:/qt/qml/HyundaiExterCluster/resources/icons/media_carplay.png";
-                                if (src === "Android Auto") return "qrc:/qt/qml/HyundaiExterCluster/resources/icons/media_android_auto.png";
-                                return "qrc:/qt/qml/HyundaiExterCluster/resources/icons/media_note.png";
+                            spacing: 8
+
+                            Image {
+                                width: 18
+                                height: 18
+                                anchors.verticalCenter: parent.verticalCenter
+                                source: {
+                                    var src = controller ? controller.mediaSource : "USB";
+                                    if (src === "USB") return "qrc:/qt/qml/ApexCluster/resources/icons/media_usb.png";
+                                    if (src === "Bluetooth") return "qrc:/qt/qml/ApexCluster/resources/icons/media_bluetooth.png";
+                                    if (src === "Apple CarPlay") return "qrc:/qt/qml/ApexCluster/resources/icons/media_carplay.png";
+                                    if (src === "Android Auto") return "qrc:/qt/qml/ApexCluster/resources/icons/media_android_auto.png";
+                                    return "qrc:/qt/qml/ApexCluster/resources/icons/media_note.png";
+                                }
+                                fillMode: Image.PreserveAspectFit
+                                smooth: true
+                                mipmap: true
                             }
-                            fillMode: Image.PreserveAspectFit
-                            smooth: true
-                            mipmap: true
+
+                            Text {
+                                anchors.verticalCenter: parent.verticalCenter
+                                text: controller ? controller.mediaSource : "Apple CarPlay"
+                                font.pixelSize: 13
+                                font.family: centerRoot.fontHeadMedium
+                                font.weight: Font.DemiBold
+                                color: (controller && controller.mediaSource === "Apple CarPlay") ? "#30D158" : "#FFFFFF"
+                            }
                         }
 
-                        Text {
+                        // Right: Live Animated Equalizer Bars
+                        Row {
+                            anchors.right: parent.right
+                            anchors.rightMargin: 12
                             anchors.verticalCenter: parent.verticalCenter
-                            text: controller ? controller.mediaSource : "USB"
-                            font.pixelSize: 15
-                            font.family: centerRoot.fontHeadMedium
-                            font.weight: Font.DemiBold
-                            color: "#FFFFFF"
+                            spacing: 3
+
+                            Repeater {
+                                model: 4
+                                Rectangle {
+                                    id: eqBar
+                                    width: 2.5
+                                    height: 4 + (index === 0 ? 8 : (index === 1 ? 12 : (index === 2 ? 6 : 10)))
+                                    radius: 1
+                                    color: (controller && controller.mediaSource === "Apple CarPlay") ? "#30D158" : "#00E5FF"
+                                    anchors.bottom: parent.bottom
+
+                                    SequentialAnimation on height {
+                                        running: mediaPopupBanner.isMediaActive
+                                        loops: Animation.Infinite
+                                        NumberAnimation {
+                                            to: (index % 2 === 0) ? 14 : 6
+                                            duration: 380 + index * 90
+                                            easing.type: Easing.InOutSine
+                                        }
+                                        NumberAnimation {
+                                            to: (index % 2 === 0) ? 5 : 13
+                                            duration: 420 + index * 70
+                                            easing.type: Easing.InOutSine
+                                        }
+                                    }
+                                }
+                            }
                         }
                     }
 
                     // Thin Divider Line
                     Rectangle {
                         anchors.horizontalCenter: parent.horizontalCenter
-                        width: parent.width * 0.94
+                        width: parent.width - 24
                         height: 1
-                        color: "#2E3F58"
+                        color: "#1E2B3C"
                     }
 
-                    // Row 2 (Bottom): Marquee Track Text Container + Music Note
+                    // Row 2 (Bottom): Marquee Track Text Container
                     Item {
                         anchors.horizontalCenter: parent.horizontalCenter
-                        width: parent.width * 0.94
-                        height: 26
+                        width: parent.width - 24
+                        height: 24
 
                         // Clipped Container for Song & Artist Marquee Text
                         Item {
                             id: trackTextContainer
-                            anchors.left: parent.left
-                            anchors.right: noteIconImage.left
-                            anchors.rightMargin: 6
-                            anchors.verticalCenter: parent.verticalCenter
-                            height: 22
+                            anchors.fill: parent
                             clip: true
 
                             property string fullTrackText: {
@@ -881,14 +933,13 @@ Item {
                                 id: trackTitleText
                                 anchors.verticalCenter: parent.verticalCenter
                                 text: trackTextContainer.fullTrackText
-                                font.pixelSize: 14
+                                font.pixelSize: 13
                                 font.family: centerRoot.fontHeadRegular
-                                color: "#FFFFFF"
+                                color: "#E0E8F0"
 
                                 readonly property real overflow: Math.max(0, implicitWidth - trackTextContainer.width)
                                 readonly property bool needsScroll: overflow > 4
 
-                                // Always start at 0 (the start of the text)
                                 x: 0
 
                                 SequentialAnimation {
@@ -896,41 +947,24 @@ Item {
                                     running: trackTitleText.needsScroll && mediaPopupBanner.isMediaActive
                                     loops: Animation.Infinite
 
-                                    // 1. Hold at start of song for 1.2s so user reads the start first
-                                    PauseAnimation { duration: 1200 }
-                                    // 2. Smoothly scroll left to reveal full song name
+                                    PauseAnimation { duration: 1400 }
                                     NumberAnimation {
                                         target: trackTitleText
                                         property: "x"
                                         to: -trackTitleText.overflow - 6
-                                        duration: Math.max(1800, trackTitleText.overflow * 35)
+                                        duration: Math.max(2000, trackTitleText.overflow * 32)
                                         easing.type: Easing.InOutQuad
                                     }
-                                    // 3. Hold at end of song for 1.2s
-                                    PauseAnimation { duration: 1200 }
-                                    // 4. Smoothly scroll back to start
+                                    PauseAnimation { duration: 1400 }
                                     NumberAnimation {
                                         target: trackTitleText
                                         property: "x"
                                         to: 0
-                                        duration: Math.max(1800, trackTitleText.overflow * 35)
+                                        duration: Math.max(2000, trackTitleText.overflow * 32)
                                         easing.type: Easing.InOutQuad
                                     }
                                 }
                             }
-                        }
-
-                        // Trailing White Music Note Icon
-                        Image {
-                            id: noteIconImage
-                            width: 14
-                            height: 14
-                            anchors.right: parent.right
-                            anchors.verticalCenter: parent.verticalCenter
-                            source: "qrc:/qt/qml/HyundaiExterCluster/resources/icons/media_note.png"
-                            fillMode: Image.PreserveAspectFit
-                            smooth: true
-                            mipmap: true
                         }
                     }
                 }
@@ -1100,7 +1134,7 @@ Item {
                             anchors.centerIn: parent
                             width: 22
                             height: 18
-                            source: "qrc:/qt/qml/HyundaiExterCluster/resources/icons/low_beam.png"
+                            source: "qrc:/qt/qml/ApexCluster/resources/icons/low_beam.png"
                             fillMode: Image.PreserveAspectFit
                             smooth: true
                             mipmap: true
@@ -1120,7 +1154,7 @@ Item {
                             anchors.centerIn: parent
                             width: 24
                             height: 18
-                            source: "qrc:/qt/qml/HyundaiExterCluster/resources/icons/position_lamp.png"
+                            source: "qrc:/qt/qml/ApexCluster/resources/icons/position_lamp.png"
                             fillMode: Image.PreserveAspectFit
                             smooth: true
                             mipmap: true
@@ -1363,20 +1397,20 @@ Item {
                 width: parent.width
             }
 
-            // 3D Hyundai Smart Key Fob Graphic with Ground Shadow & Floor Reflection
+            // 3D Cluster Smart Key Fob Graphic with Ground Shadow & Floor Reflection
             Item {
                 anchors.horizontalCenter: parent.horizontalCenter
                 width: 90
                 height: 136
 
-                // 1. High-Res Hyundai Smart Key Fob Image
+                // 1. High-Res Cluster Smart Key Fob Image
                 Image {
                     id: keyFobImage
                     anchors.top: parent.top
                     anchors.horizontalCenter: parent.horizontalCenter
                     width: 68
                     height: 98
-                    source: "qrc:/qt/qml/HyundaiExterCluster/resources/icons/hyundai_smart_key_fob.png"
+                    source: "qrc:/qt/qml/ApexCluster/resources/icons/smart_key_fob.png"
                     fillMode: Image.PreserveAspectFit
                     smooth: true
                     mipmap: true
@@ -1488,8 +1522,8 @@ Item {
                     width: pedalGraphicItem.isPedalPrompt ? 98 : 82
                     height: pedalGraphicItem.isPedalPrompt ? 72 : 82
                     source: pedalGraphicItem.isPedalPrompt ?
-                            "qrc:/qt/qml/HyundaiExterCluster/resources/icons/pedal_press_indicator.png" :
-                            "qrc:/qt/qml/HyundaiExterCluster/resources/icons/engine_start_button_fob.png"
+                            "qrc:/qt/qml/ApexCluster/resources/icons/pedal_press_indicator.png" :
+                            "qrc:/qt/qml/ApexCluster/resources/icons/engine_start_button_fob.png"
                     fillMode: Image.PreserveAspectFit
                     smooth: true
                     mipmap: true
@@ -1625,44 +1659,44 @@ Item {
                     var step = doorAnimItem.currentStep;
 
                     if (!fl && !fr && !rl && !rr) {
-                        return "qrc:/qt/qml/HyundaiExterCluster/resources/icons/car_doors_closed.png";
+                        return "qrc:/qt/qml/ApexCluster/resources/icons/car_doors_closed.png";
                     }
 
                     // Step 0: Initial closed car
                     if (step === 0) {
-                        return "qrc:/qt/qml/HyundaiExterCluster/resources/icons/car_doors_closed.png";
+                        return "qrc:/qt/qml/ApexCluster/resources/icons/car_doors_closed.png";
                     }
 
                     // Step 1: Smooth half-open intermediate swing
                     if (step === 1) {
-                        if (fl && fr && rl && rr) return "qrc:/qt/qml/HyundaiExterCluster/resources/icons/car_doors_all_half.png";
-                        if (fl && fr && !rl && !rr) return "qrc:/qt/qml/HyundaiExterCluster/resources/icons/car_doors_front_both_half.png";
-                        if (!fl && !fr && rl && rr) return "qrc:/qt/qml/HyundaiExterCluster/resources/icons/car_doors_rear_both_half.png";
-                        if (fl && !fr && rl && !rr) return "qrc:/qt/qml/HyundaiExterCluster/resources/icons/car_doors_left_both_half.png";
-                        if (!fl && fr && !rl && rr) return "qrc:/qt/qml/HyundaiExterCluster/resources/icons/car_doors_right_both_half.png";
-                        if ((fl?1:0) + (fr?1:0) + (rl?1:0) + (rr?1:0) >= 3) return "qrc:/qt/qml/HyundaiExterCluster/resources/icons/car_doors_all_half.png";
+                        if (fl && fr && rl && rr) return "qrc:/qt/qml/ApexCluster/resources/icons/car_doors_all_half.png";
+                        if (fl && fr && !rl && !rr) return "qrc:/qt/qml/ApexCluster/resources/icons/car_doors_front_both_half.png";
+                        if (!fl && !fr && rl && rr) return "qrc:/qt/qml/ApexCluster/resources/icons/car_doors_rear_both_half.png";
+                        if (fl && !fr && rl && !rr) return "qrc:/qt/qml/ApexCluster/resources/icons/car_doors_left_both_half.png";
+                        if (!fl && fr && !rl && rr) return "qrc:/qt/qml/ApexCluster/resources/icons/car_doors_right_both_half.png";
+                        if ((fl?1:0) + (fr?1:0) + (rl?1:0) + (rr?1:0) >= 3) return "qrc:/qt/qml/ApexCluster/resources/icons/car_doors_all_half.png";
 
-                        if (fr) return "qrc:/qt/qml/HyundaiExterCluster/resources/icons/car_door_fr_half.png";
-                        if (fl) return "qrc:/qt/qml/HyundaiExterCluster/resources/icons/car_door_fl_half.png";
-                        if (rl) return "qrc:/qt/qml/HyundaiExterCluster/resources/icons/car_door_rl_half.png";
-                        if (rr) return "qrc:/qt/qml/HyundaiExterCluster/resources/icons/car_door_rr_half.png";
-                        return "qrc:/qt/qml/HyundaiExterCluster/resources/icons/car_doors_closed.png";
+                        if (fr) return "qrc:/qt/qml/ApexCluster/resources/icons/car_door_fr_half.png";
+                        if (fl) return "qrc:/qt/qml/ApexCluster/resources/icons/car_door_fl_half.png";
+                        if (rl) return "qrc:/qt/qml/ApexCluster/resources/icons/car_door_rl_half.png";
+                        if (rr) return "qrc:/qt/qml/ApexCluster/resources/icons/car_door_rr_half.png";
+                        return "qrc:/qt/qml/ApexCluster/resources/icons/car_doors_closed.png";
                     }
 
                     // Step 2: Fully-open state
-                    if (fl && fr && rl && rr) return "qrc:/qt/qml/HyundaiExterCluster/resources/icons/car_doors_all_open.png";
-                    if (fl && fr && !rl && !rr) return "qrc:/qt/qml/HyundaiExterCluster/resources/icons/car_doors_front_both.png";
-                    if (!fl && !fr && rl && rr) return "qrc:/qt/qml/HyundaiExterCluster/resources/icons/car_doors_rear_both.png";
-                    if (fl && !fr && rl && !rr) return "qrc:/qt/qml/HyundaiExterCluster/resources/icons/car_doors_left_both.png";
-                    if (!fl && fr && !rl && rr) return "qrc:/qt/qml/HyundaiExterCluster/resources/icons/car_doors_right_both.png";
-                    if ((fl?1:0) + (fr?1:0) + (rl?1:0) + (rr?1:0) >= 3) return "qrc:/qt/qml/HyundaiExterCluster/resources/icons/car_doors_all_open.png";
+                    if (fl && fr && rl && rr) return "qrc:/qt/qml/ApexCluster/resources/icons/car_doors_all_open.png";
+                    if (fl && fr && !rl && !rr) return "qrc:/qt/qml/ApexCluster/resources/icons/car_doors_front_both.png";
+                    if (!fl && !fr && rl && rr) return "qrc:/qt/qml/ApexCluster/resources/icons/car_doors_rear_both.png";
+                    if (fl && !fr && rl && !rr) return "qrc:/qt/qml/ApexCluster/resources/icons/car_doors_left_both.png";
+                    if (!fl && fr && !rl && rr) return "qrc:/qt/qml/ApexCluster/resources/icons/car_doors_right_both.png";
+                    if ((fl?1:0) + (fr?1:0) + (rl?1:0) + (rr?1:0) >= 3) return "qrc:/qt/qml/ApexCluster/resources/icons/car_doors_all_open.png";
 
-                    if (fr) return "qrc:/qt/qml/HyundaiExterCluster/resources/icons/car_door_fr.png";
-                    if (fl) return "qrc:/qt/qml/HyundaiExterCluster/resources/icons/car_door_fl.png";
-                    if (rl) return "qrc:/qt/qml/HyundaiExterCluster/resources/icons/car_door_rl.png";
-                    if (rr) return "qrc:/qt/qml/HyundaiExterCluster/resources/icons/car_door_rr.png";
+                    if (fr) return "qrc:/qt/qml/ApexCluster/resources/icons/car_door_fr.png";
+                    if (fl) return "qrc:/qt/qml/ApexCluster/resources/icons/car_door_fl.png";
+                    if (rl) return "qrc:/qt/qml/ApexCluster/resources/icons/car_door_rl.png";
+                    if (rr) return "qrc:/qt/qml/ApexCluster/resources/icons/car_door_rr.png";
 
-                    return "qrc:/qt/qml/HyundaiExterCluster/resources/icons/car_doors_closed.png";
+                    return "qrc:/qt/qml/ApexCluster/resources/icons/car_doors_closed.png";
                 }
             }
 
@@ -1670,7 +1704,7 @@ Item {
             Image {
                 id: bonnetRedGlow
                 anchors.fill: parent
-                source: "qrc:/qt/qml/HyundaiExterCluster/resources/icons/car_bonnet_red_glow.png"
+                source: "qrc:/qt/qml/ApexCluster/resources/icons/car_bonnet_red_glow.png"
                 fillMode: Image.PreserveAspectFit
                 visible: doorAnimItem.bonnet
                 opacity: 1.0
@@ -1687,7 +1721,7 @@ Item {
             Image {
                 id: trunkRedGlow
                 anchors.fill: parent
-                source: "qrc:/qt/qml/HyundaiExterCluster/resources/icons/car_trunk_red_glow.png"
+                source: "qrc:/qt/qml/ApexCluster/resources/icons/car_trunk_red_glow.png"
                 fillMode: Image.PreserveAspectFit
                 visible: doorAnimItem.trunk
                 opacity: 1.0
@@ -1866,7 +1900,7 @@ Item {
                     anchors.horizontalCenter: parent.horizontalCenter
                     width: 92
                     height: 69
-                    source: "qrc:/qt/qml/HyundaiExterCluster/resources/icons/low_fuel_warning_3d.png"
+                    source: "qrc:/qt/qml/ApexCluster/resources/icons/low_fuel_warning_3d.png"
                     fillMode: Image.PreserveAspectFit
                     smooth: true
                     mipmap: true
@@ -2064,7 +2098,7 @@ Item {
                     anchors.verticalCenter: parent.verticalCenter
                     width: 40
                     height: 34
-                    source: "qrc:/qt/qml/HyundaiExterCluster/resources/icons/trip_car.png"
+                    source: "qrc:/qt/qml/ApexCluster/resources/icons/trip_car.png"
                     fillMode: Image.PreserveAspectFit
                     smooth: true
                     mipmap: true
@@ -2112,7 +2146,7 @@ Item {
                     anchors.verticalCenter: parent.verticalCenter
                     width: 36
                     height: 34
-                    source: "qrc:/qt/qml/HyundaiExterCluster/resources/icons/trip_clock.png"
+                    source: "qrc:/qt/qml/ApexCluster/resources/icons/trip_clock.png"
                     fillMode: Image.PreserveAspectFit
                     smooth: true
                     mipmap: true
@@ -2160,7 +2194,7 @@ Item {
                     anchors.verticalCenter: parent.verticalCenter
                     width: 36
                     height: 34
-                    source: "qrc:/qt/qml/HyundaiExterCluster/resources/icons/trip_fuel.png"
+                    source: "qrc:/qt/qml/ApexCluster/resources/icons/trip_fuel.png"
                     fillMode: Image.PreserveAspectFit
                     smooth: true
                     mipmap: true
@@ -2294,7 +2328,7 @@ Item {
                         anchors.centerIn: parent
                         width: 20
                         height: 22
-                        source: "qrc:/qt/qml/HyundaiExterCluster/resources/icons/seatbelt.png"
+                        source: "qrc:/qt/qml/ApexCluster/resources/icons/seatbelt.png"
                         fillMode: Image.PreserveAspectFit
                         smooth: true
                         mipmap: true

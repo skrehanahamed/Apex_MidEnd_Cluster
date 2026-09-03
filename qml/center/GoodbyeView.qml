@@ -15,14 +15,14 @@ Item {
     implicitWidth: 198
     implicitHeight: 366
 
-        FontLoader { id: hyundaiRegular; source: "qrc:/qt/qml/HyundaiExterCluster/resources/fonts/HyundaiSansHead-Regular.ttf" }
-    FontLoader { id: hyundaiMedium; source: "qrc:/qt/qml/HyundaiExterCluster/resources/fonts/HyundaiSansHead-Medium.ttf" }
-    FontLoader { id: hyundaiBold; source: "qrc:/qt/qml/HyundaiExterCluster/resources/fonts/HyundaiSansHead-Bold.ttf" }
-    FontLoader { id: notoDevanagari; source: "qrc:/qt/qml/HyundaiExterCluster/resources/fonts/NotoSansDevanagari-Regular.ttf" }
+        FontLoader { id: clusterRegular; source: "qrc:/qt/qml/ApexCluster/resources/fonts/ClusterSansHead-Regular.ttf" }
+    FontLoader { id: clusterMedium; source: "qrc:/qt/qml/ApexCluster/resources/fonts/ClusterSansHead-Medium.ttf" }
+    FontLoader { id: clusterBold; source: "qrc:/qt/qml/ApexCluster/resources/fonts/ClusterSansHead-Bold.ttf" }
+    FontLoader { id: notoDevanagari; source: "qrc:/qt/qml/ApexCluster/resources/fonts/NotoSansDevanagari-Regular.ttf" }
 
-    readonly property string fontHeadRegular: isHindi ? (notoDevanagari.status === FontLoader.Ready ? notoDevanagari.name : "Noto Sans Devanagari") : (hyundaiRegular.status === FontLoader.Ready ? hyundaiRegular.name : "Hyundai Sans Head")
-    readonly property string fontHeadMedium: isHindi ? (notoDevanagari.status === FontLoader.Ready ? notoDevanagari.name : "Noto Sans Devanagari") : (hyundaiMedium.status === FontLoader.Ready ? hyundaiMedium.name : "Hyundai Sans Head")
-    readonly property string fontHeadBold: isHindi ? (notoDevanagari.status === FontLoader.Ready ? notoDevanagari.name : "Noto Sans Devanagari") : (hyundaiBold.status === FontLoader.Ready ? hyundaiBold.name : "Hyundai Sans Head")
+    readonly property string fontHeadRegular: isHindi ? (notoDevanagari.status === FontLoader.Ready ? notoDevanagari.name : "Noto Sans Devanagari") : (clusterRegular.status === FontLoader.Ready ? clusterRegular.name : "Cluster Sans Head")
+    readonly property string fontHeadMedium: isHindi ? (notoDevanagari.status === FontLoader.Ready ? notoDevanagari.name : "Noto Sans Devanagari") : (clusterMedium.status === FontLoader.Ready ? clusterMedium.name : "Cluster Sans Head")
+    readonly property string fontHeadBold: isHindi ? (notoDevanagari.status === FontLoader.Ready ? notoDevanagari.name : "Noto Sans Devanagari") : (clusterBold.status === FontLoader.Ready ? clusterBold.name : "Cluster Sans Head")
 
     property bool isHindi: controller && (controller.language === "हिन्दी" || controller.language === "Hindi")
     property string themeColor: controller ? controller.themeColor : "blue"
@@ -61,7 +61,7 @@ Item {
                 width: 28
                 height: 28
                 anchors.verticalCenter: parent.verticalCenter
-                source: "qrc:/qt/qml/HyundaiExterCluster/resources/icons/fuel_pump.png"
+                source: "qrc:/qt/qml/ApexCluster/resources/icons/fuel_pump.png"
                 fillMode: Image.PreserveAspectFit
                 smooth: true
                 mipmap: true
@@ -173,7 +173,7 @@ Item {
                         anchors.verticalCenter: parent.verticalCenter
                         width: 40
                         height: 34
-                        source: "qrc:/qt/qml/HyundaiExterCluster/resources/icons/trip_car.png"
+                        source: "qrc:/qt/qml/ApexCluster/resources/icons/trip_car.png"
                         fillMode: Image.PreserveAspectFit
                         smooth: true
                         mipmap: true
@@ -214,7 +214,7 @@ Item {
                         anchors.verticalCenter: parent.verticalCenter
                         width: 36
                         height: 34
-                        source: "qrc:/qt/qml/HyundaiExterCluster/resources/icons/trip_clock.png"
+                        source: "qrc:/qt/qml/ApexCluster/resources/icons/trip_clock.png"
                         fillMode: Image.PreserveAspectFit
                         smooth: true
                         mipmap: true
@@ -255,7 +255,7 @@ Item {
                         anchors.verticalCenter: parent.verticalCenter
                         width: 36
                         height: 34
-                        source: "qrc:/qt/qml/HyundaiExterCluster/resources/icons/trip_fuel.png"
+                        source: "qrc:/qt/qml/ApexCluster/resources/icons/trip_fuel.png"
                         fillMode: Image.PreserveAspectFit
                         smooth: true
                         mipmap: true

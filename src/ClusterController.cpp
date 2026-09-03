@@ -35,7 +35,7 @@ void ClusterController::triggerStartupSequence()
     // Reset Drive info for new ignition start cycle
     resetTrip();
 
-    // Play authentic Hyundai Startup Animation Tone
+    // Play Startup Animation Tone
     emit signalStartupAnimationTone();
 
     // Initial state: Everything dark except frame + signature wave
@@ -53,7 +53,7 @@ void ClusterController::onSequenceStep()
         m_sequenceStepIndex = 2;
         setClusterState(StateBootCheck);
 
-        // Play authentic Hyundai System Check Chime
+        // Play System Check Chime
         emit signalWelcomeChime();
 
         // Turn on safety self-test telltales & gauge sweep
@@ -240,7 +240,7 @@ void ClusterController::onDriveSimulationTick()
         if (nextSpeed < 0) nextSpeed = 0;
         setSpeed(nextSpeed);
 
-        // Simulated Exter 1.2L Kappa AMT RPM curve with gear shifts
+        // Simulated APEX Horizon 1.2L AMT RPM curve with gear shifts
         int currentGearNum = 1;
         if (nextSpeed <= 16) currentGearNum = 1;
         else if (nextSpeed <= 34) currentGearNum = 2;
@@ -599,7 +599,7 @@ void ClusterController::setSpeed(int s)
         }
 
         // =============================================================
-        // HYUNDAI EXTER 1.2L KAPPA 5-SPEED SMART AUTO AMT COUPLING:
+        // APEX HORIZON 5-SPEED SMART AUTO AMT COUPLING:
         // Speed directly drives realistic AMT gear shifts and engine RPM
         // =============================================================
         int currentGearNum = 1;
@@ -634,7 +634,7 @@ void ClusterController::setSpeed(int s)
         }
 
         // =============================================================
-        // INDIAN AIS-145 SPEED ALERT SYSTEM (Exter / Creta / Venue):
+        // SPEED ALERT SYSTEM (APEX Horizon):
         // 1. At 80 km/h: 1 single warning chime + "Reduce speed" popup for 4.0s
         // 2. At 120 km/h: "Reduce speed" popup + continuous 1s beeping while >= 120 km/h
         // =============================================================
@@ -931,8 +931,8 @@ void ClusterController::triggerRearAlarm(int seat) {
     if (m_rearBlinkTimer) m_rearBlinkTimer->start();
     if (m_rearAlarmTimer) m_rearAlarmTimer->start(10000); // 10 seconds
 
-    // Play chime sound
-    emit signalPlayChime();
+    // Play seatbelt beeping chime (standard automotive reminder beep)
+    emit signalSeatbeltChime();
 }
 
 void ClusterController::stopRearAlarm() {
@@ -1056,7 +1056,7 @@ void ClusterController::triggerShutdown() {
     setRpm(0.0);
     setAllTelltales(false);
 
-    // Play authentic Hyundai Goodbye Chime
+    // Play Goodbye Chime
     emit signalGoodbyeChime();
 
     if (m_sunroofOpen) {
