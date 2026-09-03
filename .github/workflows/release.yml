@@ -1,13 +1,177 @@
-name: Auto Release
+name: Release
 
 on:
   push:
     tags:
       - 'v*.*.*'
+  workflow_dispatch:
+    inputs:
+      tag_name:
+        description: 'Release tag name (e.g. v2.2.0)'
+        required: false
+        default: ''
 
 jobs:
+  build-linux:
+    name: Build Linux (Ubuntu 22.04)
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Install Linux Dependencies
+        env:
+          DEBIAN_FRONTEND: noninteractive
+        run: |
+          sudo rm -f /etc/apt/apt.conf.d/20auto-upgrades
+          sudo apt-get -o Acquire::Retries=3 update -qq
+          sudo apt-get -o Acquire::Retries=3 install -y --no-install-recommends \
+            build-essential \
+            cmake \
+            ninja-build \
+            libgl1-mesa-dev \
+            libxkbcommon-dev \
+            libxkbcommon-x11-dev \
+            libegl1-mesa-dev \
+            libfontconfig1-dev \
+            libfreetype6-dev \
+            libasound2-dev \
+            libpulse-dev \
+            zip
+
+      - name: Setup Qt 6
+        uses: jurplel/install-qt-action@v3
+        with:
+          version: '6.5.3'
+          arch: gcc_64
+          modules: 'qtmultimedia'
+          cache: true
+          cache-key-prefix: 'install-qt-action-6.5.3'
+
+      - name: Configure CMake
+        run: |
+          cmake -B build -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release
+
+      - name: Build Application
+        run: |
+          cmake --build build --config Release --parallel
+
+      - name: Package Linux Binary
+        run: |
+          mkdir -p package/ApexCluster-Ubuntu-x86_64
+          cp build/ApexClusterApp package/ApexCluster-Ubuntu-x86_64/
+          chmod +x package/ApexCluster-Ubuntu-x86_64/ApexClusterApp
+          cd package
+          zip -r ../ApexCluster-Ubuntu-x86_64.zip ApexCluster-Ubuntu-x86_64
+          cd ..
+
+      - name: Upload Linux Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ApexCluster-Ubuntu-x86_64
+          path: ApexCluster-Ubuntu-x86_64.zip
+          retention-days: 1
+
+  build-macos:
+    name: Build macOS
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Install Qt and Ninja via Homebrew
+        run: |
+          brew install qt qtmultimedia ninja
+
+      - name: Configure CMake
+        run: |
+          cmake -B build -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_PREFIX_PATH="$(brew --prefix qt);$(brew --prefix qtmultimedia)"
+
+      - name: Build Application
+        run: |
+          cmake --build build --config Release --parallel
+
+      - name: Package macOS Binary
+        run: |
+          mkdir -p package/ApexCluster-macOS
+          cp build/ApexClusterApp package/ApexCluster-macOS/
+          chmod +x package/ApexCluster-macOS/ApexClusterApp
+          cd package
+          zip -r ../ApexCluster-macOS.zip ApexCluster-macOS
+          cd ..
+
+      - name: Upload macOS Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ApexCluster-macOS
+          path: ApexCluster-macOS.zip
+          retention-days: 1
+
+  build-windows:
+    name: Build Windows
+    runs-on: windows-2022
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Qt 6
+        uses: jurplel/install-qt-action@v3
+        with:
+          version: '6.6.3'
+          arch: win64_msvc2019_64
+          modules: 'qtmultimedia'
+          mirror: 'https://download.qt.io'
+          cache: true
+          cache-key-prefix: 'install-qt-action-6.6.3-win-msvc2019'
+
+      - name: Setup MSVC Developer Environment
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: x64
+
+      - name: Install Ninja
+        run: choco install ninja -y
+
+      - name: Configure CMake
+        shell: cmd
+        run: |
+          cmake -B build -G Ninja ^
+            -DCMAKE_BUILD_TYPE=Release ^
+            -DCMAKE_C_COMPILER=cl ^
+            -DCMAKE_CXX_COMPILER=cl
+
+      - name: Build Application
+        shell: cmd
+        run: |
+          cmake --build build --config Release --parallel
+
+      - name: Deploy Qt Runtime and Package Windows Binary
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path package/ApexCluster-Windows-x64
+          Copy-Item -Path build/ApexClusterApp.exe -Destination package/ApexCluster-Windows-x64/
+          $windeployqt = "${env:Qt6_DIR}\bin\windeployqt.exe"
+          if (Test-Path $windeployqt) {
+              & $windeployqt --qmldir qml package/ApexCluster-Windows-x64/ApexClusterApp.exe
+          }
+          Compress-Archive -Path package/ApexCluster-Windows-x64 -DestinationPath ApexCluster-Windows-x64.zip
+
+      - name: Upload Windows Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ApexCluster-Windows-x64
+          path: ApexCluster-Windows-x64.zip
+          retention-days: 1
+
   release:
-    name: Create GitHub Release
+    name: Publish GitHub Release
+    needs: [build-linux, build-macos, build-windows]
     runs-on: ubuntu-22.04
     permissions:
       contents: write
@@ -18,16 +182,27 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Extract Tag Version
+      - name: Determine Release Version
         id: version
-        run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
-
-      - name: Extract Changelog for this Version
-        id: changelog
         run: |
-          VERSION=${{ steps.version.outputs.VERSION }}
-          echo "Generating release notes for $VERSION"
-          echo "NOTES=APEX Horizon Digital Instrument Cluster HMI - $VERSION release. See README for full feature list." >> $GITHUB_OUTPUT
+          if [ -n "${{ github.event.inputs.tag_name }}" ]; then
+            TAG="${{ github.event.inputs.tag_name }}"
+          elif [[ "${GITHUB_REF}" == refs/tags/* ]]; then
+            TAG="${GITHUB_REF#refs/tags/}"
+          else
+            TAG="v2.2.0"
+          fi
+          echo "VERSION=${TAG}" >> $GITHUB_OUTPUT
+
+      - name: Download Build Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: release_assets
+          merge-multiple: true
+
+      - name: List Release Assets
+        run: |
+          ls -lh release_assets
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
@@ -39,18 +214,28 @@ jobs:
 
             **Version**: ${{ steps.version.outputs.VERSION }}
 
-            ### What's Included
+            ### Downloadable Release Archives
+            - **Ubuntu Linux (x86_64)**: `ApexCluster-Ubuntu-x86_64.zip`
+            - **macOS (Universal / Apple Silicon & Intel)**: `ApexCluster-macOS.zip`
+            - **Windows (x64)**: `ApexCluster-Windows-x64.zip` (standalone bundle with Qt runtime libraries)
+
+            ### Included in this Release
             - Full Qt 6 QML source code
-            - CMake build system (macOS / Linux / Windows)
+            - Standalone prebuilt executable archives for Linux, macOS, and Windows
+            - CMake build system support
             - Custom Cluster typography and OEM assets
             - ECU Simulator Bench with landscape dynamic layout
 
-            ### Build Instructions
+            ### Build from Source
             ```bash
             cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
             cmake --build build --parallel
             ```
 
-            See [README](README.md) for full setup guide.
+            See the repository [README.md](README.md) for full prerequisites and platform-specific build instructions.
+          files: |
+            release_assets/ApexCluster-Ubuntu-x86_64.zip
+            release_assets/ApexCluster-macOS.zip
+            release_assets/ApexCluster-Windows-x64.zip
           draft: false
           prerelease: false

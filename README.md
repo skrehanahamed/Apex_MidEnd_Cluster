@@ -386,7 +386,7 @@ flowchart TB
 ```
 
 <details>
-<summary><b>📄 View Native PlantUML Component Specification (.puml)</b></summary>
+<summary><b>View Native PlantUML Component Specification (.puml)</b></summary>
 
 ```plantuml
 @startuml
@@ -511,31 +511,132 @@ You can operate the cluster using either the ECU Simulator Bench ([F12] or [Tab]
 
 ## Build & Run Instructions
 
-### Prerequisites
-- Qt 6.5+ (Qt Quick, QML, Core, Gui, Multimedia, Svg)
-- CMake 3.20+
-- C++20 compatible compiler (Clang / GCC / MSVC)
-- Ninja or Make
+### 1. Download Prebuilt Release Binaries (No Compilation Required)
 
-### Quick Start
+Precompiled standalone binary packages are automatically generated on every release and available on the [GitHub Releases](https://github.com/skrehanahamed/Apex_MidEnd_Cluster/releases) page:
+
+| Platform | Archive Package | Details |
+| :--- | :--- | :--- |
+| **Ubuntu Linux (x86_64)** | `ApexCluster-Ubuntu-x86_64.zip` | Built on Ubuntu 22.04 LTS (requires standard desktop OpenGL/X11/ALSA libraries) |
+| **macOS** | `ApexCluster-macOS.zip` | Native macOS binary for Apple Silicon & Intel (macOS 13+) |
+| **Windows (x64)** | `ApexCluster-Windows-x64.zip` | Standalone bundle with all required Qt 6 runtime DLLs and QML plugins |
+
+#### Running Prebuilt Packages
+
+- **Ubuntu / Linux**:
+  ```bash
+  unzip ApexCluster-Ubuntu-x86_64.zip
+  cd ApexCluster-Ubuntu-x86_64
+  chmod +x ApexClusterApp
+  ./ApexClusterApp
+  ```
+- **macOS**:
+  ```bash
+  unzip ApexCluster-macOS.zip
+  cd ApexCluster-macOS
+  chmod +x ApexClusterApp
+  ./ApexClusterApp
+  ```
+  *(Note: If blocked by macOS Gatekeeper, remove quarantine attribute: `xattr -d com.apple.quarantine ApexClusterApp`)*
+- **Windows**:
+  Extract `ApexCluster-Windows-x64.zip` and double-click `ApexClusterApp.exe`.
+
+---
+
+### 2. Prerequisites for Building from Source
+
+To compile the APEX Horizon Instrument Cluster from source, verify the following tools are installed:
+
+- **Qt 6.5 or newer**: Core, Gui, Quick, QuickControls2, Qml, Svg, Multimedia
+- **CMake 3.20 or newer**
+- **C++20 Compliant Compiler**: Apple Clang 14+, GCC 11+, or MSVC 2019/2022
+- **Ninja** (recommended for parallel builds) or GNU Make
+
+---
+
+### 3. Platform-Specific Environment Setup
+
+#### macOS (via Homebrew)
 ```bash
-# Clone the repository
+# Install toolchain and Qt dependencies
+brew install qt qtmultimedia cmake ninja
+
+# Export CMake prefix path for Homebrew Qt installations
+export CMAKE_PREFIX_PATH="$(brew --prefix qt);$(brew --prefix qtmultimedia)"
+```
+
+#### Ubuntu / Debian Linux
+```bash
+# Install compiler, build tools, and graphics / audio development headers
+sudo apt-get update
+sudo apt-get install -y --no-install-recommends \
+  build-essential \
+  cmake \
+  ninja-build \
+  libgl1-mesa-dev \
+  libxkbcommon-dev \
+  libxkbcommon-x11-dev \
+  libegl1-mesa-dev \
+  libfontconfig1-dev \
+  libfreetype6-dev \
+  libasound2-dev \
+  libpulse-dev
+
+# Install Qt 6 via system packages or the Qt Online Installer / aqtinstall
+# Ensure Qt Quick, Qt QML, and Qt Multimedia modules are installed.
+```
+
+#### Windows 10 / 11 (MSVC 64-bit)
+1. Install **Visual Studio 2022** with the **"Desktop development with C++"** workload.
+2. Install **Qt 6.5+** (MSVC 2019/2022 64-bit with Qt Multimedia) via the official Qt Online Installer.
+3. Install **Ninja** via Chocolatey (`choco install ninja -y`) or place `ninja.exe` in your system `PATH`.
+4. Launch the **"x64 Native Tools Command Prompt for VS 2022"**.
+
+---
+
+### 4. Build Commands
+
+#### Quick Start (CMake & Ninja)
+```bash
+# 1. Clone repository
 git clone https://github.com/skrehanahamed/Apex_MidEnd_Cluster.git
 cd Apex_MidEnd_Cluster
 
-# Configure and build
-mkdir build && cd build
-cmake .. -GNinja
-ninja
+# 2. Configure build with Ninja
+cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
 
-# Run the cluster application
-./APEXHorizonClusterApp
+# Note for macOS with Homebrew:
+# cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH="$(brew --prefix qt);$(brew --prefix qtmultimedia)"
+
+# 3. Compile application in parallel
+cmake --build build --config Release --parallel
+
+# 4. Launch the cluster application
+./build/ApexClusterApp
 ```
 
-Or using the built-in Makefile:
+#### Makefile Convenience Shortcuts (macOS / Linux)
+The repository includes a helper `Makefile` preconfigured for rapid local iteration:
+
 ```bash
-make run
+make          # Build the application binary into build/ApexClusterApp
+make run      # Build and immediately launch the instrument cluster
+make clean    # Remove the build directory and cache
+make rebuild  # Clean and build from scratch
 ```
+
+---
+
+### 5. Runtime Configuration & Troubleshooting
+
+- **Opening the ECU Simulator Bench**: Press `F12` or `Tab` at any time to toggle the diagnostic control panel.
+- **Autonomous Drive Demo**: Press `A` to start or stop the autonomous driving telemetry simulation.
+- **Ignition Cycle**: Press `O` to toggle between Active Ignition and Standby Power Off mode.
+- **Linux Wayland Compatibility**: If running under a pure Wayland compositor and window rendering issues occur, run:
+  ```bash
+  QT_QPA_PLATFORM=xcb ./build/ApexClusterApp
+  ```
+- **Audio Playback**: The application uses Qt Multimedia to trigger automotive chime alerts (`.wav`). Ensure standard desktop audio outputs are unmuted.
 
 ---
 
@@ -629,6 +730,6 @@ This project is licensed under the MIT License. Created for automotive HMI softw
 ---
 
 <p align="center">
-  Made with ❤️ by <b>Rehan</b> &amp; <b>AI (Gemini &amp; ChatGPT)</b>
+  Engineering design by <b>Rehan</b> &amp; <b>AI (Gemini &amp; ChatGPT)</b>
 </p>
 
