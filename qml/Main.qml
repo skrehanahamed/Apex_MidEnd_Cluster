@@ -87,6 +87,8 @@ ApplicationWindow {
             } else if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
                 if (controller && controller.menuTab === 1) {
                     liveCluster.selectSettings();
+                } else if (controller && controller.menuTab === 0) {
+                    liveCluster.triggerResetPrompt();
                 }
             } else if (event.key === Qt.Key_Escape || event.key === Qt.Key_Backspace) {
                 if (controller && controller.menuTab === 1) {
@@ -188,6 +190,8 @@ ApplicationWindow {
             onBtnOkPressed: {
                 if (controller && controller.menuTab === 1) {
                     liveCluster.selectSettings();
+                } else if (controller && controller.menuTab === 0) {
+                    liveCluster.triggerResetPrompt();
                 }
             }
 

@@ -13,10 +13,47 @@
 #include <QQmlContext>
 #include <QQuickStyle>
 #include <QFontDatabase>
+#include <QFont>
+#include <QLoggingCategory>
+#include <QString>
+#include <QByteArray>
+#include <cstdio>
+#include <cstdlib>
 #include "ClusterController.h"
+
+static void clusterMessageHandler(QtMsgType type, const QMessageLogContext &context, const QString &msg)
+{
+    // Filter out internal Qt font database OpenType script fallback warnings (e.g. script 11)
+    if (msg.contains(QLatin1String("OpenType support missing")) ||
+        (context.category && strcmp(context.category, "qt.text.font.db") == 0)) {
+        return;
+    }
+
+    QByteArray localMsg = msg.toLocal8Bit();
+    switch (type) {
+    case QtDebugMsg:
+        fprintf(stdout, "%s\n", localMsg.constData());
+        break;
+    case QtInfoMsg:
+        fprintf(stdout, "%s\n", localMsg.constData());
+        break;
+    case QtWarningMsg:
+        fprintf(stderr, "%s\n", localMsg.constData());
+        break;
+    case QtCriticalMsg:
+        fprintf(stderr, "Critical: %s\n", localMsg.constData());
+        break;
+    case QtFatalMsg:
+        fprintf(stderr, "Fatal: %s\n", localMsg.constData());
+        abort();
+    }
+}
 
 int main(int argc, char *argv[])
 {
+    qInstallMessageHandler(clusterMessageHandler);
+    QLoggingCategory::setFilterRules(QStringLiteral("qt.text.font.db.warning=false\nqt.text.font.db.debug=false"));
+
     QGuiApplication app(argc, argv);
     app.setApplicationName("APEX Horizon AMT Cluster");
     app.setOrganizationName("APEX Motors HMI");
@@ -29,6 +66,9 @@ int main(int argc, char *argv[])
     int f4 = QFontDatabase::addApplicationFont(":/qt/qml/ApexCluster/resources/fonts/NotoSansDevanagari-Regular.ttf");
     QFontDatabase::addApplicationFont(":/qt/qml/ApexCluster/resources/fonts/Rajdhani-Bold.ttf");
     QFontDatabase::addApplicationFont(":/qt/qml/ApexCluster/resources/fonts/Orbitron-Bold.ttf");
+
+    // Insert OpenType fallback font substitution so script 11 (Devanagari) glyphs route directly to Noto Sans Devanagari
+    QFont::insertSubstitutions(QStringLiteral("Cluster Sans Head"), QStringList() << QStringLiteral("Noto Sans Devanagari") << QStringLiteral("Devanagari Sangam MN") << QStringLiteral("Kohinoor Devanagari"));
 
     qDebug() << "Loaded Cluster Sans Head Regular:" << QFontDatabase::applicationFontFamilies(f1);
     qDebug() << "Loaded Cluster Sans Head Medium:" << QFontDatabase::applicationFontFamilies(f2);

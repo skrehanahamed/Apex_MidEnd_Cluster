@@ -64,9 +64,9 @@ Item {
     FontLoader { id: clusterBold; source: "qrc:/qt/qml/ApexCluster/resources/fonts/ClusterSansHead-Bold.ttf" }
     FontLoader { id: notoDevanagari; source: "qrc:/qt/qml/ApexCluster/resources/fonts/NotoSansDevanagari-Regular.ttf" }
 
-    readonly property string fontHeadRegular: isHindi ? (notoDevanagari.status === FontLoader.Ready ? notoDevanagari.name : "Noto Sans Devanagari") : (clusterRegular.status === FontLoader.Ready ? clusterRegular.name : "Cluster Sans Head")
-    readonly property string fontHeadMedium: isHindi ? (notoDevanagari.status === FontLoader.Ready ? notoDevanagari.name : "Noto Sans Devanagari") : (clusterMedium.status === FontLoader.Ready ? clusterMedium.name : "Cluster Sans Head")
-    readonly property string fontHeadBold: isHindi ? (notoDevanagari.status === FontLoader.Ready ? notoDevanagari.name : "Noto Sans Devanagari") : (clusterBold.status === FontLoader.Ready ? clusterBold.name : "Cluster Sans Head")
+    readonly property string fontHeadRegular: isHindi ? "Noto Sans Devanagari" : (clusterRegular.status === FontLoader.Ready ? clusterRegular.name : "Cluster Sans Head")
+    readonly property string fontHeadMedium: isHindi ? "Noto Sans Devanagari" : (clusterMedium.status === FontLoader.Ready ? clusterMedium.name : "Cluster Sans Head")
+    readonly property string fontHeadBold: isHindi ? "Noto Sans Devanagari" : (clusterBold.status === FontLoader.Ready ? clusterBold.name : "Cluster Sans Head")
 
     function getDevanagariFont(str) {
         if (!str) return isHindi ? "Noto Sans Devanagari" : (clusterMedium.status === FontLoader.Ready ? clusterMedium.name : "Cluster Sans Head");

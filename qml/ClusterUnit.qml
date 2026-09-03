@@ -745,4 +745,5 @@ Item {
     function navSettingsDown() { if (centerTrip) centerTrip.navSettingsDown(); }
     function selectSettings() { if (centerTrip) centerTrip.selectSettings(); }
     function backSettings() { if (centerTrip) centerTrip.backSettings(); }
+    function triggerResetPrompt() { if (centerTrip) centerTrip.triggerResetPrompt(); }
 }

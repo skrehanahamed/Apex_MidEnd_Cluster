@@ -106,6 +106,10 @@ class ClusterController : public QObject
     Q_PROPERTY(bool doorFrontRight READ doorFrontRight WRITE setDoorFrontRight NOTIFY doorFrontRightChanged)
     Q_PROPERTY(bool doorRearLeft READ doorRearLeft WRITE setDoorRearLeft NOTIFY doorRearLeftChanged)
     Q_PROPERTY(bool doorRearRight READ doorRearRight WRITE setDoorRearRight NOTIFY doorRearRightChanged)
+    Q_PROPERTY(bool doorFLOpen READ doorFrontLeft WRITE setDoorFrontLeft NOTIFY doorFrontLeftChanged)
+    Q_PROPERTY(bool doorFROpen READ doorFrontRight WRITE setDoorFrontRight NOTIFY doorFrontRightChanged)
+    Q_PROPERTY(bool doorRLOpen READ doorRearLeft WRITE setDoorRearLeft NOTIFY doorRearLeftChanged)
+    Q_PROPERTY(bool doorRROpen READ doorRearRight WRITE setDoorRearRight NOTIFY doorRearRightChanged)
     Q_PROPERTY(bool bonnetOpen READ bonnetOpen WRITE setBonnetOpen NOTIFY bonnetOpenChanged)
     Q_PROPERTY(bool trunkOpen READ trunkOpen WRITE setTrunkOpen NOTIFY trunkOpenChanged)
 
@@ -347,6 +351,10 @@ public slots:
     void setBonnetOpen(bool open);
     void setTrunkOpen(bool open);
     void setAllDoors(bool open);
+    Q_INVOKABLE void setDoorFLOpen(bool open) { setDoorFrontLeft(open); }
+    Q_INVOKABLE void setDoorFROpen(bool open) { setDoorFrontRight(open); }
+    Q_INVOKABLE void setDoorRLOpen(bool open) { setDoorRearLeft(open); }
+    Q_INVOKABLE void setDoorRROpen(bool open) { setDoorRearRight(open); }
     Q_INVOKABLE void toggleDoorFL() { setDoorFrontLeft(!m_doorFrontLeft); }
     Q_INVOKABLE void toggleDoorFR() { setDoorFrontRight(!m_doorFrontRight); }
     Q_INVOKABLE void toggleDoorRL() { setDoorRearLeft(!m_doorRearLeft); }
@@ -374,6 +382,7 @@ public slots:
     bool isDemoDriving() const { return m_isDemoDriving; }
     QString demoScenario() const { return m_demoScenario; }
 
+    Q_INVOKABLE void toggleDemo() { driveDemo(); }
     Q_INVOKABLE void toggleRandomSimulation() { driveDemo(); }
     Q_INVOKABLE void startRandomSimulation() { if (!m_isDemoDriving) driveDemo(); }
     Q_INVOKABLE void stopRandomSimulation() { if (m_isDemoDriving) driveDemo(); }
@@ -388,6 +397,7 @@ public slots:
     void triggerStartupSequence();
     void resetTrip();
     Q_INVOKABLE void resetActiveTripPage();
+    Q_INVOKABLE void resetCurrentTrip() { resetActiveTripPage(); }
     Q_INVOKABLE void resetSinceRefuel();
     Q_INVOKABLE void resetAccumInfo();
     void cycleGear();

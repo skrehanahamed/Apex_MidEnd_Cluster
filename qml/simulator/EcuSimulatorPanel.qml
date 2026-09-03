@@ -37,6 +37,9 @@ Item {
     function changeRpm(r) {
         if (typeof controller !== "undefined" && controller) controller.setRpm(r);
     }
+    function toggleDemo() {
+        if (typeof controller !== "undefined" && controller) controller.driveDemo();
+    }
 
     // Main Card Background
     Rectangle {
@@ -419,7 +422,17 @@ Item {
                                 Rectangle { width: 5; height: 5; radius: 2.5; color: parent.parent.isDemo ? "#00E676" : "#5A7288" }
                                 Text { text: parent.parent.isDemo ? "DEMO ACTIVE: " + (controller ? controller.demoScenario : "") : "RUN AUTO DRIVE DEMO"; font.pixelSize: 8; font.bold: true; color: "#FFFFFF" }
                             }
-                            MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: ecuRoot.toggleDemo() }
+                            MouseArea {
+                                anchors.fill: parent
+                                cursorShape: Qt.PointingHandCursor
+                                onClicked: {
+                                    if (typeof controller !== "undefined" && controller) {
+                                        controller.driveDemo();
+                                    } else {
+                                        ecuRoot.toggleDemo();
+                                    }
+                                }
+                            }
                         }
                     }
                 }
@@ -574,37 +587,46 @@ Item {
                             Text { text: "SYS-03: STEERING D-PAD & TRIP"; font.pixelSize: 8; font.bold: true; color: "#00E5FF" }
                         }
 
-                        // Steering Wheel Physical D-Pad Buttons
-                        Grid {
-                            columns: 3; width: parent.width; spacing: 3
+                        // Steering Wheel Navigation Arrows (Placed close together for smooth navigation)
+                        Row {
+                            width: parent.width; spacing: 3
                             Rectangle {
-                                width: (parent.width - 6) / 3; height: 22; radius: 3; color: "#142232"; border.color: "#283C50"
-                                Text { anchors.centerIn: parent; text: "UP [▲]"; font.pixelSize: 8; font.bold: true; color: "#CCD8E8" }
+                                width: (parent.width - 3) / 2; height: 22; radius: 3; color: "#142232"; border.color: "#283C50"
+                                Row {
+                                    anchors.centerIn: parent; spacing: 4
+                                    Text { text: "▲"; font.pixelSize: 9; font.bold: true; color: "#00E5FF" }
+                                    Text { text: "UP (PREV PAGE)"; font.pixelSize: 7; font.bold: true; color: "#CCD8E8" }
+                                }
                                 MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: ecuRoot.btnUpPressed() }
                             }
                             Rectangle {
-                                width: (parent.width - 6) / 3; height: 22; radius: 3; color: "#142838"; border.color: "#00E5FF"
-                                Text { anchors.centerIn: parent; text: "OK / ENTER"; font.pixelSize: 8; font.bold: true; color: "#00E5FF" }
-                                MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: ecuRoot.btnOkPressed() }
-                            }
-                            Rectangle {
-                                width: (parent.width - 6) / 3; height: 22; radius: 3; color: "#142232"; border.color: "#283C50"
-                                Text { anchors.centerIn: parent; text: "DOWN [▼]"; font.pixelSize: 8; font.bold: true; color: "#CCD8E8" }
+                                width: (parent.width - 3) / 2; height: 22; radius: 3; color: "#142232"; border.color: "#283C50"
+                                Row {
+                                    anchors.centerIn: parent; spacing: 4
+                                    Text { text: "▼"; font.pixelSize: 9; font.bold: true; color: "#00E5FF" }
+                                    Text { text: "DOWN (NEXT PAGE)"; font.pixelSize: 7; font.bold: true; color: "#CCD8E8" }
+                                }
                                 MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: ecuRoot.btnDownPressed() }
                             }
                         }
 
-                        Row {
-                            width: parent.width; spacing: 3
+                        // Core Steering Wheel HMI Switches (OK, MENU, BACK)
+                        Grid {
+                            columns: 3; width: parent.width; spacing: 3
                             Rectangle {
-                                width: (parent.width - 3) / 2; height: 20; radius: 3; color: "#121E2C"; border.color: "#223448"
-                                Text { anchors.centerIn: parent; text: "BACK / RETURN"; font.pixelSize: 8; font.bold: true; color: "#CCD8E8" }
-                                MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: ecuRoot.btnBackPressed() }
+                                width: (parent.width - 6) / 3; height: 22; radius: 3; color: "#142838"; border.color: "#00E5FF"
+                                Text { anchors.centerIn: parent; text: "OK (SELECT)"; font.pixelSize: 8; font.bold: true; color: "#00E5FF" }
+                                MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: ecuRoot.btnOkPressed() }
                             }
                             Rectangle {
-                                width: (parent.width - 3) / 2; height: 20; radius: 3; color: "#121E2C"; border.color: "#223448"
-                                Text { anchors.centerIn: parent; text: "MENU TAB"; font.pixelSize: 8; font.bold: true; color: "#00E5FF" }
+                                width: (parent.width - 6) / 3; height: 22; radius: 3; color: "#121E2C"; border.color: "#223448"
+                                Text { anchors.centerIn: parent; text: "MENU (TAB)"; font.pixelSize: 8; font.bold: true; color: "#00E5FF" }
                                 MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: ecuRoot.btnInfoPressed() }
+                            }
+                            Rectangle {
+                                width: (parent.width - 6) / 3; height: 22; radius: 3; color: "#121E2C"; border.color: "#223448"
+                                Text { anchors.centerIn: parent; text: "BACK (↩)"; font.pixelSize: 8; font.bold: true; color: "#CCD8E8" }
+                                MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: ecuRoot.btnBackPressed() }
                             }
                         }
 
@@ -630,11 +652,25 @@ Item {
                             }
                         }
 
-                        // Trip Reset
+                        // Dedicated HOLD OK Action to Reset Current Trip Computer Page
                         Rectangle {
-                            width: parent.width; height: 18; radius: 2.5; color: "#1A1A24"; border.color: "#405060"
-                            Text { anchors.centerIn: parent; text: "HOLD OK (RESET TRIP)"; font.pixelSize: 8; font.bold: true; color: "#CCD8E8" }
-                            MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: if (typeof controller !== "undefined" && controller) controller.resetCurrentTrip() }
+                            width: parent.width; height: 18; radius: 2.5; color: "#241820"; border.color: "#FF9100"
+                            Row {
+                                anchors.centerIn: parent; spacing: 4
+                                Rectangle { width: 4; height: 4; radius: 2; color: "#FF9100" }
+                                Text { anchors.verticalCenter: parent.verticalCenter; text: "HOLD OK (RESET ACTIVE TRIP)"; font.pixelSize: 7; font.bold: true; color: "#FFB74D" }
+                            }
+                            MouseArea {
+                                anchors.fill: parent; cursorShape: Qt.PointingHandCursor
+                                onClicked: {
+                                    if (typeof controller !== "undefined" && controller) {
+                                        controller.resetActiveTripPage();
+                                        if (typeof liveCluster !== "undefined" && liveCluster && liveCluster.triggerResetPrompt) {
+                                            liveCluster.triggerResetPrompt();
+                                        }
+                                    }
+                                }
+                            }
                         }
                     }
                 }
@@ -764,10 +800,10 @@ Item {
                             columns: 2; width: parent.width; spacing: 3
                             Repeater {
                                 model: [
-                                    { id: "FL", name: "FRONT LEFT", open: (typeof controller !== "undefined" && controller && controller.doorFLOpen) },
-                                    { id: "FR", name: "FRONT RIGHT", open: (typeof controller !== "undefined" && controller && controller.doorFROpen) },
-                                    { id: "RL", name: "REAR LEFT", open: (typeof controller !== "undefined" && controller && controller.doorRLOpen) },
-                                    { id: "RR", name: "REAR RIGHT", open: (typeof controller !== "undefined" && controller && controller.doorRROpen) }
+                                    { id: "FL", name: "FRONT LEFT", open: (typeof controller !== "undefined" && controller && controller.doorFrontLeft) },
+                                    { id: "FR", name: "FRONT RIGHT", open: (typeof controller !== "undefined" && controller && controller.doorFrontRight) },
+                                    { id: "RL", name: "REAR LEFT", open: (typeof controller !== "undefined" && controller && controller.doorRearLeft) },
+                                    { id: "RR", name: "REAR RIGHT", open: (typeof controller !== "undefined" && controller && controller.doorRearRight) }
                                 ]
                                 Rectangle {
                                     width: (parent.width - 3) / 2; height: 24; radius: 3
@@ -783,10 +819,10 @@ Item {
                                         anchors.fill: parent; cursorShape: Qt.PointingHandCursor
                                         onClicked: {
                                             if (typeof controller !== "undefined" && controller) {
-                                                if (modelData.id === "FL") controller.setDoorFLOpen(!controller.doorFLOpen);
-                                                else if (modelData.id === "FR") controller.setDoorFROpen(!controller.doorFROpen);
-                                                else if (modelData.id === "RL") controller.setDoorRLOpen(!controller.doorRLOpen);
-                                                else if (modelData.id === "RR") controller.setDoorRROpen(!controller.doorRROpen);
+                                                if (modelData.id === "FL") controller.toggleDoorFL();
+                                                else if (modelData.id === "FR") controller.toggleDoorFR();
+                                                else if (modelData.id === "RL") controller.toggleDoorRL();
+                                                else if (modelData.id === "RR") controller.toggleDoorRR();
                                             }
                                         }
                                     }
@@ -830,9 +866,9 @@ Item {
                                     anchors.fill: parent; cursorShape: Qt.PointingHandCursor
                                     onClicked: {
                                         if (typeof controller !== "undefined" && controller) {
-                                            controller.setDoorFLOpen(false); controller.setDoorFROpen(false);
-                                            controller.setDoorRLOpen(false); controller.setDoorRROpen(false);
-                                            controller.setBonnetOpen(false); controller.setTrunkOpen(false);
+                                            controller.setAllDoors(false);
+                                            controller.setBonnetOpen(false);
+                                            controller.setTrunkOpen(false);
                                         }
                                     }
                                 }
@@ -844,8 +880,7 @@ Item {
                                     anchors.fill: parent; cursorShape: Qt.PointingHandCursor
                                     onClicked: {
                                         if (typeof controller !== "undefined" && controller) {
-                                            controller.setDoorFLOpen(true); controller.setDoorFROpen(true);
-                                            controller.setDoorRLOpen(true); controller.setDoorRROpen(true);
+                                            controller.setAllDoors(true);
                                         }
                                     }
                                 }
@@ -1042,23 +1077,117 @@ Item {
                             }
                         }
 
-                        // Smart Key & Driver Attention
-                        Text { text: "TELEMATICS & KEY FOB:"; font.pixelSize: 8; font.bold: true; color: "#7E9AB8" }
-                        Row {
-                            width: parent.width; spacing: 3
+                        // Smart Key & Pedal Start Alerts (SYS-07 / Telematics)
+                        Text { text: "SMART KEY & PEDAL START ALERTS:"; font.pixelSize: 8; font.bold: true; color: "#7E9AB8" }
+                        Grid {
+                            columns: 2; width: parent.width; spacing: 3
+
+                            // 1. Smart Key Prompt Toggle / Cycle (0=OK, 1=Not in vehicle, 2=Not detected, 3=Low battery, 4=Press start w/ key)
                             Rectangle {
                                 width: (parent.width - 3) / 2; height: 22; radius: 2.5
-                                property bool keyAlert: typeof controller !== "undefined" && controller && controller.smartKeyPrompt === 1
-                                color: keyAlert ? "#35FFA000" : "#101824"; border.color: keyAlert ? "#FFA000" : "#203042"
-                                Text { anchors.centerIn: parent; text: parent.keyAlert ? "KEY NOT IN VEHICLE" : "KEY DETECTED"; font.pixelSize: 7; font.bold: true; color: parent.keyAlert ? "#FFA000" : "#00E676" }
-                                MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: if (typeof controller !== "undefined" && controller) controller.showSmartKeyAlert(controller.smartKeyPrompt === 1 ? 0 : 1) }
+                                property int keyPrompt: typeof controller !== "undefined" && controller ? controller.smartKeyPrompt : 0
+                                color: keyPrompt > 0 ? "#35FFA000" : "#101824"
+                                border.color: keyPrompt > 0 ? "#FFA000" : "#203042"
+                                Text {
+                                    anchors.centerIn: parent
+                                    text: {
+                                        if (parent.keyPrompt === 1) return "KEY NOT IN VEHICLE";
+                                        if (parent.keyPrompt === 2) return "KEY NOT DETECTED";
+                                        if (parent.keyPrompt === 3) return "LOW KEY BATTERY";
+                                        if (parent.keyPrompt === 4) return "PRESS START W/ KEY";
+                                        return "KEY DETECTED (OK)";
+                                    }
+                                    font.pixelSize: 7; font.bold: true
+                                    color: parent.keyPrompt > 0 ? "#FFA000" : "#00E676"
+                                }
+                                MouseArea {
+                                    anchors.fill: parent; cursorShape: Qt.PointingHandCursor
+                                    onClicked: {
+                                        if (typeof controller !== "undefined" && controller) {
+                                            var nextP = (controller.smartKeyPrompt + 1) % 5;
+                                            controller.showSmartKeyAlert(nextP);
+                                        }
+                                    }
+                                }
                             }
+
+                            // 2. Start Pedal / Button Prompt Toggle / Cycle (0=OK, 3=Press Brake, 2=Press Clutch, 1=Press Start Again)
+                            Rectangle {
+                                width: (parent.width - 3) / 2; height: 22; radius: 2.5
+                                property int pedalPrompt: typeof controller !== "undefined" && controller ? controller.startPedalPrompt : 0
+                                property bool againAlert: typeof controller !== "undefined" && controller && controller.pressStartAgainAlert
+                                color: (pedalPrompt > 0 || againAlert) ? "#3500E5FF" : "#101824"
+                                border.color: (pedalPrompt > 0 || againAlert) ? "#00E5FF" : "#203042"
+                                Text {
+                                    anchors.centerIn: parent
+                                    text: {
+                                        if (parent.pedalPrompt === 3) return "PRESS BRAKE PEDAL";
+                                        if (parent.pedalPrompt === 2) return "PRESS CLUTCH PEDAL";
+                                        if (parent.againAlert || parent.pedalPrompt === 1) return "PRESS START AGAIN";
+                                        return "PEDAL READY (OK)";
+                                    }
+                                    font.pixelSize: 7; font.bold: true
+                                    color: (parent.pedalPrompt > 0 || parent.againAlert) ? "#00E5FF" : "#00E676"
+                                }
+                                MouseArea {
+                                    anchors.fill: parent; cursorShape: Qt.PointingHandCursor
+                                    onClicked: {
+                                        if (typeof controller !== "undefined" && controller) {
+                                            if (controller.startPedalPrompt === 0 && !controller.pressStartAgainAlert) {
+                                                controller.showStartPedalAlert(3); // Press brake
+                                                controller.setPressStartAgainAlert(false);
+                                            } else if (controller.startPedalPrompt === 3) {
+                                                controller.showStartPedalAlert(2); // Press clutch
+                                                controller.setPressStartAgainAlert(false);
+                                            } else if (controller.startPedalPrompt === 2) {
+                                                controller.showStartPedalAlert(1); // Press start again
+                                                controller.setPressStartAgainAlert(true);
+                                            } else {
+                                                controller.showStartPedalAlert(0);
+                                                controller.setPressStartAgainAlert(false);
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+
+                            // 3. Driver Attention Warning Toggle
                             Rectangle {
                                 width: (parent.width - 3) / 2; height: 22; radius: 2.5
                                 property bool attAlert: typeof controller !== "undefined" && controller && controller.driverAttentionActive
                                 color: attAlert ? "#35FFA000" : "#101824"; border.color: attAlert ? "#FFA000" : "#203042"
-                                Text { anchors.centerIn: parent; text: parent.attAlert ? "DRIVER ATTENTION REST" : "DRIVER ALERT: OK"; font.pixelSize: 7; font.bold: true; color: parent.attAlert ? "#FFA000" : "#00E676" }
-                                MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: if (typeof controller !== "undefined" && controller) controller.setDriverAttentionActive(!controller.driverAttentionActive) }
+                                Text {
+                                    anchors.centerIn: parent
+                                    text: parent.attAlert ? "DRIVER ATTENTION REST" : "DRIVER ALERT: OK"
+                                    font.pixelSize: 7; font.bold: true
+                                    color: parent.attAlert ? "#FFA000" : "#00E676"
+                                }
+                                MouseArea {
+                                    anchors.fill: parent; cursorShape: Qt.PointingHandCursor
+                                    onClicked: if (typeof controller !== "undefined" && controller) controller.setDriverAttentionActive(!controller.driverAttentionActive)
+                                }
+                            }
+
+                            // 4. Clear All Active Warning Alerts
+                            Rectangle {
+                                width: (parent.width - 3) / 2; height: 22; radius: 2.5
+                                color: "#24141A"; border.color: "#FF5252"
+                                Text {
+                                    anchors.centerIn: parent
+                                    text: "CLEAR ALL ALERTS"; font.pixelSize: 7; font.bold: true; color: "#FF5252"
+                                }
+                                MouseArea {
+                                    anchors.fill: parent; cursorShape: Qt.PointingHandCursor
+                                    onClicked: {
+                                        if (typeof controller !== "undefined" && controller) {
+                                            controller.showSmartKeyAlert(0);
+                                            controller.showStartPedalAlert(0);
+                                            controller.setPressStartAgainAlert(false);
+                                            controller.setReduceSpeedAlert(false);
+                                            controller.setDriverAttentionActive(false);
+                                        }
+                                    }
+                                }
                             }
                         }
                     }
