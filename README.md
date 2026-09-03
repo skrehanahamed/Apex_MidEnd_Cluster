@@ -304,39 +304,58 @@ A production-grade, photorealistic Automotive Digital Instrument Cluster HMI for
 graph TD
     subgraph "Core C++ Engine (Qt 6 / C++20)"
         MAIN["main.cpp<br>QGuiApplication & QQmlApplicationEngine"]
-        CTRL["ClusterController (QObject Singleton)<br>CAN / ECU Telemetry, AMT Powertrain,<br>Trip Accumulators, Timers & Power Engine"]
+        CTRL["ClusterController (QObject Singleton)<br>CAN / ECU Telemetry, AMT Powertrain,<br>Raw Trip Accumulators, Multi-Tone Chimes,<br>Standby Power State & Door Wake Engine"]
     end
 
     subgraph "Central TFT Display (4.2-inch MFD)"
-        CENTER["CenterTripDisplay.qml<br>(Trip Pages, DTE, ODO, Gear, Temp)"]
-        MEDIA["MediaPopupBanner.qml<br>(Top-Line Emergence & Marquee)"]
-        TPMS_VIEW["TpmsDisplayView.qml<br>(4-Wheel Graphic & Glowing Pills)"]
-        SETTINGS["UserSettingsView.qml<br>(Hierarchical OEM Menus & Hindi Localization)"]
-        ECO["InstantEcoGauge.qml<br>(3D Extruded Glow Gauge)"]
-        STARTUP["StartupAnimationView.qml<br>(5-Line Welcome & Laser Convergence)"]
-        CHECK["VehicleCheckView.qml<br>(Self-Diagnostic Bulb Check)"]
-        GOODBYE["GoodbyeView.qml<br>(Trip Summary & Shutdown)"]
+        CENTER["CenterTripDisplay.qml<br>Trip Pages, DTE, ODO, Green 'N' Gear, Temp,<br>AIS-145 3-Point Rear Seatbelt Grid"]
+        MEDIA["Sliding Infotainment Banner<br>Full-Width Edge-to-Edge Viewport,<br>Live 4-Bar Audio EQ Visualizer,<br>Apple CarPlay / BT / USB / Android"]
+        TPMS_VIEW["TpmsDisplayView.qml<br>4-Wheel Live PSI Graphic & Glowing Warning Pills"]
+        SETTINGS["UserSettingsView.qml<br>Hierarchical OEM Menus & Regional Hindi Localization"]
+        ECO["InstantEcoGauge.qml<br>3D Extruded Glow Gauge (0-30 km/L)"]
+        STARTUP["StartupAnimationView.qml<br>APEX Brand Reveal & 5-Line Laser Convergence"]
+        CHECK["VehicleCheckView.qml<br>5.0s Diagnostic Bulb Check Sweep & Symphonic Chord"]
+        GOODBYE["GoodbyeView.qml<br>Trip Summary & Descending Shutdown Sequence"]
     end
 
     subgraph "Digital Gauges & Telltales"
-        SPEED["SpeedDisplay.qml<br>(7-Segment Speed & Arc Bars)"]
-        RPM["RpmDisplay.qml<br>(7-Segment AMT RPM & Torque Curve)"]
-        FUEL["FuelGauge.qml + FuelIcon.qml<br>(Custom OEM Fuel Bar & Low Fuel Icon)"]
-        TEMP["TempGauge.qml + TempIcon.qml<br>(Custom OEM Coolant Temp Bar & Icon)"]
-        BEZEL["BlueFrame.qml / ClusterUnit.qml<br>(Speed-Driven Concentric Arc Lines,<br>Telltales & Master Warnings)"]
+        SPEED["SpeedDisplay.qml<br>7-Segment Speed & Concentric Arc Bars"]
+        RPM["RpmDisplay.qml<br>7-Segment AMT RPM Readout & Torque Curve"]
+        GEAR["Dual Gear Indicators<br>Dedicated Green 'N' (#00E676) & Pure White PRD Gearing"]
+        FUEL["FuelGauge.qml + FuelIcon.qml<br>Custom OEM Fuel Bar & Low Fuel Icon"]
+        TEMP["TempGauge.qml + TempIcon.qml<br>Custom OEM Coolant Temp Bar & Icon"]
+        BEZEL["BlueFrame.qml / ClusterUnit.qml<br>Speed-Driven Concentric Arc Lines,<br>1:1 OEM Telltales & Master Warnings"]
     end
 
-    subgraph "ECU Simulation & Test Bench"
-        ECU["EcuSimulatorPanel.qml<br>(Media Player, 4-Wheel TPMS,<br>AMT Auto-Drive Card, Smart Key)"]
+    subgraph "Symphonic Audio & Chimes Suite"
+        AUDIO["ClusterUnit Audio Engine<br>QSoundEffect & Audio Channel Bus"]
+        CHIME_WELCOME["Welcome Melody (2.35s)"]
+        CHIME_CHECK["Diagnostic Self-Test Chord (5.0s)"]
+        CHIME_BYE["Goodbye Departure Melody (3.24s)"]
+        CHIME_WARN["Luxury European Warning Gong"]
+        CHIME_BELT["AIS-145 Seatbelt Beep Reminder"]
+    end
+
+    subgraph "High-Density ECU Diagnostic Test Bench"
+        ECU["EcuSimulatorPanel.qml<br>Compact 215px Responsive Instrument Modules<br>Hardware Micro-LED Status Dots (Zero Emojis)"]
+        SYS1["SYS-01: Powertrain & Engine (0-120 km/h Sweeps, Demo)"]
+        SYS2["SYS-02: Transmission & AMT Gearbox (PRND, D1-D5, M1-M5)"]
+        SYS3["SYS-03: Steering D-Pad & Trip HMI (Up, Down, OK, Back, Reset)"]
+        SYS4["SYS-04: Chassis, Braking & TPMS (Brake, PSI, EPS Fault)"]
+        SYS5["SYS-05: Access & Closures (4 Doors, Hood, Trunk, Sunroof)"]
+        SYS6["SYS-06: Occupant Restraints (Driver & 3-Seat Rear Matrix)"]
+        SYS7["SYS-07: Infotainment & Connectivity (CarPlay, BT, Key Fob)"]
     end
 
     MAIN --> CTRL
     CTRL --> CENTER
     CTRL --> SPEED
     CTRL --> RPM
+    CTRL --> GEAR
     CTRL --> FUEL
     CTRL --> TEMP
     CTRL --> BEZEL
+    CTRL --> AUDIO
     CTRL <--> ECU
 
     CENTER --> MEDIA
@@ -346,6 +365,20 @@ graph TD
     CENTER --> STARTUP
     CENTER --> CHECK
     CENTER --> GOODBYE
+
+    AUDIO --> CHIME_WELCOME
+    AUDIO --> CHIME_CHECK
+    AUDIO --> CHIME_BYE
+    AUDIO --> CHIME_WARN
+    AUDIO --> CHIME_BELT
+
+    ECU --> SYS1
+    ECU --> SYS2
+    ECU --> SYS3
+    ECU --> SYS4
+    ECU --> SYS5
+    ECU --> SYS6
+    ECU --> SYS7
 ```
 
 ---
