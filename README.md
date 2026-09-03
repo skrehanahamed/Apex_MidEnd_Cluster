@@ -1,4 +1,4 @@
-# Next-Gen Automotive Digital Instrument Cluster & Cockpit HMI
+# APEX Horizon AMT — Automotive Digital Instrument Cluster & Cockpit HMI
 
 <img width="2636" height="1044" alt="image" src="https://github.com/user-attachments/assets/d50b3afd-ec90-4132-927f-19a5e6692699" />
 
