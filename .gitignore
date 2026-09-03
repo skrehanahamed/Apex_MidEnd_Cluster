@@ -6,6 +6,7 @@ bin/
 *.dylib
 *.so
 *.app
+*.zip
 .qt/
 .rcc/
 Makefile.Debug
@@ -15,7 +16,6 @@ Makefile.Release
 CMakeCache.txt
 CMakeFiles/
 cmake_install.cmake
-Makefile
 *.ninja
 .ninja_*
 

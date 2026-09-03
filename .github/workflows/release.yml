@@ -4,6 +4,8 @@ on:
   push:
     tags:
       - 'v*.*.*'
+  release:
+    types: [published]
   workflow_dispatch:
     inputs:
       tag_name:
@@ -51,8 +53,7 @@ jobs:
 
       - name: Configure CMake
         run: |
-          cmake -B build -G Ninja \
-            -DCMAKE_BUILD_TYPE=Release
+          cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
 
       - name: Build Application
         run: |
@@ -63,6 +64,10 @@ jobs:
           mkdir -p package/ApexCluster-Ubuntu-x86_64
           cp build/ApexClusterApp package/ApexCluster-Ubuntu-x86_64/
           chmod +x package/ApexCluster-Ubuntu-x86_64/ApexClusterApp
+          echo '#!/bin/bash' > package/ApexCluster-Ubuntu-x86_64/run.sh
+          echo 'DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"' >> package/ApexCluster-Ubuntu-x86_64/run.sh
+          echo '"$DIR/ApexClusterApp" "$@"' >> package/ApexCluster-Ubuntu-x86_64/run.sh
+          chmod +x package/ApexCluster-Ubuntu-x86_64/run.sh
           cd package
           zip -r ../ApexCluster-Ubuntu-x86_64.zip ApexCluster-Ubuntu-x86_64
           cd ..
@@ -101,6 +106,10 @@ jobs:
           mkdir -p package/ApexCluster-macOS
           cp build/ApexClusterApp package/ApexCluster-macOS/
           chmod +x package/ApexCluster-macOS/ApexClusterApp
+          echo '#!/bin/bash' > package/ApexCluster-macOS/run.sh
+          echo 'DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"' >> package/ApexCluster-macOS/run.sh
+          echo '"$DIR/ApexClusterApp" "$@"' >> package/ApexCluster-macOS/run.sh
+          chmod +x package/ApexCluster-macOS/run.sh
           cd package
           zip -r ../ApexCluster-macOS.zip ApexCluster-macOS
           cd ..
@@ -156,9 +165,10 @@ jobs:
         run: |
           New-Item -ItemType Directory -Force -Path package/ApexCluster-Windows-x64
           Copy-Item -Path build/ApexClusterApp.exe -Destination package/ApexCluster-Windows-x64/
-          $windeployqt = "${env:Qt6_DIR}\bin\windeployqt.exe"
-          if (Test-Path $windeployqt) {
-              & $windeployqt --qmldir qml package/ApexCluster-Windows-x64/ApexClusterApp.exe
+          if (Get-Command windeployqt -ErrorAction SilentlyContinue) {
+              windeployqt --qmldir qml package/ApexCluster-Windows-x64/ApexClusterApp.exe
+          } elseif ($env:QT_ROOT -and (Test-Path "$env:QT_ROOT/bin/windeployqt.exe")) {
+              & "$env:QT_ROOT/bin/windeployqt.exe" --qmldir qml package/ApexCluster-Windows-x64/ApexClusterApp.exe
           }
           Compress-Archive -Path package/ApexCluster-Windows-x64 -DestinationPath ApexCluster-Windows-x64.zip
 
@@ -187,12 +197,18 @@ jobs:
         run: |
           if [ -n "${{ github.event.inputs.tag_name }}" ]; then
             TAG="${{ github.event.inputs.tag_name }}"
+          elif [ -n "${{ github.event.release.tag_name }}" ]; then
+            TAG="${{ github.event.release.tag_name }}"
           elif [[ "${GITHUB_REF}" == refs/tags/* ]]; then
             TAG="${GITHUB_REF#refs/tags/}"
           else
-            TAG="v2.2.0"
+            TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "v2.2.0")
           fi
           echo "VERSION=${TAG}" >> $GITHUB_OUTPUT
+
+      - name: Generate Release Notes and Version Updates
+        run: |
+          python3 scripts/generate_release_notes.py "${{ steps.version.outputs.VERSION }}"
 
       - name: Download Build Artifacts
         uses: actions/download-artifact@v4
@@ -204,38 +220,12 @@ jobs:
         run: |
           ls -lh release_assets
 
-      - name: Create GitHub Release
+      - name: Create or Update GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ steps.version.outputs.VERSION }}
           name: "APEX Horizon Cluster HMI ${{ steps.version.outputs.VERSION }}"
-          body: |
-            ## APEX Horizon Digital Instrument Cluster HMI
-
-            **Version**: ${{ steps.version.outputs.VERSION }}
-
-            ### Downloadable Release Archives
-            - **Ubuntu Linux (x86_64)**: `ApexCluster-Ubuntu-x86_64.zip`
-            - **macOS (Universal / Apple Silicon & Intel)**: `ApexCluster-macOS.zip`
-            - **Windows (x64)**: `ApexCluster-Windows-x64.zip` (standalone bundle with Qt runtime libraries)
-
-            ### Included in this Release
-            - Full Qt 6 QML source code
-            - Standalone prebuilt executable archives for Linux, macOS, and Windows
-            - CMake build system support
-            - Custom Cluster typography and OEM assets
-            - ECU Simulator Bench with landscape dynamic layout
-
-            ### Build from Source
-            ```bash
-            cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
-            cmake --build build --parallel
-            ```
-
-            See the repository [README.md](README.md) for full prerequisites and platform-specific build instructions.
-          files: |
-            release_assets/ApexCluster-Ubuntu-x86_64.zip
-            release_assets/ApexCluster-macOS.zip
-            release_assets/ApexCluster-Windows-x64.zip
+          body_path: release_body.md
+          files: release_assets/*.zip
           draft: false
           prerelease: false
