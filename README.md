@@ -174,8 +174,8 @@ You can operate the cluster using either the ECU Simulator Test Bench or physica
 ### Quick Start
 ```bash
 # Clone the repository
-git clone https://github.com/skrehanahamed/horizon-cluster.git
-cd horizon-cluster
+git clone https://github.com/skrehanahamed/Apex_MidEnd_Cluster.git
+cd Apex_MidEnd_Cluster
 
 # Configure and build
 mkdir build && cd build
