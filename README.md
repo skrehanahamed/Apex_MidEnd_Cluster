@@ -13,10 +13,26 @@
   <img src="https://img.shields.io/badge/C%2B%2B-20-00599C.svg?style=for-the-badge&logo=c%2B%2B&logoColor=white" />
   <img src="https://img.shields.io/badge/CMake-3.20+-064F8C.svg?style=for-the-badge&logo=cmake&logoColor=white" />
   <img src="https://img.shields.io/badge/Platform-macOS%20|%20Linux%20|%20Windows-lightgrey.svg?style=for-the-badge" />
+  <a href="https://youtu.be/QaqZH8sqIhI" target="_blank">
+    <img src="https://img.shields.io/badge/YouTube-Video%20Demo-FF0000.svg?style=for-the-badge&logo=youtube&logoColor=white" alt="YouTube Demo" />
+  </a>
   <img src="https://img.shields.io/badge/License-MIT-green.svg?style=for-the-badge" />
 </p>
 
 A production-grade, photorealistic Automotive Digital Instrument Cluster HMI for the APEX Horizon AMT (Smart Auto), engineered using Qt 6 (QML / Qt Quick) and modern C++20. Features authentic APEX typography, 1:1 OEM telltale layouts, dynamic multi-page trip computing, full 4-wheel TPMS simulation, an autonomous driving engine, standby power management with door-wake reactivity, and an infotainment media bridge.
+
+---
+
+## 🎬 Application Video Demonstration
+
+<p align="center">
+  <a href="https://www.youtube.com/watch?v=QaqZH8sqIhI" target="_blank" title="Watch APEX Horizon AMT Instrument Cluster Demonstration on YouTube">
+    <img src="https://img.youtube.com/vi/QaqZH8sqIhI/maxresdefault.jpg" alt="Automotive Digital Instrument Cluster with Qt 6, QML & C++20 | APEX Horizon AMT" width="100%" />
+  </a>
+</p>
+<p align="center">
+  ▶️ <b><a href="https://www.youtube.com/watch?v=QaqZH8sqIhI" target="_blank">Click here to watch the full application demonstration on YouTube</a></b>
+</p>
 
 ---
 
